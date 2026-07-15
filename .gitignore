@@ -1,0 +1,36 @@
+# Python environments and generated files
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# IDE and tool caches
+.idea/
+.pytest_cache/
+.ruff_cache/
+
+# Generated SUMO logs and output files
+sumo/**/output/
+sumo/**/outputs/
+sumo/**/*.log
+sumo/**/*.tripinfo.xml
+sumo/**/*.emissions.xml
+sumo/**/*.summary.xml
+sumo/**/*.statistic.xml
+sumo/**/*.vehroute.xml
+sumo/**/*.fcd.xml
+
+# Model checkpoints
+checkpoints/
+models/
+*.ckpt
+*.pt
+*.pth
+
+# Generated experiment tables and graphs
+results/**/*.csv
+results/**/*.png
+results/**/*.jpg
+results/**/*.jpeg
+results/**/*.svg
+results/**/*.pdf

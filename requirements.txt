@@ -1,0 +1,6 @@
+sumo-rl
+pettingzoo
+gymnasium
+numpy
+pandas
+matplotlib
