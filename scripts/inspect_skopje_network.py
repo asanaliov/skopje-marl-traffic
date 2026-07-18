@@ -34,12 +34,8 @@ POLYGON_FILE = resolve_sumo_xml_file(
 PUBLIC_TRANSPORT_ROUTE_FILE = (
     SKOPJE_DIR / "demand" / "skopje_initial.rou.xml"
 ).resolve()
-TRAFFIC_LIGHTS_FILE = (
-    SKOPJE_DIR / "documentation" / "traffic_lights.csv"
-).resolve()
-NETWORK_SUMMARY_FILE = (
-    SKOPJE_DIR / "documentation" / "network_summary.md"
-).resolve()
+TRAFFIC_LIGHTS_FILE = (SKOPJE_DIR / "documentation" / "traffic_lights.csv").resolve()
+NETWORK_SUMMARY_FILE = (SKOPJE_DIR / "documentation" / "network_summary.md").resolve()
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +62,12 @@ class NetworkStats:
     geographic_boundary: tuple[float, float, float, float] | None
     edge_types: tuple[tuple[str, int], ...]
     traffic_lights: tuple[TrafficLightRecord, ...]
+    lane_count_distribution: tuple[tuple[int, int], ...] = ()
+    speed_limit_distribution: tuple[tuple[float, int], ...] = ()
+    named_edge_count: int = 0
+    unnamed_edge_count: int = 0
+    traffic_light_components: tuple[tuple[str, ...], ...] = ()
+    zero_neighbor_traffic_light_ids: tuple[str, ...] = ()
 
 
 def _load_sumolib() -> ModuleType:
@@ -131,8 +133,7 @@ def _traffic_light_records(network: Any) -> tuple[TrafficLightRecord, ...]:
         connections = traffic_light.getConnections()
         incoming_lanes = {connection[0].getID() for connection in connections}
         node_ids = {
-            connection[0].getEdge().getToNode().getID()
-            for connection in connections
+            connection[0].getEdge().getToNode().getID() for connection in connections
         }
         road_names = {
             edge.getName().strip()
@@ -168,12 +169,36 @@ def inspect_network(network_file: Path) -> NetworkStats:
     edges = tuple(network.getEdges())
     traffic_lights = _traffic_light_records(network)
     edge_type_counts = Counter(edge.getType() or "(unspecified)" for edge in edges)
+    lane_count_distribution = Counter(len(edge.getLanes()) for edge in edges)
+    speed_limit_distribution = Counter(
+        round(float(edge.getSpeed()), 2) for edge in edges
+    )
+    named_edge_count = sum(bool(edge.getName().strip()) for edge in edges)
     controlled_node_ids = {
         node_id
         for traffic_light in traffic_lights
         for node_id in traffic_light.node_ids
     }
     boundary = tuple(float(value) for value in network.getBoundary())
+
+    from scripts.audit_traffic_lights import (
+        build_agent_adjacency,
+        collect_controller_audits,
+        connected_components,
+        detect_neighbor_relationships,
+    )
+
+    controller_audits = collect_controller_audits(network)
+    neighbor_relationships = detect_neighbor_relationships(
+        network,
+        controller_audits,
+    )
+    adjacency = build_agent_adjacency(
+        controller_audits,
+        neighbor_relationships,
+    )
+    components = connected_components(adjacency)
+    audits_by_agent = {audit.agent_id: audit for audit in controller_audits}
 
     return NetworkStats(
         node_count=len(nodes),
@@ -185,6 +210,19 @@ def inspect_network(network_file: Path) -> NetworkStats:
         geographic_boundary=read_geographic_boundary(network_file),
         edge_types=tuple(sorted(edge_type_counts.items())),
         traffic_lights=traffic_lights,
+        lane_count_distribution=tuple(sorted(lane_count_distribution.items())),
+        speed_limit_distribution=tuple(sorted(speed_limit_distribution.items())),
+        named_edge_count=named_edge_count,
+        unnamed_edge_count=len(edges) - named_edge_count,
+        traffic_light_components=tuple(
+            tuple(audits_by_agent[agent_id].traffic_light_id for agent_id in component)
+            for component in components
+        ),
+        zero_neighbor_traffic_light_ids=tuple(
+            audit.traffic_light_id
+            for audit in controller_audits
+            if not adjacency[audit.agent_id]
+        ),
     )
 
 
@@ -219,9 +257,37 @@ def print_summary(network_file: Path, stats: NetworkStats) -> None:
             f"{min_lon:.8f}, {min_lat:.8f}, {max_lon:.8f}, {max_lat:.8f}"
         )
 
-    print("Edge types:")
+    print("Edge type distribution:")
     for edge_type, count in stats.edge_types:
         print(f"  - {edge_type}: {count}")
+
+    print("Lane-count distribution (lanes per edge):")
+    for lane_count, edge_count in stats.lane_count_distribution:
+        print(f"  - {lane_count}: {edge_count}")
+
+    print("Speed-limit distribution (m/s per edge):")
+    for speed_limit, edge_count in stats.speed_limit_distribution:
+        print(f"  - {speed_limit:.2f}: {edge_count}")
+
+    print(f"Named edges: {stats.named_edge_count}")
+    print(f"Unnamed edges: {stats.unnamed_edge_count}")
+
+    print("Traffic-light connected components:")
+    for component_number, component in enumerate(
+        stats.traffic_light_components,
+        start=1,
+    ):
+        print(
+            f"  - Component {component_number} ({len(component)}): "
+            f"{', '.join(component)}"
+        )
+
+    print("Traffic-light controllers with zero detected neighbors:")
+    if stats.zero_neighbor_traffic_light_ids:
+        for traffic_light_id in stats.zero_neighbor_traffic_light_ids:
+            print(f"  - {traffic_light_id}")
+    else:
+        print("  - None")
 
     print("Traffic-light IDs:")
     if not stats.traffic_lights:

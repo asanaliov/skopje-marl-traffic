@@ -70,6 +70,32 @@ Omit `--gui` for a headless run.
 This is only the first imported Skopje network.
 Traffic-light cleanup, manual intersection review, demand modeling, baseline evaluation, and multi-agent reinforcement learning are still pending.
 
+## Traffic-Light Network Audit
+
+The traffic-light audit computes directed network paths between controllers without changing the imported SUMO network.
+It records signal phases, controlled edges, lane and speed information, network-path neighbors, and conservative named-road corridor relationships.
+
+Regenerate the audit CSV files and corridor recommendations:
+
+```powershell
+python scripts/audit_traffic_lights.py
+```
+
+Print the generated directed agent adjacency list:
+
+```powershell
+python scripts/show_agent_graph.py
+```
+
+Inspect the wider network statistics and traffic-light connected components:
+
+```powershell
+python scripts/inspect_skopje_network.py
+```
+
+The audit prepares connected subsets of 6 to 10 intersections for the first multi-agent reinforcement-learning experiment.
+Candidate groups remain recommendations until their roads, turns, lanes, and signal programs are checked manually in netedit.
+
 ## Current status
 
 The initial package structure, shared configuration, setup checker, random-agent integration smoke test, and first imported Skopje scenario are in place.
