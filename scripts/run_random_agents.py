@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import traceback
 import argparse
 import sys
 from pathlib import Path
@@ -145,11 +146,8 @@ def main() -> int:
         total_reward = run_random_agents(environment)
         print(f"Simulation completed. Total reward: {total_reward:.2f}")
         return 0
-    except Exception as error:
-        print(
-            f"[ERROR] Simulation failed: {type(error).__name__}: {error}",
-            file=sys.stderr,
-        )
+    except Exception:
+        traceback.print_exc()
         return 1
     finally:
         if environment is not None:
