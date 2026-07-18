@@ -1,0 +1,7 @@
+Warning: At actuated tlLogic '170654265', linkIndex 4,5 has no controlling detector.
+Warning: At actuated tlLogic 'GS_cluster_12136663392_12136663393', linkIndex 11,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'GS_cluster_12960190508_12960190509', linkIndex 3,4,5 has no controlling detector.
+Warning: At actuated tlLogic 'GS_cluster_170640546_170645388_170684654_170684655', linkIndex 2,3,4,5,8,9,10,11 has no controlling detector.
+Warning: At actuated tlLogic 'GS_cluster_170712177_1848310997', linkIndex 2,3,4,5,16,17,18 has no controlling detector.
+Warning: busStop '12387262086' on lane '1339140549_0' is too short for vehicle '4_bus_5:2'.
+Warning: 7 total messages of type: At actuated tlLogic '%', linkIndex % has no controlling detector.

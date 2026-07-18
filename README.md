@@ -46,7 +46,31 @@ Add `--gui` to view the simulation:
 python scripts/run_random_agents.py --gui --seconds 300
 ```
 
+## Skopje OSM Scenario
+
+The complete original SUMO OSM Web Wizard output is preserved under `sumo/skopje/source/wizard_initial/`.
+The organized scenario is split across `sumo/skopje/network/`, `sumo/skopje/demand/`, `sumo/skopje/config/`, `sumo/skopje/polygons/`, and `sumo/skopje/additional/`.
+
+The road geometry and map shapes come from OpenStreetMap.
+The initial passenger demand was generated synthetically by the wizard and does not represent measured Skopje traffic volumes.
+
+Inspect the imported network without starting SUMO:
+
+```powershell
+python scripts/inspect_skopje_network.py
+```
+
+Run a 10-minute visual smoke test with the original SUMO traffic-light programs:
+
+```powershell
+python scripts/run_skopje_simulation.py --gui --seconds 600
+```
+
+Omit `--gui` for a headless run.
+This is only the first imported Skopje network.
+Traffic-light cleanup, manual intersection review, demand modeling, baseline evaluation, and multi-agent reinforcement learning are still pending.
+
 ## Current status
 
-The initial package structure, shared configuration, setup checker, and random-agent integration smoke test are in place.
-The Skopje road network, traffic demand, and reinforcement-learning training algorithms are not implemented yet.
+The initial package structure, shared configuration, setup checker, random-agent integration smoke test, and first imported Skopje scenario are in place.
+Traffic-light cleanup, calibrated demand, and reinforcement-learning training algorithms are not implemented yet.

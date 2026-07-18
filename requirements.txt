@@ -1,4 +1,6 @@
 sumo-rl
+sumolib
+traci
 pettingzoo
 gymnasium
 numpy

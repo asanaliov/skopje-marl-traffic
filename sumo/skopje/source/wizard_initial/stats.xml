@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-07-18T15:04:08.387247+01:00 by Eclipse SUMO GUI 1.27.1
+<sumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\osm.net.xml.gz"/>
+        <route-files value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\osm.passenger.trips.xml,C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\osm_pt.rou.xml"/>
+        <additional-files value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\osm.poly.xml.gz,C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\osm_stops.add.xml,C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\output.add.xml"/>
+    </input>
+
+    <output>
+        <tripinfo-output value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\tripinfos.xml"/>
+        <stop-output value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\stopinfos.xml"/>
+        <statistic-output value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\stats.xml"/>
+    </output>
+
+    <processing>
+        <ignore-route-errors value="true"/>
+        <tls.actuated.jam-threshold value="30"/>
+    </processing>
+
+    <routing>
+        <device.rerouting.adaptation-steps value="18"/>
+        <device.rerouting.adaptation-interval value="10"/>
+    </routing>
+
+    <report>
+        <verbose value="true"/>
+        <duration-log.statistics value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+    <gui_only>
+        <gui-settings-file value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\osm.view.xml"/>
+    </gui_only>
+
+</sumoConfiguration>
+-->
+
+<statistics xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/statistic_file.xsd">
+    <performance clockBegin="238038.12" clockEnd="238829.40" clockDuration="791.28" traciDuration="21.75" realTimeFactor="5.45" vehicleUpdatesPerSecond="851.11" personUpdatesPerSecond="0.00" begin="0.00" end="4309.00" duration="4309.00"/>
+    <vehicles loaded="2884" inserted="2884" running="0" waiting="0"/>
+    <teleports total="1" jam="0" yield="1" wrongLane="0"/>
+    <safety collisions="0" emergencyStops="0" emergencyBraking="0"/>
+    <persons loaded="0" running="0" jammed="0"/>
+    <personTeleports total="0" abortWait="0" wrongDest="0"/>
+    <vehicleTripStatistics count="2884" routeLength="2329.58" speed="10.14" duration="233.52" waitingTime="18.58" timeLoss="53.78" departDelay="0.58" departDelayWaiting="-1.00" totalTravelTime="673464.00" totalDepartDelay="1679.74"/>
+    <pedestrianStatistics number="0" routeLength="0.00" duration="0.00" timeLoss="0.00"/>
+    <rideStatistics number="0"/>
+    <transportStatistics number="0"/>
+</statistics>

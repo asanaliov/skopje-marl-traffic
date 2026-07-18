@@ -1,0 +1,3 @@
+# Preserve the original Windows wizard export byte for byte.
+sumo/skopje/source/wizard_initial/** -text -diff
+sumo/skopje/source/wizard_initial/README.md text diff

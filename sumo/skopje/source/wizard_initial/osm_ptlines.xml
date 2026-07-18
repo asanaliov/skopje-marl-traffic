@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-07-18T15:03:58.628559+01:00 by Eclipse SUMO netconvert 1.27.1
+<netconvertConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <type-files value="${SUMO_HOME}\data\typemap\osmNetconvert.typ.xml,${SUMO_HOME}\data\typemap\osmNetconvertShips.typ.xml,${SUMO_HOME}\data\typemap\osmNetconvertAerialway.typ.xml"/>
+        <osm-files value="osm_bbox.osm.xml.gz"/>
+    </input>
+
+    <output>
+        <output-file value="osm.net.xml.gz"/>
+        <output.street-names value="true"/>
+        <output.original-names value="true"/>
+        <ptstop-output value="osm_stops.add.xml"/>
+        <ptline-output value="osm_ptlines.xml"/>
+        <ptline-clean-up value="true"/>
+    </output>
+
+    <projection>
+        <proj.utm value="true"/>
+    </projection>
+
+    <processing>
+        <geometry.remove value="true"/>
+    </processing>
+
+    <tls_building>
+        <tls.discard-simple value="true"/>
+        <tls.join value="true"/>
+        <tls.guess-signals value="true"/>
+        <tls.default-type value="actuated"/>
+    </tls_building>
+
+    <ramp_guessing>
+        <ramps.guess value="true"/>
+    </ramp_guessing>
+
+    <edge_removal>
+        <keep-edges.by-vclass value="passenger,bus,tram,rail_urban,subway,cable_car,rail"/>
+    </edge_removal>
+
+    <junctions>
+        <junctions.join value="true"/>
+    </junctions>
+
+    <railway>
+        <railway.topology.repair value="true"/>
+    </railway>
+
+</netconvertConfiguration>
+-->
+
+<ptLines xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/ptlines_file.xsd">
+    <ptLine id="10479154" name="5ka :Ново Лисиче-Дексион" line="5" type="bus" vClass="bus" completeness="0.00" missingAfter="3">
+        <route edges="673675800"/>
+    </ptLine>
+    <ptLine id="10483461" name="5ka: Дексион-Ново Лисиче" line="5" type="bus" vClass="bus" completeness="0.00" missingAfter="6"/>
+    <ptLine id="12601354" name="Насока: Музеј на Современа Уметност кон Островска" line="17" type="bus" vClass="bus" completeness="0.13" missingAfter="20">
+        <route edges="664363931#5 604657687#1 604657687#4 -316893005 -911615952 -911615953 -1513185806 -1513185807 -316893055 -316893057 -173030582 922882401 315559886#0 440197214 -315559968#1 1339140549 256858621#0 172009786#0 1339828951#0"/>
+        <busStop id="8643084324" name="Музеј на Современа Уметност Т"/>
+        <busStop id="8643728623" name="Француски Гробишта кон Пластичарска"/>
+        <busStop id="-8643679471" name="Пластичарска Улица кон Автокоманда"/>
+    </ptLine>
+    <ptLine id="16523102" name="24" line="24" type="bus" vClass="bus" completeness="0.00" missingBefore="5" missingAfter="10"/>
+    <ptLine id="3443020" name="5" line="5" type="bus" vClass="bus" completeness="0.18" missingBefore="15" missingAfter="13">
+        <route edges="671383908 833471811 671384199 671384198 379723256#0 379723259#0 379723257 411722465#0 671596924#0 314798715 671596926#0 671596925#0 671733052 671733049 174479108#0 671733043 228892997 428455894#0 -1351223067 -1351223066 316869392 1350821660 -1453389030 -671870437 -316869188 -673675800 -132765336#1 1303162783 -1339241572 -42874773#1 -315559832#1 -1343706513 -1343706515 -302832263 -1339230599 -315559833 1339140549 256858621#0 172009786#0 1339828951#0"/>
+        <busStop id="3830705124" name="Булевар Теодосиј Гологанов ВЕРО кон Центар"/>
+        <busStop id="3830705123" name="Ф-КА ТРЕСКА-КОН ЦЕНТАР"/>
+        <busStop id="1654304624" name="Католичка црква кон Центар"/>
+        <busStop id="-1654304628" name="АМСМ-КОН ЦЕНТАР"/>
+        <busStop id="-1654304656" name="Центар Рекорд - Кон Исток"/>
+        <busStop id="12387262086" name=""/>
+    </ptLine>
+    <ptLine id="3443065" name="Насока: Карпош 3 - Горно Лисиче" line="7" type="bus" vClass="bus" completeness="0.23" missingBefore="4" missingAfter="16">
+        <route edges="669243769#0 26791907#0 1511156779 190328567 233402695#0 670277946 371244487#0 413673141#0 316864133#0 233082418#0 233082420#0 233082416#0-AddedOnRampEdge 233082416#0 233082416#1 233082416#3 233082416#9 671715324 256856539#0 413673140#0 316865357#0-AddedOnRampEdge 316865357#0 16544466#0 190303100 -230981171#1 -671889811 -16659538#1 -315559832#1 -1343706513 -1343706515 -302832263 -1339230599 -315559833 1339140549 256858621#0 172009786#0 1339828951#0"/>
+        <busStop id="2000517655" name="Карпош 2"/>
+        <busStop id="6828069425" name="Мал Одмор"/>
+        <busStop id="2005491711" name="Трговски Центар Буњаковец"/>
+        <busStop id="1867072240" name="Порта Буњаковец"/>
+        <busStop id="-1654304656" name="Центар Рекорд - Кон Исток"/>
+        <busStop id="12387262086" name=""/>
+    </ptLine>
+    <ptLine id="5638819" name="Насока Бародвци Конак Т - Транспортен Центар" line="21" type="bus" vClass="bus" completeness="0.23" missingBefore="17" missingAfter="3">
+        <route edges="233402695#0 670277946 371244487#0 413673141#0 316864133#0 233082418#0 233082420#0 233082416#0-AddedOnRampEdge 233082416#0 233082416#1 233082416#3 233082416#9 671715324 256856539#0 413673140#0 316865357#0-AddedOnRampEdge 316865357#0 16544466#0 190303100 -230981171#1 -671889811 -16659538#1 -315559832#1 -1343706513 -1343706515 -302832263 -1339230599 -315559833 1339140549 256858621#0 172009786#0 1339828951#0"/>
+        <busStop id="2000517655" name="Карпош 2"/>
+        <busStop id="6828069425" name="Мал Одмор"/>
+        <busStop id="2005491711" name="Трговски Центар Буњаковец"/>
+        <busStop id="1867072240" name="Порта Буњаковец"/>
+        <busStop id="-1654304656" name="Центар Рекорд - Кон Исток"/>
+        <busStop id="12387262086" name=""/>
+    </ptLine>
+    <ptLine id="6866918" name="24" line="24" type="bus" vClass="bus" completeness="0.35" missingBefore="7" missingAfter="6">
+        <route edges="-16548543 -1216714486 163002324#0 237990968 670564795 411008021#0 670564785 375365719#0 -256858621#1 -375365742 1339180633 316869184 52378822 1343706515 1343706513 315559832#0 42874773#0 892659828 893369879 174095136#0-AddedOnRampEdge 174095136#0 174095136#0-AddedOffRampEdge 671732418#0 1051014670#0 316865358#0 316865358#4 316865358#10 316865358#10-AddedOffRampEdge 233032141#0 253457567#0 233032128#0 233032128#2 233032128#4-AddedOnRampEdge 233032128#4 233032128#5 233032128#7 464947893#0 316864137#0 316864137#2-AddedOnRampEdge 316864137#2 -233402689#1"/>
+        <busStop id="-10616956272" name="ШАМПИОНЧЕ-КОН ЦЕНТАР"/>
+        <busStop id="-2005002530" name="Градска Болница"/>
+        <busStop id="1758481682" name="Центар Рекорд - Кон Запад"/>
+        <busStop id="1867072243" name="Соборен Храм"/>
+        <busStop id="2005491568" name="Градежен Факултет"/>
+        <busStop id="1874893962" name="Симпо"/>
+        <busStop id="2000517657" name="Хотел Карпош"/>
+    </ptLine>
+</ptLines>

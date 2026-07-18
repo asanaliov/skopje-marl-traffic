@@ -12,6 +12,7 @@ __pycache__/
 # Generated SUMO logs and output files
 sumo/**/output/
 sumo/**/outputs/
+sumo/**/runtime/
 sumo/**/*.log
 sumo/**/*.tripinfo.xml
 sumo/**/*.emissions.xml
@@ -19,6 +20,14 @@ sumo/**/*.summary.xml
 sumo/**/*.statistic.xml
 sumo/**/*.vehroute.xml
 sumo/**/*.fcd.xml
+sumo/skopje/config/edgeData.xml
+sumo/skopje/config/stats.xml
+sumo/skopje/config/stopinfos.xml
+sumo/skopje/config/tripinfos.xml
+sumo/skopje/config/vehroutes.xml
+
+# Raw timestamped wizard exports copied into sumo/skopje/source
+/20??-??-??-??-??-??/
 
 # Model checkpoints
 checkpoints/

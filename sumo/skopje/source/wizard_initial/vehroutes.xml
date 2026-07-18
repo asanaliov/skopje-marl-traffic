@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-07-18T15:04:01.919642+01:00 by Eclipse SUMO sumo 1.27.1
+<sumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\osm.net.xml.gz"/>
+        <route-files value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\trips.trips.xml"/>
+        <additional-files value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\osm_stops.add.xml"/>
+    </input>
+
+    <output>
+        <vehroute-output value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\vehroutes.xml"/>
+        <stop-output value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\stopinfos.xml"/>
+    </output>
+
+    <time>
+        <begin value="0.0"/>
+    </time>
+
+    <processing>
+        <ignore-route-errors value="true"/>
+        <time-to-teleport.disconnected value="0"/>
+        <default.departspeed value="0"/>
+    </processing>
+
+    <routing>
+        <device.rerouting.adaptation-interval value="0"/>
+    </routing>
+
+    <report>
+        <aggregate-warnings value="5"/>
+        <error-log value="C:\Users\Asan\PycharmProjects\skopje-marl-traffic\2026-07-18-15-03-48\trips.trips.xml.errorlog"/>
+        <no-step-log value="true"/>
+    </report>
+
+</sumoConfiguration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vehicle id="0_bus_5:0" type="pt_bus" depart="15.00" departLane="0" arrival="27.00">
+        <route edges="673675800"/>
+    </vehicle>
+
+    <vehicle id="2_bus_17:0" type="pt_bus" depart="133.00" departLane="0" arrival="463.00">
+        <route edges="664363931#5 604657687#1 604657687#4 -604657687#4 -183227464#2 695495160#0 -28220657#1 -28220657#0 43684454#0 -28220632#1 664339688 378460586 -911615953 -1513185806 -1513185807 -316893055 -316893057"/>
+        <stop busStop="8643084324" duration="30.00"/>
+        <stop busStop="8643728623" duration="30.00"/>
+        <stop busStop="-8643679471" duration="30.00"/>
+    </vehicle>
+
+    <vehicle id="4_bus_5:2" type="pt_bus" depart="383.00" departLane="0" arrival="1063.00">
+        <route edges="671383908 833471811 671384199 671384198 379723256#0 379723259#0 379723257 411722465#0 671596924#0 314798715 671596926#0 671596925#0 671733052 671733049 174479108#0 671733043 228892997 428455894#0 -1351223067 -1351223066 -1453389030 -671870437 -316869188 -673675800 -132765336#1 1303162783 -1339241572 -42874773#1 -315559832#1 -1343706513 -1343706515 -302832263 -1339230599 -315559833 1339140549 256858621#0 172009786#0 1339828951#0"/>
+        <stop busStop="3830705124" duration="30.00"/>
+        <stop busStop="3830705123" duration="30.00"/>
+        <stop busStop="1654304624" duration="30.00"/>
+        <stop busStop="-1654304628" duration="30.00"/>
+        <stop busStop="-1654304656" duration="30.00"/>
+        <stop busStop="12387262086" duration="30.00"/>
+    </vehicle>
+
+    <vehicle id="5_bus_7:0" type="pt_bus" depart="406.00" departLane="0" arrival="1099.00">
+        <route edges="669243769#0 256861050#0 256861050#0-AddedOffRampEdge 35784078#0 233023077#0-AddedOnRampEdge 233023077#0 233023077#2 1033057906 671702048 671386087#0 413673141#0 316864133#0 233082418#0 233082420#0 233082416#0-AddedOnRampEdge 233082416#0 233082416#1 233082416#3 233082416#9 671715324 256856539#0 413673140#0 316865357#0-AddedOnRampEdge 316865357#0 16544466#0 190303100 -230981171#1 -671889811 -16659538#1 -315559832#1 -1343706513 -1343706515 -302832263 -1339230599 -315559833 1339140549 256858621#0 172009786#0 1339828951#0"/>
+        <stop busStop="2000517655" duration="30.00"/>
+        <stop busStop="6828069425" duration="30.00"/>
+        <stop busStop="2005491711" duration="30.00"/>
+        <stop busStop="1867072240" duration="30.00"/>
+        <stop busStop="-1654304656" duration="30.00"/>
+        <stop busStop="12387262086" duration="30.00"/>
+    </vehicle>
+
+    <vehicle id="6_bus_21:0" type="pt_bus" depart="441.00" departLane="0" arrival="1159.00">
+        <route edges="233402695#0 670277946 371244487#0 413673141#0 316864133#0 233082418#0 233082420#0 233082416#0-AddedOnRampEdge 233082416#0 233082416#1 233082416#3 233082416#9 671715324 256856539#0 413673140#0 316865357#0-AddedOnRampEdge 316865357#0 16544466#0 190303100 -230981171#1 -671889811 -16659538#1 -315559832#1 -1343706513 -1343706515 -302832263 -1339230599 -315559833 1339140549 256858621#0 172009786#0 1339828951#0"/>
+        <stop busStop="2000517655" duration="30.00"/>
+        <stop busStop="6828069425" duration="30.00"/>
+        <stop busStop="2005491711" duration="30.00"/>
+        <stop busStop="1867072240" duration="30.00"/>
+        <stop busStop="-1654304656" duration="30.00"/>
+        <stop busStop="12387262086" duration="30.00"/>
+    </vehicle>
+
+    <vehicle id="7_bus_24:1" type="pt_bus" depart="535.00" departLane="0" arrival="1334.00">
+        <route edges="-16548543 -1216714486 -237990971#1 -16666151#1 16539424#0 237990968 670564795 411008021#0 670564785 375365719#0 -256858621#1 -375365742 1339180633 316869184 52378822 1343706515 1343706513 315559832#0 16659538#0 671889811 230981171#0 35837645 229984879#0 230981170#0 190344886#0 190344886#1 349499735#0 1051014670#0 316865358#0 316865358#4 316865358#10 316865358#10-AddedOffRampEdge 233032141#0 253457567#0 233032128#0 233032128#2 233032128#4-AddedOnRampEdge 233032128#4 233032128#5 233032128#7 464947893#0 316864137#0 316864137#2-AddedOnRampEdge 316864137#2"/>
+        <stop busStop="-10616956272" duration="30.00"/>
+        <stop busStop="-2005002530" duration="30.00"/>
+        <stop busStop="1758481682" duration="30.00"/>
+        <stop busStop="1867072243" duration="30.00"/>
+        <stop busStop="2005491568" duration="30.00"/>
+        <stop busStop="1874893962" duration="30.00"/>
+        <stop busStop="2000517657" duration="30.00"/>
+    </vehicle>
+
+</routes>
