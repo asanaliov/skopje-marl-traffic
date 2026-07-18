@@ -65,7 +65,7 @@ Record only manually observed scores in the individual candidate review sheets u
 
 | Candidate | Netedit reviewed | SUMO-GUI reviewed | Main concerns | Decision notes |
 | --- | --- | --- | --- | --- |
-| Candidate 1 | | | | |
+| Candidate 1 | Partial: overview, A9, and A26 screenshots | Yes: 600 seconds, seed 42 | A19 detector warning; A9 and A26 short edges; phase conflicts not visually checked | Conditional accept for comparison; final sign-off pending |
 | Candidate 2 | | | | |
 | Candidate 3 | | | | |
 

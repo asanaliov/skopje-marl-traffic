@@ -15,6 +15,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from scripts.generate_agent_labels import agent_label_file_for  # noqa: E402
 from scripts.generate_candidate_selections import selection_file_for  # noqa: E402
 from src.config import SKOPJE_INITIAL_CONFIG  # noqa: E402
 from src.environment.corridor_candidates import (  # noqa: E402
@@ -64,14 +65,17 @@ def build_netedit_command(
     executable: Path,
     network_file: Path,
     selection_file: Path,
+    label_file: Path,
 ) -> list[str]:
-    """Build the shell-free Netedit command for a prevalidated candidate."""
+    """Build the shell-free Netedit command with selection and agent POIs."""
     return [
         str(executable),
         "--sumo-net-file",
         str(network_file),
         "--selection-file",
         str(selection_file),
+        "--additional-files",
+        str(label_file),
     ]
 
 
@@ -94,14 +98,26 @@ def main(argv: Sequence[str] | None = None) -> int:
                 f"Candidate selection is missing: {selection_file}. "
                 "Run python scripts/generate_candidate_selections.py first."
             )
+        label_file = agent_label_file_for(candidate)
+        if not label_file.is_file():
+            raise FileNotFoundError(
+                f"Candidate label file is missing: {label_file}. "
+                "Run python scripts/generate_agent_labels.py first."
+            )
 
         executable = find_netedit_executable()
         command = build_netedit_command(
             executable,
             SKOPJE_INITIAL_CONFIG.net_file,
             selection_file,
+            label_file,
         )
         print_candidate(candidate)
+        print(
+            "Press F9, open the POI visualization settings, enable Show ID, "
+            "enable constant text size, and increase the text size if labels "
+            "are too small."
+        )
         subprocess.run(command, check=True)
         return 0
     except (OSError, subprocess.CalledProcessError, ValueError) as error:

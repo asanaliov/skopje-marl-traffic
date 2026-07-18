@@ -1,0 +1,10 @@
+<additional>
+    <poi id="A1" name="A1" type="traffic-light-agent" x="1873.93" y="2146.06" color="0,90,220" layer="1000" width="12" height="12" />
+    <poi id="A3" name="A3" type="traffic-light-agent" x="1206.15" y="2265.00" color="0,90,220" layer="1000" width="12" height="12" />
+    <poi id="A16" name="A16" type="traffic-light-agent" x="1116.66" y="3453.77" color="0,90,220" layer="1000" width="12" height="12" />
+    <poi id="A22" name="A22" type="traffic-light-agent" x="1395.61" y="3436.36" color="0,90,220" layer="1000" width="12" height="12" />
+    <poi id="A23" name="A23" type="traffic-light-agent" x="1841.06" y="3406.68" color="0,90,220" layer="1000" width="12" height="12" />
+    <poi id="A24" name="A24" type="traffic-light-agent" x="1293.05" y="2859.06" color="0,90,220" layer="1000" width="12" height="12" />
+    <poi id="A25" name="A25" type="traffic-light-agent" x="2005.82" y="2728.04" color="0,90,220" layer="1000" width="12" height="12" />
+    <poi id="A32" name="A32" type="traffic-light-agent" x="2347.49" y="2651.71" color="0,90,220" layer="1000" width="12" height="12" />
+</additional>

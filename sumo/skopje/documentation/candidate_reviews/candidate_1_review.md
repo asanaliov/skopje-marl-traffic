@@ -1,7 +1,7 @@
 # Candidate 1 visual review
 
-This sheet contains computed audit facts and leaves all visual scores blank.
-No candidate is selected by this document.
+This sheet combines computed audit facts, the available Netedit screenshots, and a reproducible 600-second SUMO run.
+Candidate 1 has a conditional review status and is not automatically selected by this document.
 
 ## Candidate definition
 
@@ -68,11 +68,19 @@ No candidate is selected by this document.
 
 ## Launch commands
 
+Generate the candidate agent-label POIs:
+
+```powershell
+python scripts/generate_agent_labels.py
+```
+
 Open the complete network with the candidate selection in Netedit:
 
 ```powershell
 python scripts/open_candidate_in_netedit.py --candidate 1
 ```
+
+After Netedit opens, press F9, open the POI visualization settings, enable Show ID, enable constant text size, and increase the text size if labels such as A9 and A18 are too small.
 
 Observe the original demand and signal programs in SUMO-GUI:
 
@@ -80,19 +88,87 @@ Observe the original demand and signal programs in SUMO-GUI:
 python scripts/run_candidate_review.py --candidate 1 --seconds 600 --gui
 ```
 
+## Review evidence
+
+### Reproduced SUMO run
+
+Candidate 1 was run for 600 seconds with seed 42 and the original SUMO traffic-light programs.
+The recorded result was reproduced headlessly on 2026-07-18 without changing the network or signal programs.
+
+- Vehicles that completed their routes: 295.
+- Vehicles still active at the end: 185.
+- Candidate controllers were sampled every 60 seconds for 10 samples.
+- No persistent candidate queue, collision warning, teleport warning, or simulation failure appeared in the captured output.
+- SUMO reported that bus stop `12387262086` is too short for one bus on lane `1339140549_0`; this is a separate scenario-cleanup warning and is not evidence of a Candidate 1 controller failure.
+
+| Agent | Mean sampled queue | Mean sampled waiting time | Maximum sampled queue |
+| --- | ---: | ---: | ---: |
+| A9 | 0.00 | 0.00 s | 0 |
+| A18 | 0.30 | 0.50 s | 1 |
+| A19 | 1.70 | 2.98 s | 6 |
+| A20 | 0.30 | 1.08 s | 2 |
+| A24 | 0.30 | 1.50 s | 2 |
+| A25 | 0.10 | 0.40 s | 1 |
+| A26 | 0.50 | 0.88 s | 3 |
+| A29 | 0.00 | 0.00 s | 0 |
+
+The sampled queues at A19 and A26 later decreased, so the available run does not show a permanent blockage.
+The synthetic demand was light and uneven, so this result demonstrates basic stability rather than performance under congestion.
+
+### Screenshot observations
+
+- The overview shows all eight candidate labels at their audited intersections.
+- The candidate forms one connected central urban network with a clear east-west chain and several north-south branches.
+- A24 and A25 are farther west than the compact A9, A18, A19, A20, A26, and A29 cluster, so the candidate is not a simple linear corridor.
+- The A9 close-up shows a complex skewed multi-arm intersection with short internal geometry, consistent with its short-edge warning.
+- The A26 close-up shows dense turning geometry across divided approaches, consistent with its short-edge warning.
+- No obviously disconnected candidate approach is visible in the supplied overview, A9 close-up, or A26 close-up.
+- The POI markers make the agent IDs readable but obscure part of the central lane and connection geometry during close inspection.
+
+### Evidence still missing
+
+- No A19 close-up was supplied even though A19 has the detector warning, 9 phases, 24 controlled links, and the largest sampled queue.
+- No phase-by-phase Netedit screenshots were supplied for A9, A19, or A26.
+- Conflicting green movements and required all-red transitions therefore remain unverified visually.
+- Close-up lane and turn checks were not supplied for A18, A20, A24, A25, or A29.
+- Behavior under medium or heavy congestion has not been tested and should not be inferred from the current synthetic demand.
+
+## Provisional decision
+
+Status: conditional accept for comparison with Candidates 2 and 3.
+
+Candidate 1 is connected, uses several named multi-lane corridors, has strong bidirectional neighbor connectivity, and completed the reproducible 600-second run without a persistent candidate queue.
+It should not receive final acceptance until A19 is inspected closely and the A9, A19, and A26 programs are checked phase by phase for conflicting greens and transition quality.
+No original network correction is recommended from the available screenshots alone.
+
 ## Manual scoring
 
-Leave scores blank until the candidate has been reviewed visually.
+These provisional scores use only the computed audit, the supplied screenshots, and the reproduced run.
+A score does not mark an unsupported phase-level check as complete.
 
 | Criterion | Score 1-5 | Notes |
 | --- | --- | --- |
-| Main-road relevance | | |
-| Geographic continuity | | |
-| Intersection spacing | | |
-| Traffic-light quality | | |
-| Lane and turn correctness | | |
-| Manageable complexity | | |
-| Coordination potential | | |
-| Visual clarity for presentation | | |
-| Deadlock-free simulation | | |
-| Overall suitability | | |
+| Main-road relevance | 4 | Named multi-lane corridors are present, but the subset also includes smaller inner-city links. |
+| Geographic continuity | 4 | One connected central network is visible, although it is branched rather than a single linear corridor. |
+| Intersection spacing | 3 | Several agents are closely spaced, while some detected candidate paths exceed 1 km. |
+| Traffic-light quality | 3 | Yellow states exist in the audited programs, but A19 has a detector warning and phase conflicts remain visually unverified. |
+| Lane and turn correctness | 3 | A9 and A26 appear connected in the close-ups, but the labels obscure their centers and six controllers lack close-up checks. |
+| Manageable complexity | 3 | Eight agents are manageable, but A19 and A26 each have 9 phases and the corridor has several branches. |
+| Coordination potential | 5 | The subset has 27 directed neighbor relationships, 11 bidirectional pairs, and several short direct-corridor links. |
+| Visual clarity for presentation | 4 | The labeled overview communicates the candidate well, but the large POIs obscure close-up geometry. |
+| Deadlock-free simulation | 4 | The 600-second run showed temporary queues but no persistent candidate blockage; heavier demand remains untested. |
+| Overall suitability | 4 | Strong provisional candidate, subject to A19 inspection and phase-by-phase sign-off. |
+
+## Screenshots
+
+### Candidate 1 overview
+
+![Candidate 1 labeled network](../screenshots/candidate1/01_candidate1.png)
+
+### A9 short-edge inspection
+
+![A9 close-up](../screenshots/candidate1/A9_closeup.png)
+
+### A26 short-edge inspection
+
+![A26 close-up](../screenshots/candidate1/A26_closeup.png)

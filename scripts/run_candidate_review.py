@@ -7,6 +7,7 @@ import importlib
 import os
 import shutil
 import sys
+import xml.etree.ElementTree as ET
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,6 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from scripts.generate_agent_labels import agent_label_file_for  # noqa: E402
 from scripts.run_skopje_simulation import (  # noqa: E402
     nonnegative_integer,
     positive_integer,
@@ -133,9 +135,10 @@ def build_sumo_command(
     executable: Path,
     seconds: int,
     seed: int,
+    additional_files: Sequence[Path] = (),
 ) -> list[str]:
     """Build a command that retains the original scenario and signal programs."""
-    return [
+    command = [
         str(executable),
         "-c",
         str(SKOPJE_INITIAL_SUMO_CONFIG_FILE),
@@ -144,6 +147,31 @@ def build_sumo_command(
         "--seed",
         str(seed),
     ]
+    if additional_files:
+        command.extend(
+            [
+                "--additional-files",
+                ",".join(str(path) for path in additional_files),
+            ]
+        )
+    return command
+
+
+def configured_additional_files(
+    config_file: Path = SKOPJE_INITIAL_SUMO_CONFIG_FILE,
+) -> tuple[Path, ...]:
+    """Resolve existing additional files so a GUI override does not drop them."""
+    root = ET.parse(config_file).getroot()
+    additional_element = root.find("input/additional-files")
+    if additional_element is None:
+        return ()
+
+    values = additional_element.get("value", "")
+    return tuple(
+        (config_file.parent / item.strip()).resolve()
+        for item in values.split(",")
+        if item.strip()
+    )
 
 
 def controlled_lanes_by_controller(
@@ -258,9 +286,15 @@ def run_review(
     candidate: CorridorCandidate,
     seconds: int,
     seed: int,
+    additional_files: Sequence[Path] = (),
 ) -> None:
     """Run unchanged signals and report only observed candidate metrics."""
-    command = build_sumo_command(executable, seconds, seed)
+    command = build_sumo_command(
+        executable,
+        seconds,
+        seed,
+        additional_files,
+    )
     started = False
     try:
         traci.start(command)
@@ -314,6 +348,23 @@ def main(argv: Sequence[str] | None = None) -> int:
         validate_scenario_files()
         executable = find_sumo_executable(args.gui)
         traci = load_traci()
+        additional_files: tuple[Path, ...] = ()
+        if args.gui:
+            label_file = agent_label_file_for(candidate)
+            if not label_file.is_file():
+                raise FileNotFoundError(
+                    f"Candidate label file is missing: {label_file}. "
+                    "Run python scripts/generate_agent_labels.py first."
+                )
+            additional_files = (*configured_additional_files(), label_file)
+            missing_additional_files = [
+                path for path in additional_files if not path.is_file()
+            ]
+            if missing_additional_files:
+                missing = "\n".join(f"- {path}" for path in missing_additional_files)
+                raise FileNotFoundError(
+                    f"Required GUI additional files are missing:\n{missing}"
+                )
         mode = "SUMO-GUI" if args.gui else "headless SUMO"
         print(
             f"Reviewing {candidate.name} in {mode} for {args.seconds}s "
@@ -321,7 +372,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         print(f"Agents: {', '.join(candidate.agent_ids)}")
         print(f"Traffic-light IDs: {', '.join(candidate.traffic_light_ids)}")
-        run_review(traci, executable, candidate, args.seconds, args.seed)
+        if args.gui:
+            print(
+                "Press F9, open the POI visualization settings, enable Show ID, "
+                "enable constant text size, and increase the text size if labels "
+                "are too small."
+            )
+        run_review(
+            traci,
+            executable,
+            candidate,
+            args.seconds,
+            args.seed,
+            additional_files,
+        )
         return 0
     except Exception as error:
         print(
