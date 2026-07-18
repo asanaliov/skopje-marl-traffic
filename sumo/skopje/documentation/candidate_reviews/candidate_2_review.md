@@ -64,11 +64,19 @@ No candidate is selected by this document.
 
 ## Launch commands
 
+Generate the candidate agent-label POIs:
+
+```powershell
+python scripts/generate_agent_labels.py
+```
+
 Open the complete network with the candidate selection in Netedit:
 
 ```powershell
 python scripts/open_candidate_in_netedit.py --candidate 2
 ```
+
+After Netedit opens, press F9, open the POI visualization settings, enable Show ID, enable constant text size, and increase the text size if labels such as A9 and A18 are too small.
 
 Observe the original demand and signal programs in SUMO-GUI:
 

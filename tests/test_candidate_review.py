@@ -3,16 +3,26 @@
 from __future__ import annotations
 
 import gzip
+import hashlib
+import math
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
 
 from scripts.generate_candidate_selections import (
+    CandidateSelection,
     REVIEW_CRITERIA,
     render_selection,
     review_file_for,
     selection_file_for,
+    write_review_document,
+)
+from scripts.generate_agent_labels import (
+    agent_label_file_for,
+    generate_agent_label_files,
+    load_audited_coordinates,
+    render_agent_labels,
 )
 from scripts.open_candidate_in_netedit import (
     build_netedit_command,
@@ -20,6 +30,7 @@ from scripts.open_candidate_in_netedit import (
 )
 from scripts.run_candidate_review import (
     build_sumo_command,
+    configured_additional_files,
     parse_args as parse_review_args,
 )
 from scripts.summarize_candidates import calculate_candidate_summary
@@ -126,13 +137,21 @@ def test_launcher_command_construction() -> None:
     executable = Path("C:/SUMO/bin/netedit.exe")
     network_file = Path("sumo/skopje/network/skopje_initial.net.xml.gz")
     selection_file = Path("sumo/skopje/selections/candidate_1.txt")
+    label_file = Path("sumo/skopje/labels/candidate_1_agent_labels.add.xml")
 
-    assert build_netedit_command(executable, network_file, selection_file) == [
+    assert build_netedit_command(
+        executable,
+        network_file,
+        selection_file,
+        label_file,
+    ) == [
         str(executable),
         "--sumo-net-file",
         str(network_file),
         "--selection-file",
         str(selection_file),
+        "--additional-files",
+        str(label_file),
     ]
     assert build_sumo_command(Path("sumo"), 600, 42) == [
         "sumo",
@@ -143,6 +162,72 @@ def test_launcher_command_construction() -> None:
         "--seed",
         "42",
     ]
+
+
+def test_gui_launch_commands_reference_the_matching_label_files() -> None:
+    configured_files = configured_additional_files()
+
+    for candidate in CORRIDOR_CANDIDATES:
+        label_file = agent_label_file_for(candidate)
+        additional_files = (*configured_files, label_file)
+        command = build_sumo_command(Path("sumo-gui"), 600, 42, additional_files)
+
+        additional_option_index = command.index("--additional-files")
+        command_additional_files = command[additional_option_index + 1].split(",")
+        assert str(label_file) in command_additional_files
+        assert all(str(path) in command_additional_files for path in additional_files)
+
+
+def test_generated_agent_labels_match_candidates_and_audit_coordinates() -> None:
+    coordinates = load_audited_coordinates()
+
+    for candidate in CORRIDOR_CANDIDATES:
+        label_file = agent_label_file_for(candidate)
+        root = ET.parse(label_file).getroot()
+        pois = root.findall("poi")
+        poi_ids = [poi.get("id") for poi in pois]
+
+        assert root.tag == "additional"
+        assert poi_ids == list(candidate.agent_ids)
+        assert len(poi_ids) == len(set(poi_ids))
+        for poi, agent_id in zip(pois, candidate.agent_ids, strict=True):
+            x = float(poi.get("x", "nan"))
+            y = float(poi.get("y", "nan"))
+            assert math.isfinite(x)
+            assert math.isfinite(y)
+            assert x == coordinates[agent_id].x
+            assert y == coordinates[agent_id].y
+            assert poi.get("name") == agent_id
+            assert poi.get("type") == "traffic-light-agent"
+
+
+def test_agent_label_generation_is_deterministic(tmp_path: Path) -> None:
+    coordinates = load_audited_coordinates()
+    candidate = get_candidate("1")
+
+    assert render_agent_labels(candidate, coordinates) == render_agent_labels(
+        candidate,
+        coordinates,
+    )
+
+    first_directory = tmp_path / "first"
+    second_directory = tmp_path / "second"
+    first_files = generate_agent_label_files(first_directory)
+    second_files = generate_agent_label_files(second_directory)
+    assert [path.read_bytes() for path in first_files] == [
+        path.read_bytes() for path in second_files
+    ]
+
+
+def test_agent_label_generation_does_not_modify_source_network(
+    tmp_path: Path,
+) -> None:
+    digest_before = hashlib.sha256(SKOPJE_INITIAL_CONFIG.net_file.read_bytes()).digest()
+
+    generate_agent_label_files(tmp_path / "labels")
+
+    digest_after = hashlib.sha256(SKOPJE_INITIAL_CONFIG.net_file.read_bytes()).digest()
+    assert digest_after == digest_before
 
 
 def test_invalid_candidate_arguments_are_rejected() -> None:
@@ -168,7 +253,27 @@ def test_review_documents_include_all_required_criteria() -> None:
             for traffic_light_id in candidate.traffic_light_ids
         )
         for criterion in REVIEW_CRITERIA:
-            assert f"| {criterion} | | |" in document
+            assert f"| {criterion} |" in document
+        assert "python scripts/generate_agent_labels.py" in document
+        assert "press F9" in document
+        assert "enable Show ID" in document
+
+
+def test_completed_review_evidence_is_not_overwritten(tmp_path: Path) -> None:
+    output_file = tmp_path / "completed_review.md"
+    completed_document = "# Review\n\n## Review evidence\n\nKeep this evidence.\n"
+    output_file.write_text(completed_document, encoding="utf-8")
+    selection = CandidateSelection(
+        candidate=get_candidate("1"),
+        junction_ids=(),
+        edge_ids=(),
+        corridor_edge_ids=(),
+        warnings=(),
+    )
+
+    write_review_document(output_file, selection, {}, ())
+
+    assert output_file.read_text(encoding="utf-8") == completed_document
 
 
 def test_candidate_summary_calculates_counts_from_small_fixtures() -> None:

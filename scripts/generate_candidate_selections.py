@@ -318,12 +318,20 @@ def render_review_document(
             "",
             "## Launch commands",
             "",
+            "Generate the candidate agent-label POIs:",
+            "",
+            "```powershell",
+            "python scripts/generate_agent_labels.py",
+            "```",
+            "",
             "Open the complete network with the candidate selection in Netedit:",
             "",
             "```powershell",
             "python scripts/open_candidate_in_netedit.py "
             f"--candidate {candidate.candidate_id}",
             "```",
+            "",
+            "After Netedit opens, press F9, open the POI visualization settings, enable Show ID, enable constant text size, and increase the text size if labels such as A9 and A18 are too small.",
             "",
             "Observe the original demand and signal programs in SUMO-GUI:",
             "",
@@ -351,8 +359,12 @@ def write_review_document(
     audits_by_agent: Mapping[str, ControllerAudit],
     relationships: Sequence[NeighborRelationship],
 ) -> None:
-    """Write one deterministic manual-review sheet."""
+    """Write one review sheet without erasing recorded manual evidence."""
     output_file.parent.mkdir(parents=True, exist_ok=True)
+    if output_file.is_file() and "## Review evidence" in output_file.read_text(
+        encoding="utf-8"
+    ):
+        return
     output_file.write_text(
         render_review_document(selection, audits_by_agent, relationships),
         encoding="utf-8",

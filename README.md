@@ -107,6 +107,12 @@ Regenerate deterministic selection files and candidate review sheets:
 python scripts/generate_candidate_selections.py
 ```
 
+Generate POI labels from the audited agent coordinates:
+
+```powershell
+python scripts/generate_agent_labels.py
+```
+
 Print the computed candidate comparison table:
 
 ```powershell
@@ -118,6 +124,9 @@ Open Candidate 1 with its selection in Netedit:
 ```powershell
 python scripts/open_candidate_in_netedit.py --candidate 1
 ```
+
+After Netedit opens, press F9 and open the POI visualization settings.
+Enable Show ID and constant text size, then increase the text size if labels such as A9 and A18 are too small.
 
 Observe Candidate 1 under the original demand and signal programs in SUMO-GUI:
 
