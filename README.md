@@ -96,6 +96,39 @@ python scripts/inspect_skopje_network.py
 The audit prepares connected subsets of 6 to 10 intersections for the first multi-agent reinforcement-learning experiment.
 Candidate groups remain recommendations until their roads, turns, lanes, and signal programs are checked manually in netedit.
 
+## Candidate Corridor Review
+
+The candidate review tools compare the three audited 8-controller subsets without modifying the complete imported network, its demand, or its original traffic-light programs.
+The generated Netedit selections highlight each candidate's controlled junctions, controlled passenger edges, and passenger-compatible paths between candidate neighbors.
+
+Regenerate deterministic selection files and candidate review sheets:
+
+```powershell
+python scripts/generate_candidate_selections.py
+```
+
+Print the computed candidate comparison table:
+
+```powershell
+python scripts/summarize_candidates.py
+```
+
+Open Candidate 1 with its selection in Netedit:
+
+```powershell
+python scripts/open_candidate_in_netedit.py --candidate 1
+```
+
+Observe Candidate 1 under the original demand and signal programs in SUMO-GUI:
+
+```powershell
+python scripts/run_candidate_review.py --candidate 1 --seconds 600 --gui
+```
+
+Replace `1` with `2` or `3` to review the other candidates.
+Visual inspection is required before choosing a candidate or reducing the network for the first multi-agent reinforcement-learning experiment.
+No candidate has been selected automatically.
+
 ## Current status
 
 The initial package structure, shared configuration, setup checker, random-agent integration smoke test, and first imported Skopje scenario are in place.
