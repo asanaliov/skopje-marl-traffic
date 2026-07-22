@@ -135,8 +135,33 @@ python scripts/run_candidate_review.py --candidate 1 --seconds 600 --gui
 ```
 
 Replace `1` with `2` or `3` to review the other candidates.
-Visual inspection is required before choosing a candidate or reducing the network for the first multi-agent reinforcement-learning experiment.
-No candidate has been selected automatically.
+
+## Selected Experimental Corridor
+
+Candidate 1 was manually reviewed and selected as the official experimental corridor.
+Its selected agents are A9, A18, A19, A20, A24, A25, A26, and A29.
+The full Skopje network remains active, and only these eight traffic lights are future learning agents.
+All other traffic lights retain their original fixed SUMO programs.
+
+Inspect the selected mappings and graph:
+
+```powershell
+python scripts/show_selected_corridor.py
+```
+
+Run the complete scenario headlessly without learning actions:
+
+```powershell
+python scripts/run_selected_corridor.py --seconds 600
+```
+
+Run the same fixed-program smoke test in SUMO-GUI:
+
+```powershell
+python scripts/run_selected_corridor.py --gui --seconds 600
+```
+
+See `sumo/skopje/documentation/selected_corridor.md` for the audited controller mappings, directed neighbor distances, review evidence, warnings, and limitations.
 
 ## Current status
 
