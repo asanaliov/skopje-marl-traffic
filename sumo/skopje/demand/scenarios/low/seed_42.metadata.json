@@ -1,0 +1,37 @@
+{
+  "background_trip_count": 270,
+  "corridor_trip_count": 630,
+  "duration_seconds": 3600,
+  "generated_at_utc": "2026-07-22T17:20:34.707488+00:00",
+  "generated_vehicle_count": 900,
+  "generator_version": "1.0",
+  "network_file": "sumo/skopje/network/skopje_initial.net.xml.gz",
+  "requested_vehicle_count": 900,
+  "route_length_m": {
+    "maximum": 4991.12,
+    "mean": 2213.99,
+    "minimum": 301.57
+  },
+  "scenario": "low",
+  "seed": 42,
+  "selected_agent_crossing_distribution": {
+    "0": 270,
+    "1": 269,
+    "2": 169,
+    "3": 173,
+    "4": 13,
+    "5": 6
+  },
+  "selected_agent_ids": [
+    "A9",
+    "A18",
+    "A19",
+    "A20",
+    "A24",
+    "A25",
+    "A26",
+    "A29"
+  ],
+  "source_network_sha256": "2e6d7ae95c8a086ff49249de83ac09017ecf18b33858d8524ba769c91905997e",
+  "synthetic_demand_notice": "Synthetic experimental demand; not official or measured Skopje traffic data."
+}

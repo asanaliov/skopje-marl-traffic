@@ -68,7 +68,7 @@ python scripts/run_skopje_simulation.py --gui --seconds 600
 
 Omit `--gui` for a headless run.
 This is only the first imported Skopje network.
-Traffic-light cleanup, manual intersection review, demand modeling, baseline evaluation, and multi-agent reinforcement learning are still pending.
+Traffic-light cleanup, measured-demand calibration, baseline evaluation, and multi-agent reinforcement learning are still pending.
 
 ## Traffic-Light Network Audit
 
@@ -163,7 +163,35 @@ python scripts/run_selected_corridor.py --gui --seconds 600
 
 See `sumo/skopje/documentation/selected_corridor.md` for the audited controller mappings, directed neighbor distances, review evidence, warnings, and limitations.
 
+## Synthetic Traffic-Demand Scenarios
+
+Low, medium, and high synthetic demand scenarios use the same complete Skopje network with different passenger-vehicle volumes.
+Most generated trips traverse the selected corridor, while background trips retain wider-network traffic.
+These scenarios are synthetic experimental loads and are not official or measured Skopje traffic data.
+Seed 42 is the canonical committed example.
+
+Generate all canonical scenarios:
+
+```powershell
+python scripts/generate_traffic_demand.py --all --seed 42
+```
+
+Validate the generated files and run each scenario headlessly:
+
+```powershell
+python scripts/validate_traffic_demand.py --all --seed 42
+```
+
+Review the medium scenario visually:
+
+```powershell
+python scripts/run_traffic_scenario.py --scenario medium --seed 42 --gui
+```
+
+Fixed-time, independent RL, and coordinated MARL comparisons are not implemented yet.
+See `sumo/skopje/documentation/traffic_demand.md` for generation details, validation results, limitations, and reproducibility guarantees.
+
 ## Current status
 
 The initial package structure, shared configuration, setup checker, random-agent integration smoke test, and first imported Skopje scenario are in place.
-Traffic-light cleanup, calibrated demand, and reinforcement-learning training algorithms are not implemented yet.
+Traffic-light cleanup, calibrated real-world demand, and reinforcement-learning training algorithms are not implemented yet.

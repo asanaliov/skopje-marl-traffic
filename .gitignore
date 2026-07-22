@@ -26,6 +26,22 @@ sumo/skopje/config/stopinfos.xml
 sumo/skopje/config/tripinfos.xml
 sumo/skopje/config/vehroutes.xml
 
+# Synthetic demand scenario runtime and non-canonical seed files
+sumo/skopje/demand/scenarios/**/.duarouter_*/
+sumo/skopje/demand/scenarios/**/*.tmp
+sumo/skopje/demand/scenarios/**/validation_*/
+sumo/skopje/demand/scenarios/**/*.png
+sumo/skopje/demand/scenarios/**/*.jpg
+sumo/skopje/demand/scenarios/**/*.jpeg
+sumo/skopje/demand/scenarios/**/seed_*.trips.xml
+sumo/skopje/demand/scenarios/**/seed_*.rou.xml
+sumo/skopje/demand/scenarios/**/seed_*.metadata.json
+sumo/skopje/config/scenarios/*_seed_*.sumocfg
+!sumo/skopje/demand/scenarios/**/seed_42.trips.xml
+!sumo/skopje/demand/scenarios/**/seed_42.rou.xml
+!sumo/skopje/demand/scenarios/**/seed_42.metadata.json
+!sumo/skopje/config/scenarios/*_seed_42.sumocfg
+
 # Raw timestamped wizard exports copied into sumo/skopje/source
 /20??-??-??-??-??-??/
 
