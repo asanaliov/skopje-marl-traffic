@@ -191,6 +191,34 @@ python scripts/run_traffic_scenario.py --scenario medium --seed 42 --gui
 Fixed-time, independent RL, and coordinated MARL comparisons are not implemented yet.
 See `sumo/skopje/documentation/traffic_demand.md` for generation details, validation results, limitations, and reproducibility guarantees.
 
+## Traffic-Agent Interface
+
+The selected agents can observe queue lengths, vehicle counts, mean accumulated waiting times, and mean speeds for their controlled incoming lanes.
+Their only actions are `KEEP` and `NEXT_GREEN`.
+The safe action wrapper preserves the immediate yellow and all-red phases from each original SUMO program and never jumps directly between conflicting greens.
+Pure local rewards and optional future neighbor-aware and global corridor reward helpers are defined separately from experiment metrics.
+No learning algorithm is implemented yet.
+
+Inspect A19 in the canonical medium scenario:
+
+```powershell
+python scripts/inspect_traffic_agent.py --scenario medium --seed 42 --agent A19
+```
+
+Inspect all eight selected agents:
+
+```powershell
+python scripts/inspect_traffic_agent.py --scenario medium --seed 42 --all
+```
+
+Inspect the high-demand scenario in SUMO-GUI:
+
+```powershell
+python scripts/inspect_traffic_agent.py --scenario high --seed 42 --all --gui
+```
+
+See `sumo/skopje/documentation/traffic_agent_interface.md` for the feature ordering, phase structures, timing policy, safe-transition rules, reward formulas, and limitations.
+
 ## Current status
 
 The initial package structure, shared configuration, setup checker, random-agent integration smoke test, and first imported Skopje scenario are in place.
