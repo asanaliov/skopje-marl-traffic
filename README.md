@@ -219,7 +219,37 @@ python scripts/inspect_traffic_agent.py --scenario high --seed 42 --all --gui
 
 See `sumo/skopje/documentation/traffic_agent_interface.md` for the feature ordering, phase structures, timing policy, safe-transition rules, reward formulas, and limitations.
 
+## Experiment Metrics
+
+Every controller (fixed-time, independent RL, coordinated MARL) reports results
+through the same shared package in `src/evaluation/`, so runs stay directly
+comparable.
+
+`EpisodeMetrics` is a typed, validated result record (non-negative counts and
+durations, arrived ≤ departed, etc). `MetricsCollector` isolates all TraCI calls
+needed to build one during a run; it does not start or close SUMO itself — the
+calling script owns that lifecycle. Results are appended to
+`results/experiments.csv` with a stable column order and a header written once.
+
+Average waiting time is the mean, over vehicles that departed during the run,
+of each vehicle's accumulated waiting time, read once per vehicle rather than
+summed across steps. Average speed excludes steps with zero active vehicles
+rather than counting them as speed 0. `total_reward` is left unset (not zero)
+for non-learning controllers such as fixed-time.
+
+Print a summary grouped by controller and scenario:
+
+```powershell
+python scripts/summarize_experiments.py
+```
+
+Run the metrics tests, which do not require SUMO or SUMO-GUI:
+
+```powershell
+python -m pytest tests/test_metrics.py
+```
+
 ## Current status
 
-The initial package structure, shared configuration, setup checker, random-agent integration smoke test, and first imported Skopje scenario are in place.
-Traffic-light cleanup, calibrated real-world demand, and reinforcement-learning training algorithms are not implemented yet.
+The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, and shared experiment-metrics package are in place.
+Traffic-light cleanup, calibrated real-world demand, baseline evaluation, and reinforcement-learning training algorithms are not implemented yet.
