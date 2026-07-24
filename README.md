@@ -219,6 +219,33 @@ python scripts/inspect_traffic_agent.py --scenario high --seed 42 --all --gui
 
 See `sumo/skopje/documentation/traffic_agent_interface.md` for the feature ordering, phase structures, timing policy, safe-transition rules, reward formulas, and limitations.
 
+## Multi-Agent SUMO Environment
+
+`MultiAgentTrafficEnvironment` owns the SUMO and TraCI lifecycle and coordinates any ordered subset of the eight selected `TrafficSignal` wrappers.
+Pass `None` to `step()` to observe the original imported controllers, or pass a complete mapping of agent IDs to `TrafficAction` values for safe controlled operation.
+Configuring only `A19` uses the same class as a single-agent environment.
+
+```python
+from src.environment import (
+    MultiAgentEnvironmentConfig,
+    MultiAgentTrafficEnvironment,
+    TrafficAction,
+)
+
+config = MultiAgentEnvironmentConfig(agent_ids=("A19", "A26"))
+with MultiAgentTrafficEnvironment(config) as environment:
+    observations = environment.reset()
+    result = environment.step(
+        {"A19": TrafficAction.KEEP, "A26": TrafficAction.NEXT_GREEN}
+    )
+```
+
+Run a short headless inspection without a learning algorithm:
+
+```powershell
+python scripts/inspect_multi_agent_environment.py --scenario low --seed 42 --seconds 120 --agents A19,A26 --policy cycle
+```
+
 ## Experiment Metrics
 
 Every controller (fixed-time, independent RL, coordinated MARL) reports results
