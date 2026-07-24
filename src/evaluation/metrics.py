@@ -105,6 +105,15 @@ class EpisodeMetrics:
     teleport_count: int = 0
     total_reward: float | None = None
 
+    # Optional controller-timing-policy fields. Left as None (not 0) for
+    # controllers that have no such notion (e.g. an RL controller with no
+    # fixed green duration), so they read back as blank in the CSV rather
+    # than a misleading zero. Appended at the end so existing CSVs and call
+    # sites stay valid, per this module's own column-stability policy.
+    fixed_green_seconds: float | None = None
+    demand_seconds: float | None = None
+    cooldown_seconds: float | None = None
+
     per_agent: tuple[PerAgentDiagnostics, ...] = field(default_factory=tuple)
 
     def __post_init__(self) -> None:
@@ -127,6 +136,9 @@ class EpisodeMetrics:
             "active_vehicles_remaining", self.active_vehicles_remaining
         )
         _require_non_negative("teleport_count", self.teleport_count)
+        _require_non_negative("fixed_green_seconds", self.fixed_green_seconds)
+        _require_non_negative("demand_seconds", self.demand_seconds)
+        _require_non_negative("cooldown_seconds", self.cooldown_seconds)
 
         if self.total_reward is not None and self.total_reward != self.total_reward:
             # NaN check (NaN is the only float that isn't equal to itself).

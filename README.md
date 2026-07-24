@@ -249,7 +249,40 @@ Run the metrics tests, which do not require SUMO or SUMO-GUI:
 python -m pytest tests/test_metrics.py
 ```
 
+## Static Fixed-Time Baseline
+
+The static fixed-time controller (`static_fixed_time`) is an experimental baseline created for this project.
+It reuses the safe KEEP/NEXT_GREEN traffic-agent wrapper so it preserves each selected traffic light's original phase order, phase-state strings, and yellow/all-red transition durations, and only assigns a deterministic duration to green phases.
+It is not claimed to reproduce the official traffic-light timings used by the City of Skopje; we do not have verified official Skopje signal timings, detector logic, offsets, or time-of-day plans.
+The currently imported SUMO traffic-light programs for the full network are actuated programs and are a separate, later comparison (`imported_actuated`).
+
+Run one experiment:
+
+```powershell
+python scripts/run_static_fixed_time_experiment.py --scenario medium --seed 42 --demand-seconds 3600 --cooldown-seconds 600
+```
+
+Run all three canonical scenarios in one command:
+
+```powershell
+python scripts/run_static_fixed_time_suite.py --seeds 42
+```
+
+Summarize saved results:
+
+```powershell
+python scripts/summarize_experiments.py
+```
+
+Run the baseline's unit tests, which do not require SUMO or SUMO-GUI:
+
+```powershell
+python -m pytest tests/test_static_fixed_time_baseline.py
+```
+
+See `sumo/skopje/documentation/static_fixed_time_baseline.md` for the timing-policy design, configuration, experiment-timing windows, and validation checklist.
+
 ## Current status
 
-The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, and shared experiment-metrics package are in place.
-Traffic-light cleanup, calibrated real-world demand, baseline evaluation, and reinforcement-learning training algorithms are not implemented yet.
+The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, and static fixed-time baseline are in place.
+Traffic-light cleanup, calibrated real-world demand, evaluation of the imported actuated programs as a baseline, and reinforcement-learning training algorithms are not implemented yet.

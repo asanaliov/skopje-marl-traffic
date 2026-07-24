@@ -35,6 +35,9 @@ COLUMNS: list[str] = [
     "active_vehicles_remaining",
     "teleport_count",
     "total_reward",
+    "fixed_green_seconds",
+    "demand_seconds",
+    "cooldown_seconds",
 ]
 
 
