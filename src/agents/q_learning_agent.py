@@ -88,6 +88,7 @@ class QLearningAgent:
         self._epsilon = self.config.epsilon
         self._random = random.Random(self.config.random_seed)
         self._q_table: dict[tuple[Hashable, TrafficAction], float] = {}
+        self._training_episode_count = 0
 
     @property
     def actions(self) -> tuple[TrafficAction, TrafficAction]:
@@ -98,6 +99,11 @@ class QLearningAgent:
     def epsilon(self) -> float:
         """Return the current exploration probability."""
         return self._epsilon
+
+    @property
+    def training_episode_count(self) -> int:
+        """Return the number of completed training episodes."""
+        return self._training_episode_count
 
     @property
     def q_table(
@@ -201,11 +207,42 @@ class QLearningAgent:
 
     def end_episode(self) -> float:
         """Decay epsilon once and return the bounded new value."""
+        self._training_episode_count += 1
         self._epsilon = max(
             self.config.minimum_epsilon,
             self._epsilon * self.config.epsilon_decay,
         )
         return self._epsilon
+
+    def load_q_table(
+        self,
+        entries: Mapping[tuple[Hashable, TrafficAction], float],
+        *,
+        epsilon: float | None = None,
+        training_episode_count: int | None = None,
+    ) -> None:
+        """Replace learned values and optional episode metadata."""
+        if not isinstance(entries, Mapping):
+            raise TypeError("entries must be a mapping.")
+        loaded: dict[tuple[Hashable, TrafficAction], float] = {}
+        for (state, action), value in entries.items():
+            state_key = self._validate_state(state, "state")
+            valid_action = self._validate_action(action)
+            if isinstance(value, bool) or not math.isfinite(float(value)):
+                raise ValueError("Q-values must be finite numeric values.")
+            loaded[(state_key, valid_action)] = float(value)
+        if epsilon is not None:
+            epsilon_value = _validated_probability(epsilon, "epsilon")
+            self._epsilon = epsilon_value
+        if training_episode_count is not None:
+            if (
+                not isinstance(training_episode_count, int)
+                or isinstance(training_episode_count, bool)
+                or training_episode_count < 0
+            ):
+                raise ValueError("training_episode_count must be non-negative.")
+            self._training_episode_count = training_episode_count
+        self._q_table = loaded
 
     def clear_q_table(self) -> None:
         """Remove all learned values without changing epsilon or RNG state."""
