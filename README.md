@@ -309,7 +309,40 @@ python -m pytest tests/test_static_fixed_time_baseline.py
 
 See `sumo/skopje/documentation/static_fixed_time_baseline.md` for the timing-policy design, configuration, experiment-timing windows, and validation checklist.
 
+## Imported SUMO Actuated Baseline
+
+The imported actuated baseline (`imported_actuated`) evaluates the traffic-light programs already contained in the imported SUMO network, without issuing any manual phase-control actions.
+It reuses `MultiAgentTrafficEnvironment` and always advances with `environment.step(None)`, so the imported SUMO actuated programs stay fully in control of all eight selected traffic lights.
+It is not claimed to reproduce the official operational traffic-control system of the City of Skopje; we have not verified the imported programs against official Skopje signal plans, detector logic, offsets, or time-of-day schedules.
+This baseline establishes a responsive, non-learning benchmark that future Q-learning and coordinated MARL controllers must beat.
+
+Run one experiment:
+
+```powershell
+python scripts/run_imported_actuated_experiment.py --scenario medium --seed 42 --demand-seconds 3600 --cooldown-seconds 600
+```
+
+Run all three canonical scenarios in one command:
+
+```powershell
+python scripts/run_imported_actuated_suite.py --seed 42
+```
+
+Summarize saved results:
+
+```powershell
+python scripts/summarize_experiments.py
+```
+
+Run the baseline's unit tests, which do not require SUMO or SUMO-GUI:
+
+```powershell
+python -m pytest tests/test_imported_actuated_baseline.py
+```
+
+See `sumo/skopje/documentation/imported_actuated_baseline.md` for the zero-action design, experiment-timing windows, and validation checklist.
+
 ## Current status
 
-The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, and static fixed-time baseline are in place.
-Traffic-light cleanup, calibrated real-world demand, evaluation of the imported actuated programs as a baseline, and reinforcement-learning training algorithms are not implemented yet.
+The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, and imported actuated baseline are in place.
+Traffic-light cleanup, calibrated real-world demand, and reinforcement-learning training algorithms are not implemented yet.
