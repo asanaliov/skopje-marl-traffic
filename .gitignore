@@ -46,7 +46,8 @@ sumo/skopje/config/scenarios/*_seed_*.sumocfg
 /20??-??-??-??-??-??/
 
 # Model checkpoints
-checkpoints/
+checkpoints/*
+!checkpoints/final_models/
 models/
 *.ckpt
 *.pt
