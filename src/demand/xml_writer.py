@@ -12,7 +12,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from random import Random
-from typing import Any
 
 from src.config import (
     PROJECT_ROOT,
@@ -20,7 +19,9 @@ from src.config import (
     SKOPJE_DEMAND_DIR,
     SKOPJE_INITIAL_VIEW_FILE,
 )
-from src.demand.network_routes import RouteAssignment
+from typing import TYPE_CHECKING, Any
+if TYPE_CHECKING:
+    from src.demand.network_routes import RouteAssignment
 from src.demand.scenarios import TrafficDemandScenario
 from src.environment.selected_corridor import SelectedCorridor
 
