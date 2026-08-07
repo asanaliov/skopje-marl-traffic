@@ -38,6 +38,7 @@ class QLearningTrainingConfig:
     seed: int = 42
     episodes: int = 10
     episode_seconds: float = 600.0
+    cooldown_seconds: float = 600.0
     decision_interval_seconds: float = 5.0
     gui: bool = False
     checkpoint_path: Path | None = None
@@ -62,6 +63,7 @@ class QLearningTrainingConfig:
             raise ValueError("episodes must be a positive integer.")
         for value, name in (
             (self.episode_seconds, "episode_seconds"),
+            (self.cooldown_seconds, "cooldown_seconds"),
             (self.decision_interval_seconds, "decision_interval_seconds"),
         ):
             numeric = float(value)
@@ -171,7 +173,7 @@ class IndependentQLearningTrainer:
             seed=self.config.seed,
             agent_ids=("A19",),
             demand_seconds=self.config.episode_seconds,
-            cooldown_seconds=0.0,
+            cooldown_seconds=self.config.cooldown_seconds,
             decision_interval_seconds=self.config.decision_interval_seconds,
             gui=self.config.gui,
             reward_mode="local",
@@ -346,7 +348,7 @@ class IndependentQLearningTrainer:
                 episode_metrics = replace(
                     episode_metrics,
                     demand_seconds=self.config.episode_seconds,
-                    cooldown_seconds=0.0,
+                    cooldown_seconds=self.config.cooldown_seconds,
                 )
                 append_result(episode_metrics)
 
