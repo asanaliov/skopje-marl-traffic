@@ -256,6 +256,7 @@ class MultiAgentTrafficEnvironment:
         traci_connection: Any | None = None,
         traffic_signal_factory: Callable[..., Any] = TrafficSignal,
         sumo_executable: str | Path | None = None,
+        on_raw_step: Callable[[Any], None] | None = None,
     ) -> None:
         """Store validated configuration without starting SUMO."""
         self.config = config or MultiAgentEnvironmentConfig()
@@ -267,6 +268,7 @@ class MultiAgentTrafficEnvironment:
             Path(sumo_executable) if sumo_executable is not None else None
         )
         self._traci: Any | None = None
+        self._on_raw_step = on_raw_step
         self._traffic_signals: dict[str, Any] = {}
         self._started = False
         self._done = False
@@ -441,6 +443,8 @@ class MultiAgentTrafficEnvironment:
         )
         for _ in range(step_count):
             self._traci.simulationStep()
+            if self._on_raw_step is not None:
+                self._on_raw_step(self._traci)
             get_departed = getattr(
                 self._traci.simulation,
                 "getDepartedNumber",

@@ -16,7 +16,16 @@ from src.training.independent_q_learning import (
     QLearningTrainingConfig,
 )
 
-
+@pytest.fixture(autouse=True)
+def _no_real_results_writes(monkeypatch):
+    """Prevent evaluate() calls in tests from writing to the real
+    results/experiments.csv -- tests use FakeEnvironment, so any
+    written row would be meaningless noise in real experiment data."""
+    monkeypatch.setattr(
+        "src.training.independent_q_learning.append_result",
+        lambda *args, **kwargs: None,
+    )
+    
 def observation(time: float, queue: int = 0) -> TrafficObservation:
     return TrafficObservation(
         agent_id="A19",
@@ -106,7 +115,7 @@ def make_trainer(
 ):
     environments = []
 
-    def factory(config):
+    def factory(config, on_raw_step=None):
         environment = FakeEnvironment(config, results)
         environments.append(environment)
         return environment
