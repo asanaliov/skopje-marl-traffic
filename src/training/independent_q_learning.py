@@ -8,7 +8,7 @@ import os
 import tempfile
 from collections import Counter
 from collections.abc import Callable, Mapping
-from dataclasses import asdict, dataclass, is_dataclass
+from dataclasses import asdict, dataclass, is_dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Literal
@@ -21,6 +21,8 @@ from src.environment.multi_agent_environment import (
     MultiAgentStepResult,
     MultiAgentTrafficEnvironment,
 )
+from src.evaluation.collector import MetricsCollector
+from src.evaluation.results_writer import append_result
 
 
 TrainingMode = Literal["train", "evaluate"]
@@ -36,6 +38,7 @@ class QLearningTrainingConfig:
     seed: int = 42
     episodes: int = 10
     episode_seconds: float = 600.0
+    cooldown_seconds: float = 600.0
     decision_interval_seconds: float = 5.0
     gui: bool = False
     checkpoint_path: Path | None = None
@@ -60,6 +63,7 @@ class QLearningTrainingConfig:
             raise ValueError("episodes must be a positive integer.")
         for value, name in (
             (self.episode_seconds, "episode_seconds"),
+            (self.cooldown_seconds, "cooldown_seconds"),
             (self.decision_interval_seconds, "decision_interval_seconds"),
         ):
             numeric = float(value)
@@ -152,7 +156,7 @@ class IndependentQLearningTrainer:
         *,
         agent: QLearningAgent | None = None,
         encoder: TrafficStateEncoder | None = None,
-        environment_factory: Callable[[MultiAgentEnvironmentConfig], Any] | None = None,
+        environment_factory: Callable[..., Any] | None = None,
         q_learning_config: QLearningConfig | None = None,
     ) -> None:
         self.config = config or QLearningTrainingConfig()
@@ -169,7 +173,7 @@ class IndependentQLearningTrainer:
             seed=self.config.seed,
             agent_ids=("A19",),
             demand_seconds=self.config.episode_seconds,
-            cooldown_seconds=0.0,
+            cooldown_seconds=self.config.cooldown_seconds,
             decision_interval_seconds=self.config.decision_interval_seconds,
             gui=self.config.gui,
             reward_mode="local",
@@ -258,7 +262,21 @@ class IndependentQLearningTrainer:
         return observations["A19"]
 
     def _run_episode(self, episode: int, *, training: bool) -> EpisodeSummary:
-        environment = self._environment_factory(self._environment_config())
+        # `collector` is created just after reset() (once we know the
+        # A19 agent's incoming lanes), but the environment needs the
+        # on_raw_step hook wired in at construction time -- so we defer
+        # through a closure that reads the enclosing `collector` variable
+        # once it has been assigned below.
+        collector: MetricsCollector | None = None
+
+        def _on_raw_step(traci_conn: Any) -> None:
+            if collector is not None:
+                collector.record_step(traci_conn)
+
+        environment = self._environment_factory(
+            self._environment_config(),
+            on_raw_step=_on_raw_step,
+        )
         total_reward = 0.0
         decision_steps = 0
         action_counts = Counter()
@@ -268,6 +286,21 @@ class IndependentQLearningTrainer:
         simulated_seconds = 0.0
         try:
             observations = environment.reset()
+
+            monitored_lanes = sorted(
+                {
+                    lane_id
+                    for observation in observations.values()
+                    for lane_id in observation.incoming_lane_ids
+                }
+            )
+            collector = MetricsCollector(
+                controller="independent_rl",
+                scenario=self.config.scenario,
+                seed=self.config.seed,
+                monitored_lanes=monitored_lanes,
+            )
+
             observation = self._validate_observations(observations)
             while not (terminated or truncated):
                 state = self.encoder.encode(observation)
@@ -278,6 +311,7 @@ class IndependentQLearningTrainer:
                 next_state = self.encoder.encode(next_observation)
                 reward = float(result.rewards["A19"])
                 total_reward += reward
+                collector.add_reward(reward)
                 decision_steps += 1
                 terminated = result.terminated
                 truncated = result.truncated
@@ -301,6 +335,23 @@ class IndependentQLearningTrainer:
                 observation = next_observation
             if training:
                 self.agent.end_episode()
+
+            # Only log evaluation episodes to the shared results CSV --
+            # training episodes are noisy/exploratory and would otherwise
+            # flood results/experiments.csv with dozens of rows that
+            # aren't meaningful for the baseline comparison. Flip this
+            # guard if you want every training episode logged too.
+            if not training:
+                episode_metrics = collector.finalize(
+                    simulation_seconds=simulated_seconds
+                )
+                episode_metrics = replace(
+                    episode_metrics,
+                    demand_seconds=self.config.episode_seconds,
+                    cooldown_seconds=self.config.cooldown_seconds,
+                )
+                append_result(episode_metrics)
+
             return EpisodeSummary(
                 episode=episode,
                 scenario=self.config.scenario,

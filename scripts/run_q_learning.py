@@ -34,6 +34,7 @@ def _common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--scenario", default="medium")
     parser.add_argument("--seed", type=_positive_int, default=42)
     parser.add_argument("--episode-seconds", type=_positive_float, default=600.0)
+    parser.add_argument("--cooldown-seconds", type=_positive_float, default=600.0)
     parser.add_argument("--decision-interval", type=_positive_float, default=5.0)
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--gui", action="store_true")
