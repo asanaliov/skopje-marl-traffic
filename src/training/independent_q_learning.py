@@ -44,6 +44,7 @@ class QLearningTrainingConfig:
     checkpoint_path: Path | None = None
     checkpoint_interval: int = 1
     mode: TrainingMode = "train"
+    resume: bool = False
 
     def __post_init__(self) -> None:
         """Validate runner settings before a SUMO process is started."""
@@ -84,6 +85,12 @@ class QLearningTrainingConfig:
             object.__setattr__(self, "checkpoint_path", Path(self.checkpoint_path))
         if self.mode == "evaluate" and self.checkpoint_path is None:
             raise ValueError("evaluation requires an existing checkpoint path.")
+        if not isinstance(self.resume, bool):
+            raise ValueError("resume must be a boolean.")
+        if self.resume and self.mode != "train":
+            raise ValueError("resume is only supported in 'train' mode.")
+        if self.resume and self.checkpoint_path is None:
+            raise ValueError("resume requires a checkpoint path.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -239,6 +246,19 @@ class IndependentQLearningTrainer:
             raise ValueError("Unsupported checkpoint schema version.")
         if payload.get("agent_id") != "A19":
             raise ValueError("Checkpoint agent_id must be 'A19'.")
+        if payload.get("scenario") != self.config.scenario:
+            raise ValueError(
+                f"Checkpoint {target} was trained on scenario "
+                f"{payload.get('scenario')!r}, not {self.config.scenario!r}. "
+                "Refusing to load a checkpoint from a different scenario -- "
+                "this would silently mix traffic patterns into one Q-table."
+            )
+        if payload.get("seed") != self.config.seed:
+            raise ValueError(
+                f"Checkpoint {target} was trained with seed "
+                f"{payload.get('seed')!r}, not {self.config.seed!r}. "
+                "Refusing to load a checkpoint from a different seed."
+            )
         entries: dict[tuple[Any, TrafficAction], float] = {}
         try:
             for entry in payload["q_table"]:
@@ -377,8 +397,33 @@ class IndependentQLearningTrainer:
         """Run configured training or evaluation episodes."""
         if self.config.mode == "evaluate":
             self.load_checkpoint()
+        completed_episodes = 0
+        if self.config.mode == "train" and self.config.resume:
+            checkpoint_path = self.config.checkpoint_path
+            if checkpoint_path is not None and Path(checkpoint_path).is_file():
+                self.load_checkpoint()
+                completed_episodes = self.agent.training_episode_count
+                print(
+                    f"Resumed from checkpoint {checkpoint_path}: "
+                    f"completed_episodes={completed_episodes} "
+                    f"epsilon={self.agent.epsilon:.4f} "
+                    f"states={len({state for state, _ in self.agent.q_table})}"
+                )
+            else:
+                print(
+                    "--resume was set but no checkpoint exists yet at "
+                    f"{checkpoint_path}; starting a new run."
+                )
+        if completed_episodes >= self.config.episodes:
+            print(
+                f"Checkpoint already has {completed_episodes} completed "
+                f"episodes, which meets or exceeds --episodes "
+                f"{self.config.episodes}; nothing left to train."
+            )
+            self.summaries = []
+            return tuple(self.summaries)
         self.summaries = []
-        for episode in range(1, self.config.episodes + 1):
+        for episode in range(completed_episodes + 1, self.config.episodes + 1):
             summary = self._run_episode(episode, training=self.config.mode == "train")
             self.summaries.append(summary)
             print(
@@ -396,15 +441,24 @@ class IndependentQLearningTrainer:
                 self.save_checkpoint()
         if self.config.mode == "train" and self.config.checkpoint_path:
             self.save_checkpoint()
-        mean_reward = sum(
-            item.total_reward for item in self.summaries
-        ) / len(self.summaries)
         checkpoint = self.config.checkpoint_path or "none"
+        if self.summaries:
+            mean_reward = sum(
+                item.total_reward for item in self.summaries
+            ) / len(self.summaries)
+            best_reward = max(item.total_reward for item in self.summaries)
+            mean_reward_text = f"{mean_reward:.3f}"
+            best_reward_text = f"{best_reward:.3f}"
+        else:
+            mean_reward_text = "n/a"
+            best_reward_text = "n/a"
         print(
-            f"Summary: episodes={len(self.summaries)} epsilon={self.agent.epsilon:.4f} "
+            f"Summary: episodes_this_run={len(self.summaries)} "
+            f"total_episodes={self.agent.training_episode_count} "
+            f"epsilon={self.agent.epsilon:.4f} "
             f"states={len({state for state, _ in self.agent.q_table})} "
-            f"mean_reward={mean_reward:.3f} "
-            f"best_reward={max(item.total_reward for item in self.summaries):.3f} "
+            f"mean_reward={mean_reward_text} "
+            f"best_reward={best_reward_text} "
             f"checkpoint={checkpoint}"
         )
         return tuple(self.summaries)

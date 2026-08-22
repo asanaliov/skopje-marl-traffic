@@ -286,6 +286,147 @@ def test_evaluation_does_not_update_or_decay(tmp_path):
     assert before[1] != 0.4
 
 
+def test_resume_continues_episode_count_epsilon_and_q_table(tmp_path):
+    agent = QLearningAgent(
+        QLearningConfig(alpha=1.0, epsilon=0.8, minimum_epsilon=0.0)
+    )
+    first_trainer, _ = make_trainer(
+        tmp_path,
+        [result(5, 1.0, terminated=True), result(5, 2.0, terminated=True)],
+        agent=agent,
+        episodes=2,
+    )
+    first_trainer.train()
+    assert first_trainer.agent.training_episode_count == 2
+    epsilon_after_two = first_trainer.agent.epsilon
+
+    config = QLearningTrainingConfig(
+        scenario="low",
+        episodes=4,
+        episode_seconds=10,
+        decision_interval_seconds=5,
+        checkpoint_path=tmp_path / "checkpoint.json",
+        mode="train",
+        resume=True,
+    )
+    resumed_trainer = IndependentQLearningTrainer(
+        config,
+        environment_factory=lambda cfg, on_raw_step=None: FakeEnvironment(
+            cfg,
+            [result(5, 3.0, terminated=True), result(5, 4.0, terminated=True)],
+        ),
+    )
+    summaries = resumed_trainer.train()
+
+    # Only the two remaining episodes (3 and 4) should have run, numbered
+    # to continue from where the first run left off.
+    assert len(summaries) == 2
+    assert [summary.episode for summary in summaries] == [3, 4]
+    assert resumed_trainer.agent.training_episode_count == 4
+    assert resumed_trainer.agent.epsilon != epsilon_after_two
+    assert dict(resumed_trainer.agent.q_table) != {}
+
+
+def test_resume_with_no_existing_checkpoint_starts_fresh(tmp_path):
+    config = QLearningTrainingConfig(
+        scenario="low",
+        episodes=2,
+        episode_seconds=10,
+        decision_interval_seconds=5,
+        checkpoint_path=tmp_path / "checkpoint.json",
+        mode="train",
+        resume=True,
+    )
+    trainer = IndependentQLearningTrainer(
+        config,
+        environment_factory=lambda cfg, on_raw_step=None: FakeEnvironment(
+            cfg,
+            [result(5, 1.0, terminated=True), result(5, 2.0, terminated=True)],
+        ),
+    )
+    summaries = trainer.train()
+    assert len(summaries) == 2
+    assert trainer.agent.training_episode_count == 2
+
+
+def test_resume_already_complete_is_a_noop(tmp_path):
+    trainer, _ = make_trainer(
+        tmp_path,
+        [result(5, 1.0, terminated=True), result(5, 2.0, terminated=True)],
+        episodes=2,
+    )
+    trainer.train()
+
+    config = QLearningTrainingConfig(
+        scenario="low",
+        episodes=2,
+        episode_seconds=10,
+        decision_interval_seconds=5,
+        checkpoint_path=tmp_path / "checkpoint.json",
+        mode="train",
+        resume=True,
+    )
+    resumed_trainer = IndependentQLearningTrainer(
+        config,
+        environment_factory=lambda cfg, on_raw_step=None: FakeEnvironment(cfg, []),
+    )
+    summaries = resumed_trainer.train()
+    assert summaries == ()
+    assert resumed_trainer.agent.training_episode_count == 2
+
+
+def test_resume_rejects_mismatched_scenario_or_seed(tmp_path):
+    trainer, _ = make_trainer(
+        tmp_path,
+        [result(5, 1.0, terminated=True)],
+        episodes=1,
+    )
+    trainer.train()
+
+    mismatched_scenario = QLearningTrainingConfig(
+        scenario="high",
+        episodes=2,
+        episode_seconds=10,
+        decision_interval_seconds=5,
+        checkpoint_path=tmp_path / "checkpoint.json",
+        mode="train",
+        resume=True,
+    )
+    with pytest.raises(ValueError, match="scenario"):
+        IndependentQLearningTrainer(
+            mismatched_scenario,
+            environment_factory=lambda cfg, on_raw_step=None: FakeEnvironment(cfg, []),
+        ).train()
+
+    mismatched_seed = QLearningTrainingConfig(
+        scenario="low",
+        seed=7,
+        episodes=2,
+        episode_seconds=10,
+        decision_interval_seconds=5,
+        checkpoint_path=tmp_path / "checkpoint.json",
+        mode="train",
+        resume=True,
+    )
+    with pytest.raises(ValueError, match="seed"):
+        IndependentQLearningTrainer(
+            mismatched_seed,
+            environment_factory=lambda cfg, on_raw_step=None: FakeEnvironment(cfg, []),
+        ).train()
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"resume": True, "mode": "evaluate", "checkpoint_path": Path("x.json")},
+        {"resume": True, "checkpoint_path": None},
+    ],
+)
+def test_invalid_resume_configuration_is_rejected(kwargs):
+    with pytest.raises(ValueError):
+        QLearningTrainingConfig(**kwargs)
+
+
 def test_malformed_and_unsupported_checkpoints_are_rejected(tmp_path):
     path = tmp_path / "bad.json"
     path.write_text("{}")

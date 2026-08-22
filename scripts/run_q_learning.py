@@ -50,6 +50,16 @@ def parse_args() -> argparse.Namespace:
     _common_arguments(train)
     train.add_argument("--episodes", type=_positive_int, default=10)
     train.add_argument("--checkpoint-interval", type=_positive_int, default=1)
+    train.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "Resume from --checkpoint if it already exists, continuing the "
+            "Q-table, epsilon, and episode count from where it left off "
+            "instead of starting a fresh run. If no checkpoint exists yet, "
+            "starts a new run normally."
+        ),
+    )
 
     evaluate = subparsers.add_parser("evaluate")
     _common_arguments(evaluate)
@@ -68,11 +78,13 @@ def main() -> int:
             seed=args.seed,
             episodes=args.episodes,
             episode_seconds=args.episode_seconds,
+            cooldown_seconds=args.cooldown_seconds,
             decision_interval_seconds=args.decision_interval,
             gui=args.gui,
             checkpoint_path=args.checkpoint,
             checkpoint_interval=args.checkpoint_interval,
             mode="train",
+            resume=args.resume,
         )
         IndependentQLearningTrainer(config).train()
     else:
@@ -81,6 +93,7 @@ def main() -> int:
             seed=args.seed,
             episodes=1,
             episode_seconds=args.episode_seconds,
+            cooldown_seconds=args.cooldown_seconds,
             decision_interval_seconds=args.decision_interval,
             gui=args.gui,
             checkpoint_path=args.checkpoint,
