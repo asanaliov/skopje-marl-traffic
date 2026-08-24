@@ -1,0 +1,2943 @@
+{
+  "agent_id": "A19",
+  "encoder_config": {
+    "maximum_lane_queue_thresholds": [
+      1,
+      3,
+      6,
+      11
+    ],
+    "mean_waiting_time_thresholds_seconds": [
+      5.0,
+      15.0,
+      30.0,
+      60.0
+    ],
+    "phase_elapsed_thresholds_seconds": [
+      10.0,
+      20.0,
+      40.0,
+      60.0
+    ],
+    "total_queue_thresholds": [
+      1,
+      4,
+      8,
+      16
+    ]
+  },
+  "epsilon": 0.22229219984074702,
+  "q_learning_config": {
+    "alpha": 0.1,
+    "epsilon": 1.0,
+    "epsilon_decay": 0.995,
+    "gamma": 0.95,
+    "minimum_epsilon": 0.05,
+    "random_seed": 42
+  },
+  "q_table": [
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": -1,
+        "is_transition_phase": true,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -24.64261870345687
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": -1,
+        "is_transition_phase": true,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -36.69556053995528
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": -1,
+        "is_transition_phase": true,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -18.83264156916657
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": -1,
+        "is_transition_phase": true,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -12.0924199872156
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": -1,
+        "is_transition_phase": true,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -1.7501359063912334
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -27.22488186772157
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -24.632652132984607
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -25.334969272774156
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -18.611574468050552
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 4,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -1.7893257974367132
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -4.146398408116908
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -7.520324282886543
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -44.54356145609374
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -58.81965266862187
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -40.05173288462891
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -63.01703650819287
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -40.361894558338435
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -26.446750317767513
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -30.290868348325866
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -1.075
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -66.50609115717796
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -52.97878716776742
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -65.54516563843337
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -72.71257240451067
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -56.59291958435136
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -68.93406550534007
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -12.978727939515036
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -11.1093547
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -0.48
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -4.327882244021371
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -22.791650138784064
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -21.725218795581014
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -21.318267899113824
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -20.95396671633243
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -2.805210659003318
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -34.96579442042843
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -54.53568244484235
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -31.535351896257787
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -44.689424217684845
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -29.847242485283143
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -23.45102748501798
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -29.57719818242988
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -1.9574799049375002
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -48.28075960212476
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -54.89124893702627
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -37.625291593588074
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -48.86255942337197
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 3,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -9.49287
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -37.139466802561714
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -45.62064132850992
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 3,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -7.844200000000001
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -7.8466907172083165
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -18.137376998899175
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -16.949154621145606
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -18.82306032614032
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -18.872229230905738
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 3,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -9.738
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -8.56558
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 3,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -7.663500000000001
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -3.6901328285157464
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -2.309638550462922
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -9.505476265765335
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -5.152757378985877
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -6.9363148425097005
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -5.941631754500536
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -1.08
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -4.565707893861003
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -11.803582712743236
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -18.95127045126849
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -4.100930333333334
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -26.901672474272747
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -23.060005566934116
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -20.781830806644763
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -27.21469111476212
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -35.60772712821054
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -37.96735627749046
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -41.57842678934135
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -49.9526509809461
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -40.13755755903489
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -16.442607222096775
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -38.79469701905048
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -31.04843528835387
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -18.039911118413805
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -41.493184333910094
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -38.79646018397595
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -48.23028477755725
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -61.77201854028354
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -32.76217441768448
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -37.28832796852677
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -1.5905655692093739
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -25.331009392583397
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -29.79089239096179
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -28.702917205001608
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -24.97208824661621
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -40.78137617192775
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -55.16593654408087
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -36.83183518195877
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -47.795348761255674
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -41.69471999679112
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -35.22763224200568
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -40.149402884925145
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -5.134586272871684
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -50.07508619351783
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -61.207884805163744
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -45.285878673711075
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -56.72781278932461
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -46.384771760701454
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -55.90628397026866
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -18.720633752206336
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -18.03343103844642
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -11.00361660002677
+    },
+    {
+      "action": "KEEP",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -19.352975198014
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": -1,
+        "is_transition_phase": true,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -23.60473388520008
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": -1,
+        "is_transition_phase": true,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -35.358946328970696
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": -1,
+        "is_transition_phase": true,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -17.789802493686405
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": -1,
+        "is_transition_phase": true,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -9.110271436724641
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": -1,
+        "is_transition_phase": true,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -5.317500000000001
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -25.752412616180433
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -23.52534353236702
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -22.17576988186232
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -19.924705872933103
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 4,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -3.566412910028874
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -1.3706784706089534
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -41.94502923093679
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -59.387226293933324
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -38.350410313632274
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -61.25802424021787
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -38.9823572239125
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -23.150175428018
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -30.98869170171899
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -1.4935637774739616
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -66.06295413130825
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -51.179136320975495
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -56.073274413728186
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -65.33387754299102
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -53.54276366768948
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -65.97176454770366
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -29.58335807539242
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -16.911930381916605
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 0,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -0.6352600000000002
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -20.945562383409687
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -25.48801574306471
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -24.691133938091625
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -22.185652566259556
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -4.97172257671183
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -38.281923171429234
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -53.751389242236804
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -26.55286913947973
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -40.10124993366496
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -26.816119392576518
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -22.596367662951636
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -29.79253387400378
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -3.8876577746359398
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -44.1928936462329
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -50.902571773479025
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -25.853051297542443
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -35.792677140192914
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -24.05208761565221
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -33.70818426984111
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 3,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -3.915795170561851
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -12.519431320229188
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -16.069223712209013
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -15.215863386945689
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -16.93686205444019
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -8.52053352671946
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 3,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -2.395731401538064
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -6.85769135013631
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 3,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -2.3966250000000002
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -1.7672000000000003
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -9.207883078751188
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -3.892203590377839
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -9.812045023962082
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -7.189367781613758
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -3.8656360638224374
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -6.603315489047685
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -14.02366668467519
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -21.356072506149808
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 2,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 2,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -7.828236405067528
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -23.524385962281677
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -26.943772130144676
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -27.337417065427694
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -25.900932661953313
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -40.96248090968145
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -34.8292904029998
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -39.75846943564192
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -53.12196818170602
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -39.7785104234629
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -27.5219687998532
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -38.13986423266971
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -5.962631084347848
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -29.745212321703697
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -16.415217656158582
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -39.912900939613365
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -40.89982932684296
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -49.09474780005603
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -62.03404636180766
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -37.72850295084856
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 5,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -39.77140201411595
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -28.222348980362934
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -25.775160374700064
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -25.698732206607563
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 0,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 0,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -26.07170066641829
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -38.1054101415891
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -52.61888919930056
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -30.966474078188813
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -42.38240013477359
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -39.05246489986257
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -36.25916756509758
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -38.96038821700215
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 0,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -8.735976308692427
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -54.79443957486285
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -59.78984078676244
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -37.87243061675771
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -44.59923517088157
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -34.69564471444356
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -52.881475372830835
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -19.389540548475754
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 1,
+        "phase_elapsed_bucket": 3,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -18.88470462467634
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -2.75
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 0,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -11.349403144534001
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 1,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -5.685883507179079
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 1,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -26.093718266594458
+    },
+    {
+      "action": "NEXT_GREEN",
+      "state": {
+        "green_phase_position": 7,
+        "is_transition_phase": false,
+        "maximum_lane_queue_bucket": 1,
+        "mean_lane_waiting_time_bucket": 2,
+        "phase_elapsed_bucket": 2,
+        "total_queue_bucket": 2,
+        "type": "DiscreteTrafficState"
+      },
+      "value": -9.186880637652859
+    }
+  ],
+  "scenario": "low",
+  "schema_version": 1,
+  "seed": 42,
+  "training_episode_count": 300
+}

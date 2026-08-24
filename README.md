@@ -344,5 +344,5 @@ See `sumo/skopje/documentation/imported_actuated_baseline.md` for the zero-actio
 
 ## Current status
 
-The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, and imported actuated baseline are in place.
-Traffic-light cleanup, calibrated real-world demand, and reinforcement-learning training algorithms are not implemented yet.
+The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, imported actuated baseline, and independent Q-learning trainer for any single corridor agent are in place.
+Traffic-light cleanup, calibrated real-world demand, multi-agent reinforcement learning (all 8 agents simultaneously), and coordinated MARL are not implemented yet.
