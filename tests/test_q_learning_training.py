@@ -1,4 +1,4 @@
-"""Focused tests for the A19 SUMO Q-learning runner."""
+"""Focused tests for the independent Q-learning runner (any corridor agent)."""
 
 from __future__ import annotations
 
@@ -26,10 +26,10 @@ def _no_real_results_writes(monkeypatch):
         lambda *args, **kwargs: None,
     )
     
-def observation(time: float, queue: int = 0) -> TrafficObservation:
+def observation(time: float, queue: int = 0, agent_id: str = "A19") -> TrafficObservation:
     return TrafficObservation(
-        agent_id="A19",
-        traffic_light_id="cluster_A19",
+        agent_id=agent_id,
+        traffic_light_id=f"cluster_{agent_id}",
         simulation_time=time,
         incoming_lane_ids=("lane",),
         queue_lengths=(queue,),
@@ -52,10 +52,12 @@ class FakeEnvironment:
         self.step_count = 0
         self.closed = False
         self.actions = []
+        # Derive the single agent ID from the environment config.
+        self._agent_id = config.agent_ids[0] if config.agent_ids else "A19"
 
     def reset(self):
         self.reset_count += 1
-        return {"A19": observation(0.0)}
+        return {self._agent_id: observation(0.0, agent_id=self._agent_id)}
 
     def step(self, actions):
         self.actions.append(actions)
@@ -83,16 +85,16 @@ class RecordingAgent(QLearningAgent):
         )
 
 
-def result(time: float, reward: float, *, terminated=False, truncated=False):
+def result(time: float, reward: float, *, terminated=False, truncated=False, agent_id: str = "A19"):
     return MultiAgentStepResult(
-        observations={"A19": observation(time, int(time))},
-        rewards={"A19": reward},
+        observations={agent_id: observation(time, int(time), agent_id=agent_id)},
+        rewards={agent_id: reward},
         terminated=terminated,
         truncated=truncated,
         info={
             "simulation_time": time,
             "action_results": {
-                "A19": ActionResult(
+                agent_id: ActionResult(
                     requested_action=TrafficAction.KEEP,
                     status=ActionStatus.KEPT,
                     previous_phase_index=0,
@@ -112,6 +114,7 @@ def make_trainer(
     mode="train",
     agent=None,
     episodes=None,
+    agent_id="A19",
 ):
     environments = []
 
@@ -124,6 +127,7 @@ def make_trainer(
         episodes = 2 if mode == "train" else 1
 
     config = QLearningTrainingConfig(
+        agent_id=agent_id,
         scenario="low",
         episodes=episodes,
         episode_seconds=10,
@@ -140,7 +144,7 @@ def make_trainer(
 
     return trainer, environments
 
-def test_training_loop_configures_a19_and_closes_each_episode(tmp_path):
+def test_training_loop_configures_agent_and_closes_each_episode(tmp_path):
     trainer, environments = make_trainer(
         tmp_path,
         [result(5, 1.0), result(10, 2.0, truncated=True)],
@@ -250,7 +254,7 @@ def test_checkpoint_round_trip_preserves_values_epsilon_and_episode_count(tmp_pa
 @pytest.mark.parametrize(
     "kwargs",
     [
-        {"agent_id": "A26"},
+        {"agent_id": "UNKNOWN_AGENT"},
         {"episodes": 0},
         {"episode_seconds": 0},
         {"decision_interval_seconds": 0},
@@ -438,3 +442,28 @@ def test_malformed_and_unsupported_checkpoints_are_rejected(tmp_path):
     path.write_text('{"schema_version": 99}')
     with pytest.raises(ValueError, match="Unsupported"):
         trainer.load_checkpoint()
+
+
+def test_non_a19_agent_trains_and_configures_correctly(tmp_path):
+    """Any valid corridor agent ID (not just A19) should train without errors."""
+    trainer, environments = make_trainer(
+        tmp_path,
+        [result(5, 1.0, agent_id="A26"), result(10, 2.0, truncated=True, agent_id="A26")],
+        agent_id="A26",
+    )
+
+    summaries = trainer.train()
+
+    assert len(summaries) == 2
+    assert all(
+        environment.config.agent_ids == ("A26",)
+        for environment in environments
+    )
+    assert trainer.agent.training_episode_count == 2
+
+
+def test_unknown_agent_id_is_rejected():
+    """An agent ID that is not in the selected corridor must raise ValueError."""
+    with pytest.raises(ValueError, match="Unknown agent_id"):
+        QLearningTrainingConfig(agent_id="UNKNOWN_AGENT")
+

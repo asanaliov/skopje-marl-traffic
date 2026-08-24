@@ -1,4 +1,4 @@
-"""Run the A19 independent Q-learning SUMO trainer."""
+"""Run an independent Q-learning SUMO trainer for any selected corridor agent."""
 
 from __future__ import annotations
 
@@ -31,6 +31,12 @@ def _positive_float(value: str) -> float:
 
 
 def _common_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--agent-id",
+        default="A19",
+        help="Agent ID to train or evaluate. Must be one of the eight selected "
+             "corridor agents (A9, A18, A19, A20, A24, A25, A26, A29). Default: A19.",
+    )
     parser.add_argument("--scenario", default="medium")
     parser.add_argument("--seed", type=_positive_int, default=42)
     parser.add_argument("--episode-seconds", type=_positive_float, default=600.0)
@@ -42,7 +48,7 @@ def _common_arguments(parser: argparse.ArgumentParser) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run A19 independent Q-learning in SUMO."
+        description="Run independent Q-learning for a selected corridor agent in SUMO."
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -69,11 +75,12 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     print(
-        "This is an A19 independent Q-learning run. No baseline comparison or "
+        f"This is a {args.agent_id} independent Q-learning run. No baseline comparison or "
         "coordinated MARL is active."
     )
     if args.command == "train":
         config = QLearningTrainingConfig(
+            agent_id=args.agent_id,
             scenario=args.scenario,
             seed=args.seed,
             episodes=args.episodes,
@@ -89,6 +96,7 @@ def main() -> int:
         IndependentQLearningTrainer(config).train()
     else:
         config = QLearningTrainingConfig(
+            agent_id=args.agent_id,
             scenario=args.scenario,
             seed=args.seed,
             episodes=1,

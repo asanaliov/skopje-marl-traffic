@@ -1,4 +1,4 @@
-"""A19 independent tabular Q-learning training and evaluation runner."""
+"""Independent tabular Q-learning training and evaluation runner for any selected corridor agent."""
 
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ from src.environment.multi_agent_environment import (
     MultiAgentStepResult,
     MultiAgentTrafficEnvironment,
 )
+from src.environment.selected_corridor import SELECTED_CORRIDOR
 from src.evaluation.collector import MetricsCollector
 from src.evaluation.results_writer import append_result
 
@@ -31,7 +32,7 @@ CHECKPOINT_SCHEMA_VERSION = 1
 
 @dataclass(frozen=True, slots=True)
 class QLearningTrainingConfig:
-    """Immutable settings for one A19 training or evaluation run."""
+    """Immutable settings for one independent Q-learning training or evaluation run."""
 
     agent_id: str = "A19"
     scenario: str = "medium"
@@ -48,8 +49,12 @@ class QLearningTrainingConfig:
 
     def __post_init__(self) -> None:
         """Validate runner settings before a SUMO process is started."""
-        if self.agent_id != "A19":
-            raise ValueError("This runner currently supports agent_id='A19' only.")
+        if self.agent_id not in SELECTED_CORRIDOR.agent_ids:
+            valid = ", ".join(SELECTED_CORRIDOR.agent_ids)
+            raise ValueError(
+                f"Unknown agent_id '{self.agent_id}'. "
+                f"Must be one of: {valid}."
+            )
         if (
             not isinstance(self.seed, int)
             or isinstance(self.seed, bool)
@@ -155,7 +160,7 @@ def _state_from_json(value: Mapping[str, Any]) -> Any:
 
 
 class IndependentQLearningTrainer:
-    """Run one independently controlled A19 tabular learner through SUMO."""
+    """Run one independently controlled tabular Q-learning agent through SUMO."""
 
     def __init__(
         self,
@@ -178,7 +183,7 @@ class IndependentQLearningTrainer:
         return MultiAgentEnvironmentConfig(
             scenario=self.config.scenario,
             seed=self.config.seed,
-            agent_ids=("A19",),
+            agent_ids=(self.config.agent_id,),
             demand_seconds=self.config.episode_seconds,
             cooldown_seconds=self.config.cooldown_seconds,
             decision_interval_seconds=self.config.decision_interval_seconds,
@@ -244,8 +249,11 @@ class IndependentQLearningTrainer:
             raise ValueError(f"Malformed checkpoint {target}: root must be an object.")
         if payload.get("schema_version") != CHECKPOINT_SCHEMA_VERSION:
             raise ValueError("Unsupported checkpoint schema version.")
-        if payload.get("agent_id") != "A19":
-            raise ValueError("Checkpoint agent_id must be 'A19'.")
+        if payload.get("agent_id") != self.config.agent_id:
+            raise ValueError(
+                f"Checkpoint agent_id '{payload.get('agent_id')}' does not match "
+                f"the configured agent_id '{self.config.agent_id}'."
+            )
         if payload.get("scenario") != self.config.scenario:
             raise ValueError(
                 f"Checkpoint {target} was trained on scenario "
@@ -275,15 +283,18 @@ class IndependentQLearningTrainer:
             raise ValueError(f"Malformed checkpoint {target}: {error}") from error
         return target
 
-    @staticmethod
-    def _validate_observations(observations: Mapping[str, Any]) -> Any:
-        if tuple(observations) != ("A19",):
-            raise ValueError("The A19 runner requires exactly one A19 observation.")
-        return observations["A19"]
+    def _validate_observations(self, observations: Mapping[str, Any]) -> Any:
+        agent_id = self.config.agent_id
+        if tuple(observations) != (agent_id,):
+            raise ValueError(
+                f"Expected exactly one observation for '{agent_id}', "
+                f"got: {list(observations)}."
+            )
+        return observations[agent_id]
 
     def _run_episode(self, episode: int, *, training: bool) -> EpisodeSummary:
         # `collector` is created just after reset() (once we know the
-        # A19 agent's incoming lanes), but the environment needs the
+        # agent's incoming lanes), but the environment needs the
         # on_raw_step hook wired in at construction time -- so we defer
         # through a closure that reads the enclosing `collector` variable
         # once it has been assigned below.
@@ -326,10 +337,12 @@ class IndependentQLearningTrainer:
                 state = self.encoder.encode(observation)
                 action = self.agent.select_action(state, training=training)
                 action_counts[action.name] += 1
-                result: MultiAgentStepResult = environment.step({"A19": action})
+                result: MultiAgentStepResult = environment.step(
+                    {self.config.agent_id: action}
+                )
                 next_observation = self._validate_observations(result.observations)
                 next_state = self.encoder.encode(next_observation)
-                reward = float(result.rewards["A19"])
+                reward = float(result.rewards[self.config.agent_id])
                 total_reward += reward
                 collector.add_reward(reward)
                 decision_steps += 1
