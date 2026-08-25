@@ -342,7 +342,47 @@ python -m pytest tests/test_imported_actuated_baseline.py
 
 See `sumo/skopje/documentation/imported_actuated_baseline.md` for the zero-action design, experiment-timing windows, and validation checklist.
 
+## Multi-Agent Independent Q-Learning
+
+The multi-agent independent RL controller (`multi_agent_independent_rl`) runs all eight selected corridor agents (`A9, A18, A19, A20, A24, A25, A26, A29`) as learners in the *same* SUMO episode.
+Each agent keeps its own tabular Q-table and learns only from its own local reward, so there is no shared value function, no communication, and no joint action space -- this is the "independent reinforcement learning" row of the planned comparison, and the benchmark that coordinated MARL has to beat.
+Every agent gets its own RNG stream, so the eight learners explore independently rather than in lockstep.
+
+Contrast this with `scripts/run_q_learning.py`, which trains one corridor agent at a time while the other seven traffic lights stay on their imported SUMO programs.
+
+Train all eight agents:
+
+```powershell
+python scripts/run_multi_agent_q_learning.py train --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/multi_agent_medium.json
+```
+
+Training writes an inspectable JSON checkpoint holding all eight Q-tables plus each agent's exploration state. Continue an interrupted run with `--resume`:
+
+```powershell
+python scripts/run_multi_agent_q_learning.py train --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/multi_agent_medium.json --resume
+```
+
+Evaluate a trained checkpoint with exploration switched off. Only evaluation episodes are appended to `results/experiments.csv`, under the controller label `multi_agent_independent_rl`, with `total_reward` recorded as the combined reward across all eight agents:
+
+```powershell
+python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 42 --checkpoint checkpoints/multi_agent_medium.json
+```
+
+Use `--agents A19 A20` to control a subset of the corridor. A checkpoint records the agent set it was trained on and refuses to load into a run configured with a different one, and likewise refuses a mismatched scenario or seed.
+
+Summarize saved results:
+
+```powershell
+python scripts/summarize_experiments.py
+```
+
+Run the runner's unit tests, which do not require SUMO or SUMO-GUI:
+
+```powershell
+python -m pytest tests/test_multi_agent_q_learning.py
+```
+
 ## Current status
 
-The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, imported actuated baseline, and independent Q-learning trainer for any single corridor agent are in place.
-Traffic-light cleanup, calibrated real-world demand, multi-agent reinforcement learning (all 8 agents simultaneously), and coordinated MARL are not implemented yet.
+The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, imported actuated baseline, independent Q-learning trainer for any single corridor agent, and multi-agent independent Q-learning across all eight agents are in place.
+Traffic-light cleanup, calibrated real-world demand, and coordinated MARL are not implemented yet.

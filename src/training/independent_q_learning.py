@@ -8,13 +8,13 @@ import os
 import tempfile
 from collections import Counter
 from collections.abc import Callable, Mapping
-from dataclasses import asdict, dataclass, is_dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Literal
 
 from src.agents.q_learning_agent import QLearningAgent, QLearningConfig
-from src.agents.state_encoder import DiscreteTrafficState, TrafficStateEncoder
+from src.agents.state_encoder import TrafficStateEncoder
 from src.environment.actions import TrafficAction
 from src.environment.multi_agent_environment import (
     MultiAgentEnvironmentConfig,
@@ -24,6 +24,10 @@ from src.environment.multi_agent_environment import (
 from src.environment.selected_corridor import SELECTED_CORRIDOR
 from src.evaluation.collector import MetricsCollector
 from src.evaluation.results_writer import append_result
+from src.training.checkpoint_state import (
+    state_from_json as _state_from_json,
+    state_to_json as _state_to_json,
+)
 
 
 TrainingMode = Literal["train", "evaluate"]
@@ -123,40 +127,6 @@ class EpisodeSummary:
             "action_status_counts",
             MappingProxyType(dict(self.action_status_counts)),
         )
-
-
-def _state_to_json(state: Any) -> dict[str, Any]:
-    if isinstance(state, DiscreteTrafficState):
-        return {"type": "DiscreteTrafficState", **asdict(state)}
-    if is_dataclass(state):
-        return {"type": type(state).__name__, **asdict(state)}
-    if isinstance(state, (str, int, float, bool)) or state is None:
-        return {"type": "primitive", "value": state}
-    if isinstance(state, tuple):
-        return {"type": "tuple", "value": list(state)}
-    raise TypeError(f"Unsupported checkpoint state type: {type(state).__name__}")
-
-
-def _state_from_json(value: Mapping[str, Any]) -> Any:
-    state_type = value.get("type")
-    if state_type == "DiscreteTrafficState":
-        fields = {
-            field: value[field]
-            for field in (
-                "total_queue_bucket",
-                "maximum_lane_queue_bucket",
-                "mean_lane_waiting_time_bucket",
-                "green_phase_position",
-                "phase_elapsed_bucket",
-                "is_transition_phase",
-            )
-        }
-        return DiscreteTrafficState(**fields)
-    if state_type == "primitive":
-        return value.get("value")
-    if state_type == "tuple":
-        return tuple(value.get("value", ()))
-    raise ValueError(f"Unsupported checkpoint state type: {state_type!r}.")
 
 
 class IndependentQLearningTrainer:
