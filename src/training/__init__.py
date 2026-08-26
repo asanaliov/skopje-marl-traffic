@@ -5,9 +5,21 @@ from src.training.independent_q_learning import (
     IndependentQLearningTrainer,
     QLearningTrainingConfig,
 )
+from src.training.multi_agent_q_learning import (
+    AgentEpisodeSummary,
+    MultiAgentDecisionResult,
+    MultiAgentEpisodeSummary,
+    MultiAgentQLearningConfig,
+    MultiAgentQLearningTrainer,
+)
 
 __all__ = [
+    "AgentEpisodeSummary",
     "EpisodeSummary",
     "IndependentQLearningTrainer",
+    "MultiAgentDecisionResult",
+    "MultiAgentEpisodeSummary",
+    "MultiAgentQLearningConfig",
+    "MultiAgentQLearningTrainer",
     "QLearningTrainingConfig",
 ]
