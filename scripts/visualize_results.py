@@ -186,6 +186,94 @@ def plot_max_queue_length(df):
     print(f"Saved: {output_path}")
 
 
+def plot_average_queue_length(df):
+    scenario_order = get_scenario_order(df)
+
+    grouped = (
+        df.groupby(["scenario", "controller"])["average_queue_length"]
+        .mean()
+        .unstack()
+        .reindex(scenario_order)
+    )
+
+    ax = grouped.plot(
+        kind="bar",
+        figsize=(10, 6),
+        width=0.8
+    )
+
+    ax.set_title("Average Queue Length by Scenario and Controller")
+    ax.set_xlabel("Traffic Scenario")
+    ax.set_ylabel("Average Queue Length (vehicles)")
+
+    ax.legend(
+        title="Controller",
+        labels=[
+            format_controller_name(controller)
+            for controller in grouped.columns
+        ]
+    )
+
+    plt.xticks(rotation=0)
+    plt.tight_layout()
+
+    output_path = PLOTS_DIR / "average_queue_length.png"
+
+    plt.savefig(
+        output_path,
+        dpi=300,
+        bbox_inches="tight"
+    )
+
+    plt.close()
+
+    print(f"Saved: {output_path}")
+
+
+def plot_throughput(df):
+    scenario_order = get_scenario_order(df)
+
+    grouped = (
+        df.groupby(["scenario", "controller"])["throughput"]
+        .mean()
+        .unstack()
+        .reindex(scenario_order)
+    )
+
+    ax = grouped.plot(
+        kind="bar",
+        figsize=(10, 6),
+        width=0.8
+    )
+
+    ax.set_title("Throughput by Scenario and Controller")
+    ax.set_xlabel("Traffic Scenario")
+    ax.set_ylabel("Throughput (vehicles)")
+
+    ax.legend(
+        title="Controller",
+        labels=[
+            format_controller_name(controller)
+            for controller in grouped.columns
+        ]
+    )
+
+    plt.xticks(rotation=0)
+    plt.tight_layout()
+
+    output_path = PLOTS_DIR / "throughput.png"
+
+    plt.savefig(
+        output_path,
+        dpi=300,
+        bbox_inches="tight"
+    )
+
+    plt.close()
+
+    print(f"Saved: {output_path}")
+
+
 def main():
     """Generate all experiment comparison plots."""
 
@@ -205,8 +293,10 @@ def main():
     )
 
     plot_average_waiting_time(df)
+    plot_average_queue_length(df)
     plot_average_speed_vs_density(df)
     plot_max_queue_length(df)
+    plot_throughput(df)
 
     print("Visualization complete!")
 
