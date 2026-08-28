@@ -370,6 +370,41 @@ python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 4
 
 Use `--agents A19 A20` to control a subset of the corridor. A checkpoint records the agent set it was trained on and refuses to load into a run configured with a different one, and likewise refuses a mismatched scenario or seed.
 
+### Spatial observation sharing between neighbor nodes
+
+By default every agent sees only its own junction. `--spatial-observations` adds
+the corridor's one communication channel: each agent additionally observes a
+single congestion flag per neighbor -- `1` once that neighbor holds four or more
+queued vehicles, `0` below that -- so it can react to a platoon before the
+platoon reaches its own stop line. Rewards stay purely local; this changes what
+an agent *sees*, not what it is paid for.
+
+```powershell
+python scripts/run_multi_agent_q_learning.py train --scenario medium --seed 42 --episodes 30 --checkpoint checkpoints/multi_agent_medium_spatial.json --spatial-observations
+python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 42 --checkpoint checkpoints/multi_agent_medium_spatial.json --spatial-observations
+```
+
+Neighbors come from the audited `SELECTED_CORRIDOR.neighbor_map`, ordered by
+network distance, and `--neighbor-limit` (default 2) keeps only the closest
+ones. That bound is the whole design constraint: each observed neighbor is one
+extra bit of a tabular state, so it doubles the reachable Q-table, and A26 alone
+has six audited neighbors. A subset run only observes agents it actually
+controls, so `--agents A19` falls back to purely local states.
+
+Spatial runs are written to `results/experiments.csv` under the controller label
+`multi_agent_spatial_rl`, next to the local `multi_agent_independent_rl` rows,
+which is what makes the two directly comparable. Their checkpoints are not
+interchangeable -- a spatial Q-table is keyed by states a local agent cannot
+even represent -- and a checkpoint also refuses to load into a run using a
+different `--neighbor-limit`.
+
+See `sumo/skopje/documentation/spatial_observation_sharing.md` for the state
+design, the per-agent neighborhoods, and the measured 30-episode comparison
+against purely local agents. That comparison is not yet a win for spatial
+observations: the larger state space is under-trained at 30 episodes, and
+purely local rewards give an agent no reason to spend a neighbor flag on the
+corridor rather than on itself.
+
 Summarize saved results:
 
 ```powershell
@@ -384,5 +419,5 @@ python -m pytest tests/test_multi_agent_q_learning.py
 
 ## Current status
 
-The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, imported actuated baseline, independent Q-learning trainer for any single corridor agent, and multi-agent independent Q-learning across all eight agents are in place.
+The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, imported actuated baseline, independent Q-learning trainer for any single corridor agent, multi-agent independent Q-learning across all eight agents, and spatial observation sharing between neighbor nodes are in place.
 Traffic-light cleanup, calibrated real-world demand, and coordinated MARL are not implemented yet.
