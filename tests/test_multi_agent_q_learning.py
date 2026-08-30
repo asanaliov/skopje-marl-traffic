@@ -8,12 +8,17 @@ from pathlib import Path
 import pytest
 
 from src.agents.q_learning_agent import QLearningAgent, QLearningConfig
+from src.agents.state_encoder import TrafficStateEncoder
 from src.environment.actions import ActionResult, ActionStatus, TrafficAction
 from src.environment.multi_agent_environment import MultiAgentStepResult
 from src.environment.observations import TrafficObservation
-from src.environment.selected_corridor import SELECTED_CORRIDOR
+from src.environment.selected_corridor import (
+    SELECTED_CORRIDOR,
+    nearest_neighbor_ids,
+)
 from src.training.multi_agent_q_learning import (
     CONTROLLER_NAME,
+    SPATIAL_CONTROLLER_NAME,
     MultiAgentQLearningConfig,
     MultiAgentQLearningTrainer,
 )
@@ -754,3 +759,320 @@ def test_cli_agents_flag_selects_a_subset(cli, monkeypatch, tmp_path):
     )
     assert cli.main() == 0
     assert _RecordingTrainer.instances[-1].config.agent_ids == ("A19", "A20")
+
+def spatial_trainer(
+    tmp_path: Path,
+    results,
+    *,
+    mode="train",
+    agent_ids=ALL_AGENTS,
+    episodes=1,
+    neighbor_limit=2,
+    q_learning_config=None,
+):
+    """Build a trainer whose agents also observe their nearest neighbors."""
+    environments = []
+
+    def factory(config, on_raw_step=None):
+        environment = FakeEnvironment(config, results, agent_ids=agent_ids)
+        environments.append(environment)
+        return environment
+
+    config = MultiAgentQLearningConfig(
+        agent_ids=agent_ids,
+        scenario="low",
+        episodes=episodes,
+        episode_seconds=10,
+        decision_interval_seconds=5,
+        checkpoint_path=tmp_path / "spatial.json",
+        mode=mode,
+        spatial_observations=True,
+        spatial_neighbor_limit=neighbor_limit,
+    )
+    trainer = MultiAgentQLearningTrainer(
+        config,
+        environment_factory=factory,
+        q_learning_config=q_learning_config,
+    )
+    return trainer, environments
+
+
+def congested_result(congested_agents, *, time=5.0, terminated=True):
+    """Build a step result where only the named agents hold a long queue."""
+    return MultiAgentStepResult(
+        observations={
+            agent_id: observation(
+                agent_id,
+                time,
+                queue=9 if agent_id in congested_agents else 0,
+            )
+            for agent_id in ALL_AGENTS
+        },
+        rewards={agent_id: 0.0 for agent_id in ALL_AGENTS},
+        terminated=terminated,
+        truncated=False,
+        info={"simulation_time": time, "action_results": {}},
+    )
+
+
+def test_local_runs_keep_states_free_of_neighbor_features(tmp_path):
+    """The independent baseline must stay exactly as it was."""
+    trainer, _ = make_trainer(
+        tmp_path,
+        [result(5, 1.0, terminated=True)],
+        episodes=1,
+    )
+    assert trainer.controller_name == CONTROLLER_NAME
+    assert all(
+        neighbor_ids == ()
+        for neighbor_ids in trainer.neighbor_ids_by_agent.values()
+    )
+    try:
+        states = trainer.reset()
+        assert all(state.neighbor_queue_flags == () for state in states.values())
+    finally:
+        trainer.close()
+
+
+def test_spatial_agents_observe_their_nearest_neighbors(tmp_path):
+    trainer, _ = spatial_trainer(tmp_path, [result(5, 1.0, terminated=True)])
+
+    assert trainer.controller_name == SPATIAL_CONTROLLER_NAME
+    assert trainer.neighbor_ids_by_agent == {
+        agent_id: nearest_neighbor_ids(
+            SELECTED_CORRIDOR,
+            agent_id,
+            limit=2,
+            observed_agent_ids=ALL_AGENTS,
+        )
+        for agent_id in ALL_AGENTS
+    }
+    try:
+        states = trainer.reset()
+        for agent_id in ALL_AGENTS:
+            assert len(states[agent_id].neighbor_queue_flags) == len(
+                trainer.neighbor_ids_by_agent[agent_id]
+            )
+    finally:
+        trainer.close()
+
+
+def test_neighbor_congestion_reaches_the_observing_agent(tmp_path):
+    """A19 watches A18 and A26, so a queue at A26 must show up in its state."""
+    trainer, _ = spatial_trainer(tmp_path, [congested_result(("A26",))])
+    assert trainer.neighbor_ids_by_agent["A19"] == ("A18", "A26")
+    try:
+        trainer.reset()
+        decision = trainer.step(training=True)
+    finally:
+        trainer.close()
+
+    # The A19 junction itself is empty in this step; only the shared flag moved.
+    assert decision.states["A19"].total_queue_bucket == 0
+    assert decision.states["A19"].neighbor_queue_flags == (0, 1)
+    # A24 only watches A25, which is quiet.
+    assert decision.states["A24"].neighbor_queue_flags == (0,)
+
+
+def test_spatial_states_separate_otherwise_identical_local_traffic(tmp_path):
+    """Same local queues, different neighborhoods -- different table keys."""
+    quiet_trainer, _ = spatial_trainer(tmp_path, [congested_result(())])
+    busy_trainer, _ = spatial_trainer(tmp_path, [congested_result(("A26",))])
+
+    try:
+        quiet_trainer.reset()
+        quiet = quiet_trainer.step(training=True).states["A19"]
+        busy_trainer.reset()
+        busy = busy_trainer.step(training=True).states["A19"]
+    finally:
+        quiet_trainer.close()
+        busy_trainer.close()
+
+    assert quiet.total_queue_bucket == busy.total_queue_bucket
+    assert quiet != busy
+
+
+def test_neighbor_limit_bounds_the_shared_state(tmp_path):
+    """A26 has six neighbors; one flag each would multiply its table by 64."""
+    trainer, _ = spatial_trainer(tmp_path, [], neighbor_limit=1)
+    assert trainer.neighbor_ids_by_agent["A26"] == ("A20",)
+    assert all(
+        len(neighbor_ids) <= 1
+        for neighbor_ids in trainer.neighbor_ids_by_agent.values()
+    )
+
+
+def test_spatial_subset_only_observes_controlled_agents(tmp_path):
+    """A subset run must not read a junction the environment is not stepping."""
+    subset = ("A19", "A26")
+    trainer, _ = spatial_trainer(
+        tmp_path,
+        [result(5, 1.0, agent_ids=subset, terminated=True)],
+        agent_ids=subset,
+    )
+    assert trainer.neighbor_ids_by_agent == {"A19": ("A26",), "A26": ("A19",)}
+    summaries = trainer.train()
+    assert summaries[0].decision_steps == 1
+
+
+def test_spatial_agents_with_no_observed_neighbor_stay_local(tmp_path):
+    trainer, _ = spatial_trainer(
+        tmp_path,
+        [result(5, 1.0, agent_ids=("A19",), terminated=True)],
+        agent_ids=("A19",),
+    )
+    assert trainer.neighbor_ids_by_agent == {"A19": ()}
+    try:
+        states = trainer.reset()
+        assert states["A19"].neighbor_queue_flags == ()
+    finally:
+        trainer.close()
+
+
+def test_spatial_evaluation_is_labelled_apart_from_the_local_baseline(
+    tmp_path, monkeypatch
+):
+    """Acceptance criterion: spatial results are comparable to local ones."""
+    written = []
+    monkeypatch.setattr(
+        "src.training.multi_agent_q_learning.append_result",
+        lambda metrics, *args, **kwargs: written.append(metrics),
+    )
+
+    trainer, _ = spatial_trainer(tmp_path, [result(5, 1.0, terminated=True)])
+    trainer.train()
+    evaluator, _ = spatial_trainer(
+        tmp_path,
+        [result(5, 1.0, terminated=True)],
+        mode="evaluate",
+    )
+    evaluator.evaluate()
+
+    assert len(written) == 1
+    assert written[0].controller == "multi_agent_spatial_rl"
+    assert written[0].controller != CONTROLLER_NAME
+
+
+def test_spatial_checkpoints_round_trip_with_their_neighbor_flags(tmp_path):
+    trainer, _ = spatial_trainer(
+        tmp_path,
+        [congested_result(("A26",))],
+        q_learning_config=QLearningConfig(
+            alpha=1.0,
+            epsilon=0.0,
+            minimum_epsilon=0.0,
+        ),
+    )
+    trainer.train()
+    expected = {
+        agent_id: dict(agent.q_table)
+        for agent_id, agent in trainer.agents.items()
+    }
+    assert any(
+        state.neighbor_queue_flags for state, _ in trainer.agents["A19"].q_table
+    )
+
+    restored, _ = spatial_trainer(
+        tmp_path,
+        [congested_result(("A26",))],
+        mode="evaluate",
+    )
+    restored.load_checkpoint()
+    for agent_id in ALL_AGENTS:
+        assert dict(restored.agents[agent_id].q_table) == expected[agent_id]
+
+    payload = json.loads((tmp_path / "spatial.json").read_text())
+    assert payload["controller"] == SPATIAL_CONTROLLER_NAME
+    assert payload["spatial_neighbor_ids"]["A19"] == ["A18", "A26"]
+
+
+def test_local_and_spatial_checkpoints_are_not_interchangeable(tmp_path):
+    """Their Q-table keys mean different things, so mixing them is refused."""
+    spatial, _ = spatial_trainer(tmp_path, [result(5, 1.0, terminated=True)])
+    spatial.train()
+
+    local = MultiAgentQLearningTrainer(
+        MultiAgentQLearningConfig(
+            scenario="low",
+            mode="evaluate",
+            checkpoint_path=tmp_path / "spatial.json",
+        )
+    )
+    with pytest.raises(ValueError, match="controller"):
+        local.load_checkpoint()
+
+
+def test_checkpoint_from_a_different_neighborhood_is_refused(tmp_path):
+    """Changing the neighbor limit changes what every stored state means."""
+    trainer, _ = spatial_trainer(tmp_path, [result(5, 1.0, terminated=True)])
+    trainer.train()
+
+    widened, _ = spatial_trainer(
+        tmp_path,
+        [result(5, 1.0, terminated=True)],
+        mode="evaluate",
+        neighbor_limit=3,
+    )
+    with pytest.raises(ValueError, match="different"):
+        widened.load_checkpoint()
+
+
+def test_a_preconfigured_spatial_encoder_is_rejected():
+    """Neighbors are per-agent, so one shared spatial encoder is a bug."""
+    config = MultiAgentQLearningConfig(
+        agent_ids=("A19", "A26"),
+        spatial_observations=True,
+    )
+    with pytest.raises(ValueError, match="must not be configured"):
+        MultiAgentQLearningTrainer(
+            config,
+            encoder=TrafficStateEncoder(neighbor_ids=("A26",)),
+        )
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"spatial_observations": "yes"},
+        {"spatial_neighbor_limit": 0},
+        {"spatial_neighbor_limit": -1},
+        {"spatial_neighbor_limit": 1.5},
+    ],
+)
+def test_invalid_spatial_configuration_is_rejected(kwargs):
+    with pytest.raises(ValueError):
+        MultiAgentQLearningConfig(**kwargs)
+
+
+def test_cli_enables_spatial_observations(cli, monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "run_multi_agent_q_learning.py",
+            "train",
+            "--checkpoint",
+            str(tmp_path / "cli.json"),
+            "--spatial-observations",
+            "--neighbor-limit",
+            "3",
+        ],
+    )
+    assert cli.main() == 0
+
+    trainer = _RecordingTrainer.instances[-1]
+    assert trainer.config.spatial_observations is True
+    assert trainer.config.spatial_neighbor_limit == 3
+
+
+def test_cli_defaults_to_purely_local_observations(cli, monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "run_multi_agent_q_learning.py",
+            "train",
+            "--checkpoint",
+            str(tmp_path / "cli.json"),
+        ],
+    )
+    assert cli.main() == 0
+    assert _RecordingTrainer.instances[-1].config.spatial_observations is False

@@ -18,6 +18,7 @@ from src.environment.corridor_candidates import load_agent_traffic_light_mapping
 from src.environment.selected_corridor import (
     SELECTED_CORRIDOR,
     is_connected,
+    nearest_neighbor_ids,
     validate_selected_corridor,
 )
 
@@ -206,3 +207,48 @@ def test_import_and_validation_do_not_modify_original_sumo_files() -> None:
     reloaded_module.validate_selected_corridor(reloaded_module.SELECTED_CORRIDOR)
 
     assert _original_sumo_hashes() == hashes_before
+
+
+def test_nearest_neighbor_ids_are_ordered_by_network_distance() -> None:
+    """Spatial observation sharing must watch the closest junctions first."""
+    for agent_id in SELECTED_CORRIDOR.agent_ids:
+        ordered = nearest_neighbor_ids(SELECTED_CORRIDOR, agent_id)
+        assert set(ordered) == set(SELECTED_CORRIDOR.neighbor_map[agent_id])
+        distances = [
+            SELECTED_CORRIDOR.neighbor_distances_m[(agent_id, neighbor_id)]
+            for neighbor_id in ordered
+        ]
+        assert distances == sorted(distances)
+
+
+def test_nearest_neighbor_ids_respects_the_limit() -> None:
+    """A26 has six audited neighbors; the tabular state cannot carry them all."""
+    assert len(SELECTED_CORRIDOR.neighbor_map["A26"]) == 6
+    limited = nearest_neighbor_ids(SELECTED_CORRIDOR, "A26", limit=2)
+    assert limited == nearest_neighbor_ids(SELECTED_CORRIDOR, "A26")[:2]
+    assert len(limited) == 2
+    assert nearest_neighbor_ids(SELECTED_CORRIDOR, "A26", limit=0) == ()
+    # A limit larger than the audited neighborhood is not padded.
+    assert nearest_neighbor_ids(SELECTED_CORRIDOR, "A20", limit=5) == ("A26",)
+
+
+def test_nearest_neighbor_ids_only_returns_observed_agents() -> None:
+    """A corridor subset must never observe a junction nobody is stepping."""
+    subset = ("A19", "A26")
+    assert nearest_neighbor_ids(
+        SELECTED_CORRIDOR,
+        "A19",
+        observed_agent_ids=subset,
+    ) == ("A26",)
+    assert nearest_neighbor_ids(
+        SELECTED_CORRIDOR,
+        "A19",
+        observed_agent_ids=("A19",),
+    ) == ()
+
+
+def test_nearest_neighbor_ids_rejects_invalid_arguments() -> None:
+    with pytest.raises(ValueError, match="Unknown selected agent ID"):
+        nearest_neighbor_ids(SELECTED_CORRIDOR, "NOPE")
+    with pytest.raises(ValueError, match="limit must be"):
+        nearest_neighbor_ids(SELECTED_CORRIDOR, "A19", limit=-1)

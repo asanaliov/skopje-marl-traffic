@@ -283,3 +283,153 @@ def test_custom_bucket_configuration_is_frozen_and_used() -> None:
     assert state.phase_elapsed_bucket == 1
     with pytest.raises(FrozenInstanceError):
         config.total_queue_thresholds = (1,)  # type: ignore[misc]
+
+
+def test_local_encoder_leaves_neighbor_flags_empty() -> None:
+    """A purely local state stays exactly what it was before sharing existed."""
+    state = TrafficStateEncoder().encode(make_observation())
+    assert state.neighbor_queue_flags == ()
+
+
+@pytest.mark.parametrize(
+    ("neighbor_queue", "expected_flag"),
+    ((0, 0), (1, 0), (3, 0), (4, 1), (12, 1)),
+)
+def test_neighbor_queue_flag_uses_a_two_bucket_threshold(
+    neighbor_queue: int,
+    expected_flag: int,
+) -> None:
+    """A neighbor is reported as one congestion bit, not a full bucket."""
+    encoder = TrafficStateEncoder(neighbor_ids=("A26",))
+    state = encoder.encode(
+        make_observation(agent_id="A19"),
+        {
+            "A26": make_observation(
+                agent_id="A26",
+                queue_lengths=(neighbor_queue,),
+                waiting_times=(0.0,),
+            )
+        },
+    )
+    assert state.neighbor_queue_flags == (expected_flag,)
+
+
+def test_neighbor_flags_follow_configured_neighbor_order() -> None:
+    """Flag positions are the encoder's neighbor order, not mapping order."""
+    encoder = TrafficStateEncoder(neighbor_ids=("A26", "A9"))
+    state = encoder.encode(
+        make_observation(agent_id="A19"),
+        {
+            "A9": make_observation(
+                agent_id="A9",
+                queue_lengths=(9,),
+                waiting_times=(0.0,),
+            ),
+            "A26": make_observation(
+                agent_id="A26",
+                queue_lengths=(0,),
+                waiting_times=(0.0,),
+            ),
+        },
+    )
+    assert encoder.neighbor_ids == ("A26", "A9")
+    assert state.neighbor_queue_flags == (0, 1)
+
+
+def test_unrelated_observations_in_the_snapshot_are_ignored() -> None:
+    """Callers may pass a whole corridor snapshot, including the agent itself."""
+    encoder = TrafficStateEncoder(neighbor_ids=("A26",))
+    local = make_observation(agent_id="A19", queue_lengths=(9,), waiting_times=(0.0,))
+    neighbor = make_observation(
+        agent_id="A26",
+        queue_lengths=(0,),
+        waiting_times=(0.0,),
+    )
+    unrelated = make_observation(
+        agent_id="A24",
+        queue_lengths=(30,),
+        waiting_times=(0.0,),
+    )
+    snapshot = {"A19": local, "A26": neighbor, "A24": unrelated}
+
+    assert encoder.encode(local, snapshot).neighbor_queue_flags == (0,)
+
+
+def test_congested_neighbors_produce_distinct_table_keys() -> None:
+    """The whole point of sharing: identical local traffic, separable states."""
+    encoder = TrafficStateEncoder(neighbor_ids=("A26",))
+    local = make_observation(agent_id="A19")
+    quiet = encoder.encode(
+        local,
+        {"A26": make_observation(agent_id="A26", queue_lengths=(0,), waiting_times=(0.0,))},
+    )
+    busy = encoder.encode(
+        local,
+        {"A26": make_observation(agent_id="A26", queue_lengths=(12,), waiting_times=(0.0,))},
+    )
+
+    assert quiet != busy
+    assert hash(quiet) != hash(busy)
+    assert {quiet: "quiet", busy: "busy"}[busy] == "busy"
+
+
+def test_spatial_state_is_never_equal_to_the_local_state_it_extends() -> None:
+    """Local and spatial Q-tables must not share keys by accident."""
+    local_state = TrafficStateEncoder().encode(make_observation(agent_id="A19"))
+    spatial_state = TrafficStateEncoder(neighbor_ids=("A26",)).encode(
+        make_observation(agent_id="A19"),
+        {"A26": make_observation(agent_id="A26", queue_lengths=(0,), waiting_times=(0.0,))},
+    )
+
+    assert spatial_state.neighbor_queue_flags == (0,)
+    assert local_state != spatial_state
+
+
+def test_missing_neighbor_observation_is_rejected() -> None:
+    """A dropped neighbor would silently change what a table key means."""
+    encoder = TrafficStateEncoder(neighbor_ids=("A26", "A9"))
+    with pytest.raises(ValueError, match="missing configured neighbors: A9"):
+        encoder.encode(
+            make_observation(agent_id="A19"),
+            {"A26": make_observation(agent_id="A26")},
+        )
+    with pytest.raises(ValueError, match="requires neighbor_observations"):
+        encoder.encode(make_observation(agent_id="A19"))
+
+
+def test_neighbor_observations_without_configured_neighbors_are_rejected() -> None:
+    """Passing neighbors to a local encoder would be silently ignored data."""
+    with pytest.raises(ValueError, match="not configured with neighbor_ids"):
+        TrafficStateEncoder().encode(
+            make_observation(agent_id="A19"),
+            {"A26": make_observation(agent_id="A26")},
+        )
+
+
+@pytest.mark.parametrize(
+    "neighbor_ids",
+    ((), ("A26", "A26"), ("",), "A26", (7,)),
+)
+def test_invalid_neighbor_ids_are_rejected(neighbor_ids) -> None:
+    with pytest.raises(ValueError):
+        TrafficStateEncoder(neighbor_ids=neighbor_ids)
+
+
+def test_neighbor_threshold_is_configurable_and_validated() -> None:
+    encoder = TrafficStateEncoder(
+        StateEncoderConfig(neighbor_total_queue_threshold=10),
+        neighbor_ids=("A26",),
+    )
+    state = encoder.encode(
+        make_observation(agent_id="A19"),
+        {
+            "A26": make_observation(
+                agent_id="A26",
+                queue_lengths=(9,),
+                waiting_times=(0.0,),
+            )
+        },
+    )
+    assert state.neighbor_queue_flags == (0,)
+    with pytest.raises(ValueError, match="neighbor_total_queue_threshold"):
+        StateEncoderConfig(neighbor_total_queue_threshold=0)

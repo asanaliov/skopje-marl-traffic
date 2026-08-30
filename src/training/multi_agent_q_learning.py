@@ -3,13 +3,18 @@
 This is the "Independent Reinforcement Learning" comparison baseline: all
 eight corridor agents act in the *same* SUMO episode, but each one keeps
 its own tabular Q-table and learns only from its own local reward. There
-is no shared value function, no communication, and no joint action space
--- that is exactly what makes it the independent baseline that later
-coordinated MARL work has to beat.
+is no shared value function and no joint action space -- that is exactly
+what makes it the independent baseline that later coordinated MARL work
+has to beat.
 
 Contrast with ``src/training/independent_q_learning.py``, which drives a
 single agent (A19) while the other seven traffic lights stay on their
 imported SUMO programs.
+
+``spatial_observations`` adds the one communication channel this module
+supports: each agent additionally sees a coarse congestion flag for its
+nearest neighbors, so it can anticipate an arriving platoon. Rewards stay
+purely local either way -- coordinated reward mixing is separate work.
 """
 
 from __future__ import annotations
@@ -32,7 +37,10 @@ from src.environment.multi_agent_environment import (
     MultiAgentEnvironmentConfig,
     MultiAgentTrafficEnvironment,
 )
-from src.environment.selected_corridor import SELECTED_CORRIDOR
+from src.environment.selected_corridor import (
+    SELECTED_CORRIDOR,
+    nearest_neighbor_ids,
+)
 from src.evaluation.collector import MetricsCollector
 from src.evaluation.results_writer import append_result
 from src.training.checkpoint_state import state_from_json, state_to_json
@@ -41,7 +49,15 @@ from src.training.checkpoint_state import state_from_json, state_to_json
 TrainingMode = Literal["train", "evaluate"]
 
 CONTROLLER_NAME = "multi_agent_independent_rl"
+SPATIAL_CONTROLLER_NAME = "multi_agent_spatial_rl"
 CHECKPOINT_SCHEMA_VERSION = 1
+DEFAULT_SPATIAL_NEIGHBOR_LIMIT = 2
+"""Nearest neighbors observed per agent when spatial observations are on.
+
+Each observed neighbor adds one bit to a tabular state, doubling the
+reachable Q-table. Two neighbors keeps that growth at four times the local
+state space even for A26, which has six audited neighbors.
+"""
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,6 +76,8 @@ class MultiAgentQLearningConfig:
     checkpoint_interval: int = 1
     mode: TrainingMode = "train"
     resume: bool = False
+    spatial_observations: bool = False
+    spatial_neighbor_limit: int = DEFAULT_SPATIAL_NEIGHBOR_LIMIT
 
     def __post_init__(self) -> None:
         """Validate runner settings before a SUMO process is started."""
@@ -134,6 +152,16 @@ class MultiAgentQLearningConfig:
             raise ValueError("resume is only supported in 'train' mode.")
         if self.resume and self.checkpoint_path is None:
             raise ValueError("resume requires a checkpoint path.")
+        if not isinstance(self.spatial_observations, bool):
+            raise ValueError("spatial_observations must be a boolean.")
+        if (
+            not isinstance(self.spatial_neighbor_limit, int)
+            or isinstance(self.spatial_neighbor_limit, bool)
+            or self.spatial_neighbor_limit <= 0
+        ):
+            raise ValueError(
+                "spatial_neighbor_limit must be a positive integer."
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -209,6 +237,8 @@ class MultiAgentQLearningTrainer:
     ) -> None:
         self.config = config or MultiAgentQLearningConfig()
         self.encoder = encoder or TrafficStateEncoder()
+        self.neighbor_ids_by_agent = self._build_neighbor_ids()
+        self._encoders = self._build_encoders()
         self.agents = self._build_agents(agents, q_learning_config)
         self._environment_factory = (
             environment_factory or MultiAgentTrafficEnvironment
@@ -221,6 +251,78 @@ class MultiAgentQLearningTrainer:
         self._states: dict[str, DiscreteTrafficState] = {}
         self._episode_finished = True
         self._simulated_seconds = 0.0
+
+    def _build_neighbor_ids(self) -> Mapping[str, tuple[str, ...]]:
+        """Return the neighbors each agent observes, empty when purely local.
+
+        Only agents this run actually controls can be observed: a subset run
+        must not read a junction nobody is stepping.
+        """
+        if not self.config.spatial_observations:
+            return MappingProxyType(
+                {agent_id: () for agent_id in self.config.agent_ids}
+            )
+        return MappingProxyType(
+            {
+                agent_id: nearest_neighbor_ids(
+                    SELECTED_CORRIDOR,
+                    agent_id,
+                    limit=self.config.spatial_neighbor_limit,
+                    observed_agent_ids=self.config.agent_ids,
+                )
+                for agent_id in self.config.agent_ids
+            }
+        )
+
+    def _build_encoders(self) -> Mapping[str, TrafficStateEncoder]:
+        """Return one encoder per agent, spatial ones carrying its neighbors."""
+        if self.encoder.neighbor_ids is not None:
+            raise ValueError(
+                "The shared encoder must not be configured with neighbor_ids. "
+                "Set spatial_observations=True instead, so every agent gets "
+                "an encoder holding its own neighbors."
+            )
+        if not self.config.spatial_observations:
+            return MappingProxyType(
+                {agent_id: self.encoder for agent_id in self.config.agent_ids}
+            )
+        return MappingProxyType(
+            {
+                agent_id: TrafficStateEncoder(
+                    self.encoder.config,
+                    green_phase_indices=self.encoder.green_phase_indices,
+                    neighbor_ids=neighbor_ids or None,
+                )
+                for agent_id, neighbor_ids in self.neighbor_ids_by_agent.items()
+            }
+        )
+
+    @property
+    def controller_name(self) -> str:
+        """Return the results label distinguishing spatial from local runs."""
+        return (
+            SPATIAL_CONTROLLER_NAME
+            if self.config.spatial_observations
+            else CONTROLLER_NAME
+        )
+
+    def _encode_all(
+        self,
+        observations: Mapping[str, Any],
+    ) -> dict[str, DiscreteTrafficState]:
+        """Encode every agent, handing spatial encoders the shared snapshot.
+
+        All agents are encoded from the same observation snapshot, so the
+        neighbor flags an agent sees describe the corridor at the moment it
+        chooses its action.
+        """
+        return {
+            agent_id: self._encoders[agent_id].encode(
+                observations[agent_id],
+                observations if self.neighbor_ids_by_agent[agent_id] else None,
+            )
+            for agent_id in self.config.agent_ids
+        }
 
     def _build_agents(
         self,
@@ -326,15 +428,12 @@ class MultiAgentQLearningTrainer:
                 }
             )
             self._collector = MetricsCollector(
-                controller=CONTROLLER_NAME,
+                controller=self.controller_name,
                 scenario=self.config.scenario,
                 seed=self.config.seed,
                 monitored_lanes=monitored_lanes,
             )
-            self._states = {
-                agent_id: self.encoder.encode(observations[agent_id])
-                for agent_id in self.config.agent_ids
-            }
+            self._states = self._encode_all(observations)
             self._episode_finished = False
             self._simulated_seconds = 0.0
             return MappingProxyType(dict(self._states))
@@ -362,10 +461,7 @@ class MultiAgentQLearningTrainer:
         self._validate_agent_mapping(result.observations, "observations")
         self._validate_agent_mapping(result.rewards, "rewards")
 
-        next_states = {
-            agent_id: self.encoder.encode(result.observations[agent_id])
-            for agent_id in self.config.agent_ids
-        }
+        next_states = self._encode_all(result.observations)
         rewards = {
             agent_id: float(result.rewards[agent_id])
             for agent_id in self.config.agent_ids
@@ -435,12 +531,19 @@ class MultiAgentQLearningTrainer:
             }
         return {
             "schema_version": CHECKPOINT_SCHEMA_VERSION,
-            "controller": CONTROLLER_NAME,
+            "controller": self.controller_name,
             "agent_ids": list(self.config.agent_ids),
             "encoder_config": asdict(self.encoder.config),
             "agents": agents_payload,
             "scenario": self.config.scenario,
             "seed": self.config.seed,
+            # The observed neighbors are part of what a Q-table key means.
+            # Recording them lets a load refuse a checkpoint whose states
+            # were built from a different neighborhood.
+            "spatial_neighbor_ids": {
+                agent_id: list(neighbor_ids)
+                for agent_id, neighbor_ids in self.neighbor_ids_by_agent.items()
+            },
         }
 
     def save_checkpoint(self, path: Path | None = None) -> Path:
@@ -482,12 +585,13 @@ class MultiAgentQLearningTrainer:
             )
         if payload.get("schema_version") != CHECKPOINT_SCHEMA_VERSION:
             raise ValueError("Unsupported checkpoint schema version.")
-        if payload.get("controller") != CONTROLLER_NAME:
+        if payload.get("controller") != self.controller_name:
             raise ValueError(
                 f"Checkpoint {target} was written by controller "
-                f"{payload.get('controller')!r}, not {CONTROLLER_NAME!r}. "
-                "Single-agent A19 checkpoints are not interchangeable with "
-                "multi-agent ones."
+                f"{payload.get('controller')!r}, not "
+                f"{self.controller_name!r}. Single-agent A19 checkpoints are "
+                "not interchangeable with multi-agent ones, and spatial "
+                "checkpoints hold states that local-only agents cannot read."
             )
         checkpoint_agent_ids = tuple(payload.get("agent_ids", ()))
         if checkpoint_agent_ids != self.config.agent_ids:
@@ -509,6 +613,20 @@ class MultiAgentQLearningTrainer:
                 f"{payload.get('seed')!r}, not {self.config.seed!r}. "
                 "Refusing to load a checkpoint from a different seed."
             )
+
+        checkpoint_neighbor_ids = payload.get("spatial_neighbor_ids")
+        if checkpoint_neighbor_ids is not None:
+            stored = {
+                agent_id: tuple(neighbor_ids)
+                for agent_id, neighbor_ids in checkpoint_neighbor_ids.items()
+            }
+            if stored != dict(self.neighbor_ids_by_agent):
+                raise ValueError(
+                    f"Checkpoint {target} observes neighbors {stored}, not "
+                    f"{dict(self.neighbor_ids_by_agent)}. Refusing to load a "
+                    "checkpoint whose states were encoded from a different "
+                    "neighborhood."
+                )
 
         agents_payload = payload.get("agents")
         if not isinstance(agents_payload, Mapping):
@@ -738,6 +856,7 @@ class MultiAgentQLearningTrainer:
         print(
             f"Summary: episodes_this_run={len(self.summaries)} "
             f"total_episodes={self.completed_training_episodes} "
+            f"controller={self.controller_name} "
             f"agents={len(self.agents)} "
             f"mean_epsilon={self._mean_epsilon():.4f} "
             f"states={self._total_q_table_states()} "
@@ -762,6 +881,8 @@ class MultiAgentQLearningTrainer:
 
 __all__ = [
     "CONTROLLER_NAME",
+    "DEFAULT_SPATIAL_NEIGHBOR_LIMIT",
+    "SPATIAL_CONTROLLER_NAME",
     "AgentEpisodeSummary",
     "MultiAgentDecisionResult",
     "MultiAgentEpisodeSummary",

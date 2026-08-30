@@ -7,7 +7,7 @@ import gzip
 import math
 import xml.etree.ElementTree as ET
 from collections import deque
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -328,6 +328,57 @@ def phase_counts_by_agent(
     )
 
 
+def nearest_neighbor_ids(
+    corridor: SelectedCorridor,
+    agent_id: str,
+    *,
+    limit: int | None = None,
+    observed_agent_ids: Iterable[str] | None = None,
+) -> tuple[str, ...]:
+    """Return one agent's neighbors ordered by network distance, nearest first.
+
+    Spatial observation sharing needs a *bounded* neighborhood: A26 has six
+    audited neighbors, and one extra state bit per neighbor multiplies a
+    tabular Q-table by two. ``limit`` keeps only the closest neighbors, which
+    are also the ones whose queues arrive soonest. ``observed_agent_ids``
+    restricts the result to agents a run actually controls, so a corridor
+    subset never references a junction nobody is observing.
+
+    Ties in distance are broken by official corridor order, so the result is
+    deterministic across runs and machines.
+    """
+    if agent_id not in corridor.neighbor_map:
+        valid = ", ".join(corridor.agent_ids)
+        raise ValueError(
+            f"Unknown selected agent ID: {agent_id}. Choose from: {valid}."
+        )
+    if limit is not None and (
+        not isinstance(limit, int) or isinstance(limit, bool) or limit < 0
+    ):
+        raise ValueError("limit must be a non-negative integer or None.")
+
+    observed = (
+        set(corridor.agent_ids)
+        if observed_agent_ids is None
+        else set(observed_agent_ids)
+    )
+    corridor_order = {
+        selected_id: index for index, selected_id in enumerate(corridor.agent_ids)
+    }
+    candidates = sorted(
+        (
+            neighbor_id
+            for neighbor_id in corridor.neighbor_map[agent_id]
+            if neighbor_id in observed
+        ),
+        key=lambda neighbor_id: (
+            corridor.neighbor_distances_m[(agent_id, neighbor_id)],
+            corridor_order[neighbor_id],
+        ),
+    )
+    return tuple(candidates if limit is None else candidates[:limit])
+
+
 def _validate_structure(corridor: SelectedCorridor) -> None:
     """Validate identity, mappings, relationships, distances, and connectivity."""
     if corridor.candidate_id != _EXPECTED_CANDIDATE_ID:
@@ -615,6 +666,7 @@ __all__ = [
     "SelectedCorridor",
     "is_connected",
     "junction_node_ids_by_agent",
+    "nearest_neighbor_ids",
     "phase_counts_by_agent",
     "validate_selected_corridor",
 ]

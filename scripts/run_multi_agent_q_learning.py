@@ -2,7 +2,9 @@
 
 All eight selected corridor agents learn concurrently in the same
 episode, each with its own tabular Q-table (controller label
-``multi_agent_independent_rl``). See
+``multi_agent_independent_rl``, or ``multi_agent_spatial_rl`` with
+``--spatial-observations``, which additionally lets every agent see a
+coarse congestion flag for its nearest neighbors). See
 ``src/training/multi_agent_q_learning.py`` for how this differs from the
 single-agent A19 runner in ``scripts/run_q_learning.py``.
 """
@@ -19,6 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
 from src.training.multi_agent_q_learning import (  # noqa: E402
+    DEFAULT_SPATIAL_NEIGHBOR_LIMIT,
     MultiAgentQLearningConfig,
     MultiAgentQLearningTrainer,
 )
@@ -46,6 +49,28 @@ def _common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--decision-interval", type=_positive_float, default=5.0)
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--gui", action="store_true")
+    parser.add_argument(
+        "--spatial-observations",
+        action="store_true",
+        help=(
+            "Let every agent also observe a coarse congestion flag for its "
+            "nearest neighbors instead of only its own junction. Results are "
+            "written under the controller label multi_agent_spatial_rl, and "
+            "the checkpoints of the two observation modes are not "
+            "interchangeable."
+        ),
+    )
+    parser.add_argument(
+        "--neighbor-limit",
+        type=_positive_int,
+        default=DEFAULT_SPATIAL_NEIGHBOR_LIMIT,
+        help=(
+            "Nearest neighbors each agent observes with "
+            "--spatial-observations (default: "
+            f"{DEFAULT_SPATIAL_NEIGHBOR_LIMIT}). Every extra neighbor "
+            "doubles the reachable tabular state space."
+        ),
+    )
     parser.add_argument(
         "--agents",
         nargs="+",
@@ -92,11 +117,17 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     agent_ids = tuple(args.agents)
+    observation_note = (
+        "Each agent observes its own junction plus a congestion flag for "
+        f"its {args.neighbor_limit} nearest observed neighbor(s)."
+        if args.spatial_observations
+        else "Each agent observes only its own junction."
+    )
     print(
         f"This is a multi-agent independent Q-learning run over "
         f"{len(agent_ids)} agent(s): {', '.join(agent_ids)}. Each agent "
         "learns its own Q-table from its own local reward; no coordinated "
-        "MARL is active."
+        f"reward mixing is active. {observation_note}"
     )
     if args.command == "train":
         config = MultiAgentQLearningConfig(
@@ -112,6 +143,8 @@ def main() -> int:
             checkpoint_interval=args.checkpoint_interval,
             mode="train",
             resume=args.resume,
+            spatial_observations=args.spatial_observations,
+            spatial_neighbor_limit=args.neighbor_limit,
         )
         MultiAgentQLearningTrainer(config).train()
     else:
@@ -129,6 +162,8 @@ def main() -> int:
             gui=args.gui,
             checkpoint_path=args.checkpoint,
             mode="evaluate",
+            spatial_observations=args.spatial_observations,
+            spatial_neighbor_limit=args.neighbor_limit,
         )
         MultiAgentQLearningTrainer(config).evaluate()
     return 0
