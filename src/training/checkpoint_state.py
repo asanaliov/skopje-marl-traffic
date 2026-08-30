@@ -43,6 +43,12 @@ def state_from_json(value: Mapping[str, Any]) -> Any:
                 "is_transition_phase",
             )
         }
+        # Spatial neighbor flags arrived after the first checkpoints were
+        # written, and a local-only state has none, so an absent key reads
+        # back as the empty tuple rather than failing the load.
+        fields["neighbor_queue_flags"] = tuple(
+            value.get("neighbor_queue_flags", ())
+        )
         return DiscreteTrafficState(**fields)
     if state_type == "primitive":
         return value.get("value")
