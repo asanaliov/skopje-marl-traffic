@@ -1,10 +1,14 @@
 """Run the multi-agent independent Q-learning SUMO trainer.
 
 All eight selected corridor agents learn concurrently in the same
-episode, each with its own tabular Q-table (controller label
-``multi_agent_independent_rl``, or ``multi_agent_spatial_rl`` with
+episode, each with its own tabular Q-table. The default controller
+label is ``multi_agent_independent_rl`` (``multi_agent_spatial_rl`` with
 ``--spatial-observations``, which additionally lets every agent see a
-coarse congestion flag for its nearest neighbors). See
+coarse congestion flag for its nearest neighbors). Passing
+``--reward-mode neighbor_aware`` or ``--reward-mode global`` switches
+every agent from purely local rewards to a coordinated reward mix (see
+``src/environment/rewards.py``) and logs results under
+``marl_neighbor_reward`` or ``marl_global_reward`` instead. See
 ``src/training/multi_agent_q_learning.py`` for how this differs from the
 single-agent A19 runner in ``scripts/run_q_learning.py``.
 """
@@ -72,6 +76,23 @@ def _common_arguments(parser: argparse.ArgumentParser) -> None:
         ),
     )
     parser.add_argument(
+        "--reward-mode",
+        choices=("local", "neighbor_aware", "global"),
+        default="local",
+        help=(
+            "Reward signal every agent learns from. 'local' (default) is "
+            "the independent baseline: each agent only sees its own "
+            "reward. 'neighbor_aware' blends each agent's local reward "
+            "with the mean of its immediate neighbors' local rewards, so "
+            "an agent can no longer shove a queue onto the next junction "
+            "for free. 'global' replaces every agent's reward with the "
+            "corridor-wide mean of all local rewards. Results are logged "
+            "under controller labels marl_neighbor_reward and "
+            "marl_global_reward respectively, distinct from the local "
+            "baseline labels."
+        ),
+    )
+    parser.add_argument(
         "--agents",
         nargs="+",
         default=list(SELECTED_CORRIDOR.agent_ids),
@@ -87,9 +108,10 @@ def _common_arguments(parser: argparse.ArgumentParser) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run multi-agent independent Q-learning in SUMO. Every agent "
-            "keeps its own Q-table and its own local reward -- there is no "
-            "coordination between them."
+            "Run multi-agent Q-learning in SUMO. Every agent keeps its own "
+            "Q-table. By default each agent also learns from its own local "
+            "reward only (no coordination); --reward-mode switches to a "
+            "coordinated neighbor-aware or global reward instead."
         )
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -123,11 +145,24 @@ def main() -> int:
         if args.spatial_observations
         else "Each agent observes only its own junction."
     )
+    reward_note = {
+        "local": (
+            "Each agent learns from its own local reward only; no "
+            "coordinated reward mixing is active."
+        ),
+        "neighbor_aware": (
+            "Each agent's reward is blended with its immediate neighbors' "
+            "local rewards (neighbor_aware_reward)."
+        ),
+        "global": (
+            "Every agent's reward is the corridor-wide mean of all local "
+            "rewards (global_corridor_reward)."
+        ),
+    }[args.reward_mode]
     print(
-        f"This is a multi-agent independent Q-learning run over "
-        f"{len(agent_ids)} agent(s): {', '.join(agent_ids)}. Each agent "
-        "learns its own Q-table from its own local reward; no coordinated "
-        f"reward mixing is active. {observation_note}"
+        f"This is a multi-agent Q-learning run over {len(agent_ids)} "
+        f"agent(s): {', '.join(agent_ids)}. Each agent learns its own "
+        f"Q-table. {observation_note} {reward_note}"
     )
     if args.command == "train":
         config = MultiAgentQLearningConfig(
@@ -145,6 +180,7 @@ def main() -> int:
             resume=args.resume,
             spatial_observations=args.spatial_observations,
             spatial_neighbor_limit=args.neighbor_limit,
+            reward_mode=args.reward_mode,
         )
         MultiAgentQLearningTrainer(config).train()
     else:
@@ -164,6 +200,7 @@ def main() -> int:
             mode="evaluate",
             spatial_observations=args.spatial_observations,
             spatial_neighbor_limit=args.neighbor_limit,
+            reward_mode=args.reward_mode,
         )
         MultiAgentQLearningTrainer(config).evaluate()
     return 0
