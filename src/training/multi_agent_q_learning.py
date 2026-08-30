@@ -2,19 +2,26 @@
 
 This is the "Independent Reinforcement Learning" comparison baseline: all
 eight corridor agents act in the *same* SUMO episode, but each one keeps
-its own tabular Q-table and learns only from its own local reward. There
-is no shared value function and no joint action space -- that is exactly
-what makes it the independent baseline that later coordinated MARL work
-has to beat.
+its own tabular Q-table and learns only from its own local reward by
+default. There is no shared value function and no joint action space --
+that is exactly what makes ``reward_mode="local"`` the independent
+baseline that coordinated MARL work has to beat.
 
 Contrast with ``src/training/independent_q_learning.py``, which drives a
 single agent (A19) while the other seven traffic lights stay on their
 imported SUMO programs.
 
-``spatial_observations`` adds the one communication channel this module
-supports: each agent additionally sees a coarse congestion flag for its
-nearest neighbors, so it can anticipate an arriving platoon. Rewards stay
-purely local either way -- coordinated reward mixing is separate work.
+``spatial_observations`` adds one communication channel: each agent
+additionally sees a coarse congestion flag for its nearest neighbors, so
+it can anticipate an arriving platoon. ``reward_mode`` adds a second,
+independent channel: agents can keep learning from purely local rewards
+(the default), or have their reward blended with their neighbors'
+rewards (``neighbor_aware``), or replaced by the corridor-wide mean
+reward (``global``) so that greedy local optimization does not just
+shove a bottleneck onto the next junction. See
+``src/environment/rewards.py`` and
+``MultiAgentEnvironmentConfig.reward_mode`` for how the mixing itself is
+calculated -- this module only has to select the mode and forward it.
 """
 
 from __future__ import annotations
@@ -36,6 +43,7 @@ from src.environment.actions import TrafficAction
 from src.environment.multi_agent_environment import (
     MultiAgentEnvironmentConfig,
     MultiAgentTrafficEnvironment,
+    RewardMode,
 )
 from src.environment.selected_corridor import (
     SELECTED_CORRIDOR,
@@ -50,6 +58,8 @@ TrainingMode = Literal["train", "evaluate"]
 
 CONTROLLER_NAME = "multi_agent_independent_rl"
 SPATIAL_CONTROLLER_NAME = "multi_agent_spatial_rl"
+NEIGHBOR_REWARD_CONTROLLER_NAME = "marl_neighbor_reward"
+GLOBAL_REWARD_CONTROLLER_NAME = "marl_global_reward"
 CHECKPOINT_SCHEMA_VERSION = 1
 DEFAULT_SPATIAL_NEIGHBOR_LIMIT = 2
 """Nearest neighbors observed per agent when spatial observations are on.
@@ -58,6 +68,8 @@ Each observed neighbor adds one bit to a tabular state, doubling the
 reachable Q-table. Two neighbors keeps that growth at four times the local
 state space even for A26, which has six audited neighbors.
 """
+
+_REWARD_MODES: tuple[RewardMode, ...] = ("local", "neighbor_aware", "global")
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,6 +90,7 @@ class MultiAgentQLearningConfig:
     resume: bool = False
     spatial_observations: bool = False
     spatial_neighbor_limit: int = DEFAULT_SPATIAL_NEIGHBOR_LIMIT
+    reward_mode: RewardMode = "local"
 
     def __post_init__(self) -> None:
         """Validate runner settings before a SUMO process is started."""
@@ -161,6 +174,12 @@ class MultiAgentQLearningConfig:
         ):
             raise ValueError(
                 "spatial_neighbor_limit must be a positive integer."
+            )
+        if self.reward_mode not in _REWARD_MODES:
+            valid_modes = ", ".join(_REWARD_MODES)
+            raise ValueError(
+                f"Unknown reward_mode {self.reward_mode!r}. Choose from: "
+                f"{valid_modes}."
             )
 
 
@@ -299,7 +318,17 @@ class MultiAgentQLearningTrainer:
 
     @property
     def controller_name(self) -> str:
-        """Return the results label distinguishing spatial from local runs."""
+        """Return the results label for this run's reward and observation mode.
+
+        Reward mode takes priority in the label because it changes what
+        every agent's Q-values actually mean -- a neighbor-aware or global
+        run is not comparable to (and must not silently share a checkpoint
+        or a results row with) a local-only run, spatial or not.
+        """
+        if self.config.reward_mode == "neighbor_aware":
+            return NEIGHBOR_REWARD_CONTROLLER_NAME
+        if self.config.reward_mode == "global":
+            return GLOBAL_REWARD_CONTROLLER_NAME
         return (
             SPATIAL_CONTROLLER_NAME
             if self.config.spatial_observations
@@ -373,10 +402,7 @@ class MultiAgentQLearningTrainer:
             cooldown_seconds=self.config.cooldown_seconds,
             decision_interval_seconds=self.config.decision_interval_seconds,
             gui=self.config.gui,
-            # Independent RL by definition: every agent optimizes only its
-            # own junction. The neighbor_aware and global reward modes
-            # belong to the coordinated MARL work, not to this baseline.
-            reward_mode="local",
+            reward_mode=self.config.reward_mode,
         )
 
     def _validate_agent_mapping(
@@ -537,6 +563,7 @@ class MultiAgentQLearningTrainer:
             "agents": agents_payload,
             "scenario": self.config.scenario,
             "seed": self.config.seed,
+            "reward_mode": self.config.reward_mode,
             # The observed neighbors are part of what a Q-table key means.
             # Recording them lets a load refuse a checkpoint whose states
             # were built from a different neighborhood.
@@ -590,8 +617,9 @@ class MultiAgentQLearningTrainer:
                 f"Checkpoint {target} was written by controller "
                 f"{payload.get('controller')!r}, not "
                 f"{self.controller_name!r}. Single-agent A19 checkpoints are "
-                "not interchangeable with multi-agent ones, and spatial "
-                "checkpoints hold states that local-only agents cannot read."
+                "not interchangeable with multi-agent ones, and spatial or "
+                "coordinated-reward checkpoints hold states or scales that "
+                "other modes cannot read."
             )
         checkpoint_agent_ids = tuple(payload.get("agent_ids", ()))
         if checkpoint_agent_ids != self.config.agent_ids:
@@ -612,6 +640,14 @@ class MultiAgentQLearningTrainer:
                 f"Checkpoint {target} was trained with seed "
                 f"{payload.get('seed')!r}, not {self.config.seed!r}. "
                 "Refusing to load a checkpoint from a different seed."
+            )
+        if payload.get("reward_mode", "local") != self.config.reward_mode:
+            raise ValueError(
+                f"Checkpoint {target} was trained with reward_mode "
+                f"{payload.get('reward_mode', 'local')!r}, not "
+                f"{self.config.reward_mode!r}. Refusing to load a checkpoint "
+                "trained under a different reward mode -- the Q-values were "
+                "learned from a differently scaled reward signal."
             )
 
         checkpoint_neighbor_ids = payload.get("spatial_neighbor_ids")
@@ -857,6 +893,7 @@ class MultiAgentQLearningTrainer:
             f"Summary: episodes_this_run={len(self.summaries)} "
             f"total_episodes={self.completed_training_episodes} "
             f"controller={self.controller_name} "
+            f"reward_mode={self.config.reward_mode} "
             f"agents={len(self.agents)} "
             f"mean_epsilon={self._mean_epsilon():.4f} "
             f"states={self._total_q_table_states()} "
@@ -882,6 +919,8 @@ class MultiAgentQLearningTrainer:
 __all__ = [
     "CONTROLLER_NAME",
     "DEFAULT_SPATIAL_NEIGHBOR_LIMIT",
+    "GLOBAL_REWARD_CONTROLLER_NAME",
+    "NEIGHBOR_REWARD_CONTROLLER_NAME",
     "SPATIAL_CONTROLLER_NAME",
     "AgentEpisodeSummary",
     "MultiAgentDecisionResult",
