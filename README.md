@@ -450,7 +450,7 @@ with CorridorParallelEnv(config) as environment:
     observations, rewards, terminations, truncations, infos = environment.step(actions)
 ```
 
-`reset(seed=...)` selects the *generated* demand file for that seed, exactly like `--seed` elsewhere in the project. Only generated scenarios exist as episodes, so a seed with no generated demand keeps the configured one and warns, naming both the missing file and the `scripts/generate_traffic_demand.py` command that would create it. Deep RL libraries seed environments with numbers of their own choosing, and a training run that never asked for different demand should not die because of it.
+`reset(seed=...)` seeds SUMO's own randomness -- driver imperfection, lane choices -- for that episode, through the environment's optional `sumo_seed`. The traffic load itself stays the generated scenario the configuration names, because `seed` elsewhere in the project selects a *generated demand file* and only generated scenarios exist as episodes. Splitting the two means every seed a library invents is a real episode, and no training loop can silently swap the demand a run is being measured on. Use `MultiAgentEnvironmentConfig(seed=...)` to choose the demand scenario, as every other runner does.
 
 Termination is a property of the SUMO episode rather than of one junction, so all agents finish together: `terminated` when no vehicle is left to simulate, `truncated` when the episode duration -- or the optional `max_cycles` -- runs out. `info` reports each agent's action status (`applied`, `rejected_minimum_green`, `forced_maximum_green`, ...), so a training loop can see when the safety layer overruled the policy.
 

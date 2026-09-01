@@ -21,7 +21,6 @@ from gymnasium import spaces
 from gymnasium.utils.env_checker import check_env
 from pettingzoo.test import parallel_api_test
 
-import src.environment.gym_wrapper as gym_wrapper
 from src.environment.actions import ActionResult, ActionStatus, TrafficAction
 from src.environment.gym_wrapper import (
     AgentSpaceSpec,
@@ -420,28 +419,21 @@ def test_step_info_reports_the_safety_outcome_of_each_action() -> None:
     assert infos["A19"]["local_reward"] == pytest.approx(-1.5)
 
 
-def test_reset_seed_selects_a_generated_scenario_seed(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """A seed with generated demand becomes the episode's demand seed."""
-    monkeypatch.setattr(
-        gym_wrapper,
-        "_generated_scenario_exists",
-        lambda config: True,
-    )
+def test_reset_seed_seeds_sumo_without_changing_the_demand_scenario() -> None:
+    """Any seed is a real episode; the generated traffic load is unchanged."""
     environment = make_parallel(agent_ids=("A19",))
-    environment.reset(seed=7)
-    assert environment.config.seed == 7
-    assert FakeEnvironment.instances[-1].config.seed == 7
-
-
-def test_reset_seed_without_generated_demand_warns_and_keeps_the_scenario() -> None:
-    """Libraries seed freely, so an ungenerated seed warns instead of failing."""
-    environment = make_parallel(agent_ids=("A19",))
-    with pytest.warns(UserWarning, match="no demand has been generated"):
-        environment.reset(seed=123456)
+    environment.reset(seed=123456)
+    assert environment.config.sumo_seed == 123456
     assert environment.config.seed == 42
-    assert FakeEnvironment.instances[-1].config.seed == 42
+    assert FakeEnvironment.instances[-1].config.simulation_seed == 123456
+
+
+def test_reset_without_a_seed_keeps_the_configured_simulation_seed() -> None:
+    """An unseeded reset behaves exactly as the environment always did."""
+    environment = make_parallel(agent_ids=("A19",))
+    environment.reset()
+    assert environment.config.sumo_seed is None
+    assert FakeEnvironment.instances[-1].config.simulation_seed == 42
 
 
 def test_close_releases_the_wrapped_environment() -> None:

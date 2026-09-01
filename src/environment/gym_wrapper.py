@@ -25,6 +25,10 @@ already clipped into ``[0.0, 1.0]``: per lane the queue length, vehicle count,
 mean waiting time and mean speed, then the normalized phase elapsed time, then
 a one-hot vector over the program's phases.
 
+`reset(seed=...)` seeds SUMO for that episode; the generated demand scenario
+stays the one the configuration names, so seeding never silently swaps the
+traffic load a run is being measured on.
+
 The observation size therefore depends on how many lanes a junction controls
 and how many phases its program has -- both facts about the *running* network.
 Deep RL libraries need the spaces before anything is running, so the spaces are
@@ -36,7 +40,6 @@ readable error instead of a silent shape mismatch deep inside a training loop.
 
 from __future__ import annotations
 
-import warnings
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from typing import Any, Callable, Literal
@@ -45,7 +48,6 @@ import numpy as np
 from gymnasium import Env, spaces
 from pettingzoo import ParallelEnv
 
-from src.demand.xml_writer import scenario_output_files
 from src.environment.actions import TrafficAction
 from src.environment.multi_agent_environment import (
     MultiAgentEnvironmentConfig,
@@ -84,12 +86,6 @@ EnvironmentFactory = Callable[
 ]
 
 RenderMode = Literal["human"]
-
-
-def _generated_scenario_exists(config: MultiAgentEnvironmentConfig) -> bool:
-    """Return whether the demand for this scenario and seed was generated."""
-    outputs = scenario_output_files(config.scenario, config.seed)
-    return outputs.configuration_file.is_file()
 
 
 def _build_environment(
@@ -294,32 +290,12 @@ class _CorridorRunner:
         self.close()
         config = self.config
         if seed is not None:
-            requested_seed = int(seed)
-            if requested_seed != config.seed:
-                # A seed here selects a *generated demand file*, not a live RNG:
-                # only generated scenarios exist as episodes. Deep RL libraries
-                # seed environments with numbers of their own choosing, so an
-                # ungenerated seed keeps the configured scenario and says so
-                # rather than failing a training run that never asked for a
-                # different demand.
-                candidate = replace(config, seed=requested_seed)
-                if _generated_scenario_exists(candidate):
-                    config = candidate
-                    self.config = config
-                else:
-                    missing = scenario_output_files(
-                        candidate.scenario,
-                        candidate.seed,
-                    ).configuration_file
-                    warnings.warn(
-                        f"reset(seed={requested_seed}) was ignored: no demand "
-                        f"has been generated at {missing}, so the episode keeps "
-                        f"the configured seed {config.seed}. Generate it with "
-                        "python scripts/generate_traffic_demand.py --scenario "
-                        f"{candidate.scenario} --seed {requested_seed}.",
-                        UserWarning,
-                        stacklevel=3,
-                    )
+            # A seed here reaches SUMO's own randomness, not the demand file:
+            # the traffic load is a generated scenario chosen by configuration,
+            # and a library seeding an environment is asking for a different
+            # episode, not for a different experiment.
+            config = replace(config, sumo_seed=int(seed))
+            self.config = config
         environment = self._environment_factory(config)
         self._environment = environment
         observations = environment.reset()
@@ -531,11 +507,12 @@ class CorridorParallelEnv(ParallelEnv):
     ) -> tuple[dict[str, np.ndarray], dict[str, dict[str, Any]]]:
         """Restart SUMO and return the first observation of every agent.
 
-        ``seed`` selects the generated demand file for the episode, matching
-        the ``--seed`` of the training runners. Only generated scenarios exist
-        as episodes, so a seed without generated demand keeps the configured
-        one and warns, naming the file and the command that would create it.
-        ``options`` is accepted for API compatibility and is not used.
+        ``seed`` seeds SUMO's own randomness -- driver imperfection, lane
+        choices -- for this episode, so every seed is a real episode. The
+        traffic load itself stays the generated scenario named by the
+        configuration, because a demand file is an experiment choice rather
+        than something a training loop should swap by accident. ``options`` is
+        accepted for API compatibility and is not used.
         """
         observations = self._runner.start(seed)
         self.agents = list(self.possible_agents)

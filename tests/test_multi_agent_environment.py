@@ -318,6 +318,43 @@ def test_default_config_uses_all_eight_agents_in_official_order() -> None:
     )
 
 
+@pytest.mark.parametrize("sumo_seed", (-1, 1.5, True))
+def test_config_rejects_invalid_sumo_seed(sumo_seed: object) -> None:
+    """The optional SUMO seed follows the same rule as the demand seed."""
+    with pytest.raises(ValueError, match="sumo_seed must be a non-negative"):
+        MultiAgentEnvironmentConfig(sumo_seed=sumo_seed)  # type: ignore[arg-type]
+
+
+def test_sumo_seed_defaults_to_the_demand_seed() -> None:
+    """Without an explicit SUMO seed the demand seed still seeds SUMO."""
+    config = MultiAgentEnvironmentConfig(seed=42, agent_ids=("A19",))
+    environment, traci, _ = make_environment(config)
+
+    environment.reset()
+
+    command = traci.start_commands[0]
+    assert config.simulation_seed == 42
+    assert command[command.index("--seed") + 1] == "42"
+    environment.close()
+
+
+def test_sumo_seed_varies_the_simulation_without_changing_the_demand() -> None:
+    """A separate SUMO seed leaves the generated scenario file untouched."""
+    config = MultiAgentEnvironmentConfig(
+        seed=42,
+        sumo_seed=123,
+        agent_ids=("A19",),
+    )
+    environment, traci, _ = make_environment(config)
+
+    environment.reset()
+
+    command = traci.start_commands[0]
+    assert command[command.index("--seed") + 1] == "123"
+    assert "medium_seed_42.sumocfg" in command[command.index("-c") + 1]
+    environment.close()
+
+
 def test_single_agent_reset_and_keep_step() -> None:
     """A19 can run alone and receives one action, observation, and reward."""
     config = MultiAgentEnvironmentConfig(agent_ids=("A19",))
