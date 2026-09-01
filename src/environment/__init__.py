@@ -6,6 +6,12 @@ from src.environment.actions import (
     ActionStatus,
     TrafficAction,
 )
+from src.environment.gym_wrapper import (
+    AgentSpaceSpec,
+    CorridorParallelEnv,
+    SingleAgentTrafficEnv,
+    audited_space_specs,
+)
 from src.environment.observations import (
     ObservationNormalizationConfig,
     TrafficObservation,
@@ -23,13 +29,17 @@ __all__ = [
     "ActionPolicyConfig",
     "ActionResult",
     "ActionStatus",
+    "AgentSpaceSpec",
+    "CorridorParallelEnv",
     "MultiAgentEnvironmentConfig",
     "MultiAgentStepResult",
     "MultiAgentTrafficEnvironment",
     "ObservationNormalizationConfig",
     "RewardBreakdown",
     "RewardWeights",
+    "SingleAgentTrafficEnv",
     "TrafficAction",
     "TrafficObservation",
     "TrafficSignal",
+    "audited_space_specs",
 ]

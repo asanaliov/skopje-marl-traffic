@@ -283,6 +283,19 @@ class MultiAgentTrafficEnvironment:
         return self.config.agent_ids
 
     @property
+    def traffic_signals(self) -> Mapping[str, Any]:
+        """Return the live TrafficSignal wrappers by agent.
+
+        The mapping is empty until ``reset()`` has started SUMO, and it is
+        read-only: the environment stays the single owner of the wrappers.
+        Callers that need controller metadata which only exists once SUMO is
+        running -- the active program's phase count, or the lane speed limits
+        behind ``normalization_config()`` -- read it from here instead of
+        opening a second TraCI connection.
+        """
+        return MappingProxyType(dict(self._traffic_signals))
+
+    @property
     def is_running(self) -> bool:
         """Return whether this instance currently owns a live TraCI session."""
         return self._started and self._traci is not None
