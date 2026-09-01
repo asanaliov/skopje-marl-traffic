@@ -264,7 +264,14 @@ summed across steps. Average speed excludes steps with zero active vehicles
 rather than counting them as speed 0. `total_reward` is left unset (not zero)
 for non-learning controllers such as fixed-time.
 
-Print a summary grouped by controller and scenario:
+Summaries and plots group by controller, scenario, **and episode length**.
+Episode length changes what a metric means -- a 600-second evaluation releases
+a sixth of the traffic a 3600-second one does -- so runs of different lengths
+are never averaged into one number, and the plot legend names the demand period
+as soon as a results file holds more than one. Compare controllers only within
+one episode length; `--episode-seconds 3600` matches the baselines.
+
+Print a summary grouped by controller, scenario, and episode length:
 
 ```powershell
 python scripts/summarize_experiments.py
