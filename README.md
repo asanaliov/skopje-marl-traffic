@@ -417,7 +417,64 @@ Run the runner's unit tests, which do not require SUMO or SUMO-GUI:
 python -m pytest tests/test_multi_agent_q_learning.py
 ```
 
+## Gymnasium and PettingZoo Wrappers for Deep RL
+
+Tabular Q-learning discretizes observations into buckets, which stops scaling once the state space grows. `src/environment/gym_wrapper.py` exposes the same SUMO environment through the two standard reinforcement-learning APIs, so deep RL libraries (Stable-Baselines3, Ray/RLlib, MAPPO implementations) can train on it unchanged. The wrapper is an adapter only: no learning, no reward shaping, and no state beyond what `MultiAgentTrafficEnvironment` already produces.
+
+* `CorridorParallelEnv` is the PettingZoo **parallel** API. Every corridor agent observes, acts, and is rewarded in the same decision interval, which is how the SUMO environment already works.
+* `SingleAgentTrafficEnv` is the Gymnasium API for exactly one corridor agent while the other traffic lights keep their imported SUMO programs -- the same setup as `scripts/run_q_learning.py`, so a deep RL run stays comparable with those results.
+
+Observations are `TrafficObservation.normalized_features()` as a `float32` `Box` bounded to `[0.0, 1.0]`: per controlled lane the queue length, vehicle count, mean waiting time, and mean speed, then the normalized phase elapsed time, then a one-hot vector over the program's phases. Actions are `Discrete(2)`: `0` is `KEEP`, `1` is `NEXT_GREEN`, applied through the same minimum-green, maximum-green, and yellow-transition safety rules as every other controller.
+
+An observation's length therefore depends on the junction, and libraries need the spaces before SUMO is running. The spaces are sized from the audited `controlled_lane_count` and `phase_count` in `sumo/skopje/documentation/traffic_light_audit.csv`, then verified against the live program on every `reset()`, so a stale audit becomes a readable error instead of a shape mismatch inside a training loop:
+
+| Agent | Lanes | Phases | Observation features |
+| --- | --- | --- | --- |
+| A9 | 7 | 4 | 33 |
+| A18 | 7 | 4 | 33 |
+| A19 | 14 | 9 | 66 |
+| A20 | 11 | 8 | 53 |
+| A24 | 13 | 8 | 61 |
+| A25 | 10 | 4 | 45 |
+| A26 | 9 | 9 | 46 |
+| A29 | 4 | 4 | 21 |
+
+```python
+from src.environment import CorridorParallelEnv, SingleAgentTrafficEnv
+from src.environment.multi_agent_environment import MultiAgentEnvironmentConfig
+
+config = MultiAgentEnvironmentConfig(agent_ids=("A19", "A26"), demand_seconds=600.0)
+with CorridorParallelEnv(config) as environment:
+    observations, infos = environment.reset()
+    actions = {agent: environment.action_space(agent).sample() for agent in environment.agents}
+    observations, rewards, terminations, truncations, infos = environment.step(actions)
+```
+
+`reset(seed=...)` seeds SUMO's own randomness -- driver imperfection, lane choices -- for that episode, through the environment's optional `sumo_seed`. The traffic load itself stays the generated scenario the configuration names, because `seed` elsewhere in the project selects a *generated demand file* and only generated scenarios exist as episodes. Splitting the two means every seed a library invents is a real episode, and no training loop can silently swap the demand a run is being measured on. Use `MultiAgentEnvironmentConfig(seed=...)` to choose the demand scenario, as every other runner does.
+
+Termination is a property of the SUMO episode rather than of one junction, so all agents finish together: `terminated` when no vehicle is left to simulate, `truncated` when the episode duration -- or the optional `max_cycles` -- runs out. `info` reports each agent's action status (`applied`, `rejected_minimum_green`, `forced_maximum_green`, ...), so a training loop can see when the safety layer overruled the policy.
+
+Verify both API contracts against a live SUMO simulation:
+
+```powershell
+python scripts/check_gym_wrapper.py --scenario low --episode-seconds 120 --cycles 4
+```
+
+That runs PettingZoo's `parallel_api_test` over all eight agents and Gymnasium's `check_env` on A19. Both suites also run in `tests/test_gym_wrapper.py` against a fake environment, where they need no SUMO installation:
+
+```powershell
+python -m pytest tests/test_gym_wrapper.py
+```
+
+Run a short Stable-Baselines3 training loop through the wrapper (optional dependency; `pip install stable-baselines3`):
+
+```powershell
+python scripts/run_deep_rl_demo.py --algorithm ppo --scenario medium --timesteps 128 --episode-seconds 600
+```
+
+Stable-Baselines3 builds the policy network from the wrapper's spaces and runs its own loop end to end -- 128 PPO timesteps over 600-second episodes produced ten gradient updates and an `ep_rew_mean` of about -1.2e3 on the medium scenario. That is a compatibility demonstration, not a benchmark: a few hundred timesteps train nothing worth comparing, so the demo writes no row to `results/experiments.csv` and the comparison table stays reserved for controllers that were trained to convergence. Training a competitive deep policy is separate work.
+
 ## Current status
 
-The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, imported actuated baseline, independent Q-learning trainer for any single corridor agent, multi-agent independent Q-learning across all eight agents, and spatial observation sharing between neighbor nodes are in place.
+The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, imported actuated baseline, independent Q-learning trainer for any single corridor agent, multi-agent independent Q-learning across all eight agents, spatial observation sharing between neighbor nodes, and Gymnasium and PettingZoo wrappers for deep RL integration are in place.
 Traffic-light cleanup, calibrated real-world demand, and coordinated MARL are not implemented yet.

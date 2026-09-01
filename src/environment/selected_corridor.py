@@ -60,6 +60,7 @@ class _AuditRecord:
     road_names: tuple[str, ...]
     warnings: tuple[str, ...]
     phase_count: int | None
+    controlled_lane_count: int | None
 
 
 def _split_values(value: str) -> tuple[str, ...]:
@@ -78,6 +79,7 @@ def _load_audit_records(audit_file: Path = _AUDIT_FILE) -> Mapping[str, _AuditRe
         "road_names",
         "warnings",
         "phase_count",
+        "controlled_lane_count",
     }
 
     try:
@@ -109,12 +111,24 @@ def _load_audit_records(audit_file: Path = _AUDIT_FILE) -> Mapping[str, _AuditRe
                     f"{phase_count_text!r}."
                 ) from error
 
+            lane_count_text = row["controlled_lane_count"].strip()
+            try:
+                controlled_lane_count = (
+                    int(lane_count_text) if lane_count_text else None
+                )
+            except ValueError as error:
+                raise ValueError(
+                    f"Audit controlled lane count for {agent_id} is not an "
+                    f"integer: {lane_count_text!r}."
+                ) from error
+
             records[agent_id] = _AuditRecord(
                 traffic_light_id=audited_mapping[agent_id],
                 junction_node_ids=_split_values(row["junction_node_ids"]),
                 road_names=_split_values(row["road_names"]),
                 warnings=(row["warnings"].strip(),) if row["warnings"].strip() else (),
                 phase_count=phase_count,
+                controlled_lane_count=controlled_lane_count,
             )
 
     return MappingProxyType(records)
@@ -325,6 +339,27 @@ def phase_counts_by_agent(
     records = _load_audit_records()
     return MappingProxyType(
         {agent_id: records[agent_id].phase_count for agent_id in corridor.agent_ids}
+    )
+
+
+def controlled_lane_counts_by_agent(
+    corridor: SelectedCorridor,
+) -> Mapping[str, int | None]:
+    """Return audited counts of deduplicated controlled incoming lanes.
+
+    The audit counts each incoming lane of a controlled connection exactly
+    once, which is the same deduplication ``TrafficSignal`` applies to the
+    lanes TraCI reports. Consumers that need an observation shape before a
+    SUMO process exists -- such as the Gymnasium and PettingZoo spaces in
+    ``src/environment/gym_wrapper.py`` -- can therefore size themselves from
+    this static audit instead of starting the simulation first.
+    """
+    records = _load_audit_records()
+    return MappingProxyType(
+        {
+            agent_id: records[agent_id].controlled_lane_count
+            for agent_id in corridor.agent_ids
+        }
     )
 
 
@@ -664,6 +699,7 @@ SELECTED_CORRIDOR = _build_selected_corridor()
 __all__ = [
     "SELECTED_CORRIDOR",
     "SelectedCorridor",
+    "controlled_lane_counts_by_agent",
     "is_connected",
     "junction_node_ids_by_agent",
     "nearest_neighbor_ids",

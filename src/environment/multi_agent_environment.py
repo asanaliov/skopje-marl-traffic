@@ -57,6 +57,7 @@ class MultiAgentEnvironmentConfig:
 
     scenario: str = "medium"
     seed: int = 42
+    sumo_seed: int | None = None
     agent_ids: tuple[str, ...] = SELECTED_CORRIDOR.agent_ids
     demand_seconds: float = 3600.0
     cooldown_seconds: float = 600.0
@@ -79,6 +80,12 @@ class MultiAgentEnvironmentConfig:
             or self.seed < 0
         ):
             raise ValueError("seed must be a non-negative integer.")
+        if self.sumo_seed is not None and (
+            not isinstance(self.sumo_seed, int)
+            or isinstance(self.sumo_seed, bool)
+            or self.sumo_seed < 0
+        ):
+            raise ValueError("sumo_seed must be a non-negative integer or None.")
         if isinstance(self.agent_ids, str):
             raise ValueError("agent_ids must be a non-empty sequence of agent IDs.")
 
@@ -189,6 +196,19 @@ class MultiAgentEnvironmentConfig:
         object.__setattr__(self, "neighbor_reward_weight", neighbor_weights[1])
 
     @property
+    def simulation_seed(self) -> int:
+        """Return the seed handed to SUMO for this episode.
+
+        ``seed`` selects the *generated demand file*, so it also decides which
+        vehicles exist at all. ``sumo_seed`` seeds only SUMO's own randomness --
+        driver imperfection, lane choices -- on top of that fixed demand, which
+        is what a caller wants when it needs episode-to-episode variation
+        without a second generated scenario. It defaults to ``seed``, so an
+        episode that sets neither behaves exactly as before.
+        """
+        return self.seed if self.sumo_seed is None else self.sumo_seed
+
+    @property
     def total_duration_seconds(self) -> float:
         """Return the demand period plus the cooldown period."""
         return self.demand_seconds + self.cooldown_seconds
@@ -283,6 +303,19 @@ class MultiAgentTrafficEnvironment:
         return self.config.agent_ids
 
     @property
+    def traffic_signals(self) -> Mapping[str, Any]:
+        """Return the live TrafficSignal wrappers by agent.
+
+        The mapping is empty until ``reset()`` has started SUMO, and it is
+        read-only: the environment stays the single owner of the wrappers.
+        Callers that need controller metadata which only exists once SUMO is
+        running -- the active program's phase count, or the lane speed limits
+        behind ``normalization_config()`` -- read it from here instead of
+        opening a second TraCI connection.
+        """
+        return MappingProxyType(dict(self._traffic_signals))
+
+    @property
     def is_running(self) -> bool:
         """Return whether this instance currently owns a live TraCI session."""
         return self._started and self._traci is not None
@@ -313,7 +346,7 @@ class MultiAgentTrafficEnvironment:
             "--end",
             f"{self.config.total_duration_seconds:g}",
             "--seed",
-            str(self.config.seed),
+            str(self.config.simulation_seed),
             "--step-length",
             f"{self.config.sumo_step_length_seconds:g}",
         ]
