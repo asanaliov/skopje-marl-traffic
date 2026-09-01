@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
-"""Group saved experiment results by controller and scenario, and print a
-summary (run count + mean/stdev of the headline metrics).
+"""Group saved experiment results by controller, scenario, and episode
+length, and print a summary (run count + mean/stdev of the headline metrics).
+
+Episode length is part of the group key because it changes what the metrics
+mean. A 600-second evaluation and a 3600-second one release different amounts
+of traffic, so averaging them under one controller label would silently mix
+two different experiments -- which is exactly what happened when the
+multi-agent runners were evaluated at their 600-second default while the
+baselines ran the full 3600-second demand.
 
 Does not generate charts -- that is a later task, per the sprint 1 spec.
 """
@@ -16,7 +23,10 @@ from pathlib import Path
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from src.evaluation.results_writer import DEFAULT_RESULTS_PATH, read_results
+from src.evaluation.results_writer import (  # noqa: E402
+    DEFAULT_RESULTS_PATH,
+    read_results,
+)
 
 # For each printed metric: whether a lower or higher value is the better
 # outcome. Purely a human-readable label -- it does not change any math.
@@ -28,7 +38,10 @@ METRIC_DIRECTION = {
     "throughput": "higher is better",
 }
 
-GroupKey = tuple[str, str]  # (controller, scenario)
+RUN_LENGTH_COLUMN = "demand_seconds"
+UNKNOWN_RUN_LENGTH = "unknown"
+
+GroupKey = tuple[str, str, str]  # (controller, scenario, demand seconds)
 
 
 def _to_float(value, default: float = 0.0) -> float:
@@ -43,18 +56,39 @@ def _to_float(value, default: float = 0.0) -> float:
         return default
 
 
+def format_run_length(value) -> str:
+    """Label one row's demand period, tolerating older rows without one."""
+    try:
+        seconds = float(value)
+    except (TypeError, ValueError):
+        return UNKNOWN_RUN_LENGTH
+    return f"{seconds:g}"
+
+
+def _sort_key(key: GroupKey) -> tuple[str, str, float]:
+    """Order groups by controller, scenario, then shortest run first."""
+    controller, scenario, run_length = key
+    try:
+        seconds = float(run_length)
+    except ValueError:
+        seconds = -1.0
+    return (controller, scenario, seconds)
+
+
 def group_results(rows: list[dict]) -> dict[GroupKey, list[dict]]:
     groups: dict[GroupKey, list[dict]] = defaultdict(list)
     for row in rows:
         controller = row.get("controller") or "unknown"
         scenario = row.get("scenario") or "unknown"
-        groups[(controller, scenario)].append(row)
+        run_length = format_run_length(row.get(RUN_LENGTH_COLUMN))
+        groups[(controller, scenario, run_length)].append(row)
     return groups
 
 
 def summarize(rows: list[dict]) -> dict[GroupKey, dict]:
     """Compute run count plus mean/stdev of the headline metrics for each
-    (controller, scenario) group. Stdev is 0.0 for single-run groups."""
+    (controller, scenario, demand seconds) group. Stdev is 0.0 for single-run
+    groups."""
     groups = group_results(rows)
 
     summary: dict[GroupKey, dict] = {}
@@ -75,8 +109,15 @@ def print_summary(summary: dict[GroupKey, dict]) -> None:
         print("No experiment results found.")
         return
 
-    for (controller, scenario), entry in sorted(summary.items()):
-        print(f"\n{controller} / {scenario}  (runs: {entry['run_count']})")
+    for key, entry in sorted(summary.items(), key=lambda item: _sort_key(item[0])):
+        controller, scenario, run_length = key
+        demand = (
+            run_length if run_length == UNKNOWN_RUN_LENGTH else f"{run_length}s"
+        )
+        print(
+            f"\n{controller} / {scenario} / {demand} demand  "
+            f"(runs: {entry['run_count']})"
+        )
         for metric, direction in METRIC_DIRECTION.items():
             mean = entry[f"mean_{metric}"]
             stdev = entry[f"stdev_{metric}"]

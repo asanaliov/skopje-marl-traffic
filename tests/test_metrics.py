@@ -7,9 +7,11 @@ actually uses.
 
 from __future__ import annotations
 
+import pandas
 import pytest
 
 from scripts.summarize_experiments import summarize
+from scripts.visualize_results import add_series_labels, format_run_length
 from src.evaluation.collector import MetricsCollector
 from src.evaluation.metrics import (
     EpisodeMetrics,
@@ -299,6 +301,7 @@ def test_summarize_groups_by_controller_and_scenario():
         {
             "controller": "fixed_time",
             "scenario": "low",
+            "demand_seconds": "3600.0",
             "average_waiting_time": "10.0",
             "average_queue_length": "2.0",
             "max_queue_length": "4",
@@ -308,6 +311,7 @@ def test_summarize_groups_by_controller_and_scenario():
         {
             "controller": "fixed_time",
             "scenario": "low",
+            "demand_seconds": "3600.0",
             "average_waiting_time": "20.0",
             "average_queue_length": "4.0",
             "max_queue_length": "6",
@@ -317,6 +321,7 @@ def test_summarize_groups_by_controller_and_scenario():
         {
             "controller": "static_fixed_time",
             "scenario": "low",
+            "demand_seconds": "3600.0",
             "average_waiting_time": "5.0",
             "average_queue_length": "1.0",
             "max_queue_length": "2",
@@ -327,11 +332,53 @@ def test_summarize_groups_by_controller_and_scenario():
 
     summary = summarize(rows)
 
-    assert summary[("fixed_time", "low")]["run_count"] == 2
-    assert summary[("fixed_time", "low")]["mean_average_waiting_time"] == pytest.approx(15.0)
-    assert summary[("fixed_time", "low")]["stdev_average_waiting_time"] > 0
-    assert summary[("static_fixed_time", "low")]["run_count"] == 1
-    assert summary[("static_fixed_time", "low")]["stdev_average_waiting_time"] == 0.0
+    fixed_time = summary[("fixed_time", "low", "3600")]
+    assert fixed_time["run_count"] == 2
+    assert fixed_time["mean_average_waiting_time"] == pytest.approx(15.0)
+    assert fixed_time["stdev_average_waiting_time"] > 0
+    assert summary[("static_fixed_time", "low", "3600")]["run_count"] == 1
+    assert (
+        summary[("static_fixed_time", "low", "3600")][
+            "stdev_average_waiting_time"
+        ]
+        == 0.0
+    )
+
+
+def test_summarize_never_averages_runs_of_different_length():
+    """A short evaluation and a full one are two experiments, not two runs."""
+    rows = [
+        {
+            "controller": "multi_agent_independent_rl",
+            "scenario": "medium",
+            "demand_seconds": "600.0",
+            "average_waiting_time": "13.18",
+        },
+        {
+            "controller": "multi_agent_independent_rl",
+            "scenario": "medium",
+            "demand_seconds": "3600.0",
+            "average_waiting_time": "7.0",
+        },
+    ]
+
+    summary = summarize(rows)
+
+    short = summary[("multi_agent_independent_rl", "medium", "600")]
+    full = summary[("multi_agent_independent_rl", "medium", "3600")]
+    assert short["run_count"] == 1
+    assert full["run_count"] == 1
+    assert short["mean_average_waiting_time"] == pytest.approx(13.18)
+    assert full["mean_average_waiting_time"] == pytest.approx(7.0)
+
+
+def test_summarize_labels_rows_without_a_demand_period():
+    """Rows written before the column existed stay visible as their own group."""
+    rows = [{"controller": "fixed_time", "scenario": "low"}]
+
+    summary = summarize(rows)
+
+    assert summary[("fixed_time", "low", "unknown")]["run_count"] == 1
 
 
 def test_summarize_handles_missing_and_malformed_values_without_crashing():
@@ -344,10 +391,64 @@ def test_summarize_handles_missing_and_malformed_values_without_crashing():
         },
     ]
     summary = summarize(rows)
-    entry = summary[("fixed_time", "medium")]
+    entry = summary[("fixed_time", "medium", "unknown")]
     assert entry["run_count"] == 2
     assert entry["mean_average_waiting_time"] == 0.0
 
 
 def test_summarize_empty_input_returns_empty_summary():
     assert summarize([]) == {}
+
+
+# ---------------------------------------------------------------------------
+# Visualization script
+# ---------------------------------------------------------------------------
+
+
+def test_plot_series_keep_one_label_while_run_lengths_agree():
+    """Consistent results plot exactly as they always did."""
+    frame = pandas.DataFrame(
+        {
+            "controller": ["static_fixed_time", "independent_rl"],
+            "demand_seconds": [3600.0, 3600.0],
+        }
+    )
+
+    labelled = add_series_labels(frame)
+
+    assert list(labelled["series"]) == ["Static Fixed-Time", "Independent Rl"]
+
+
+def test_plot_series_name_the_run_length_once_it_varies():
+    """Mixed run lengths become separate, self-describing plot series."""
+    frame = pandas.DataFrame(
+        {
+            "controller": [
+                "multi_agent_independent_rl",
+                "multi_agent_independent_rl",
+                "static_fixed_time",
+            ],
+            "demand_seconds": [600.0, 3600.0, 3600.0],
+        }
+    )
+
+    labelled = add_series_labels(frame)
+
+    assert list(labelled["series"]) == [
+        "Multi Agent Independent Rl (600s demand)",
+        "Multi Agent Independent Rl (3600s demand)",
+        "Static Fixed-Time (3600s demand)",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    (
+        (3600.0, "3600s demand"),
+        ("600", "600s demand"),
+        (None, "unknown demand"),
+        ("", "unknown demand"),
+    ),
+)
+def test_run_length_labels_tolerate_missing_values(value, expected):
+    assert format_run_length(value) == expected

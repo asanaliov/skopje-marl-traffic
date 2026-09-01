@@ -2,7 +2,6 @@
 
 import matplotlib.pyplot as plt
 import pandas
-from pandas.core.groupby import groupby
 
 RESULTS_FILE = Path("results/experiments.csv")
 PLOTS_DIR = Path("results/plots")
@@ -16,6 +15,9 @@ CONTROLLER_LABELS = {
 
 SCENARIO_ORDER = ["low", "medium", "high"]
 
+RUN_LENGTH_COLUMN = "demand_seconds"
+SERIES_COLUMN = "series"
+
 
 def load_results():
     if not RESULTS_FILE.exists():
@@ -26,7 +28,34 @@ def load_results():
     if df.empty:
         raise ValueError("experiments.csv is empty")
 
-    return df
+    return add_series_labels(df)
+
+
+def format_run_length(value):
+    """format one row's demand period for a legend entry"""
+    try:
+        seconds = float(value)
+    except (TypeError, ValueError):
+        return "unknown demand"
+    return f"{seconds:g}s demand"
+
+
+def add_series_labels(df):
+    """label every row by controller, adding the run length when they differ
+
+    A 600-second evaluation and a 3600-second one release different amounts
+    of traffic, so plotting their mean under one controller label would hide
+    that they are not the same experiment. While every row shares one demand
+    period the legend is unchanged; as soon as the file holds more than one,
+    the period becomes part of every series name.
+    """
+    labels = df["controller"].map(format_controller_name)
+    if (
+        RUN_LENGTH_COLUMN in df.columns
+        and df[RUN_LENGTH_COLUMN].nunique(dropna=False) > 1
+    ):
+        labels = labels + " (" + df[RUN_LENGTH_COLUMN].map(format_run_length) + ")"
+    return df.assign(**{SERIES_COLUMN: labels})
 
 
 def prepare_plot_style():
@@ -51,7 +80,7 @@ def plot_average_waiting_time(df):
     scenario_order = get_scenario_order(df)
 
     grouped = (
-        df.groupby(["scenario", "controller"])["average_waiting_time"]
+        df.groupby(["scenario", SERIES_COLUMN])["average_waiting_time"]
         .mean()
         .unstack()
         .reindex(scenario_order)
@@ -69,10 +98,7 @@ def plot_average_waiting_time(df):
 
     ax.legend(
         title="Controller",
-        labels=[
-            format_controller_name(controller)
-            for controller in grouped.columns
-        ]
+        labels=list(grouped.columns),
     )
 
     plt.xticks(rotation=0)
@@ -95,14 +121,14 @@ def plot_average_speed_vs_density(df):
     scenario_order = get_scenario_order(df)
 
     grouped = (
-        df.groupby(["scenario", "controller"])["average_speed"]
+        df.groupby(["scenario", SERIES_COLUMN])["average_speed"]
         .mean()
         .reset_index()
     )
 
     plt.figure(figsize=(10, 6))
 
-    for controller, controller_data in grouped.groupby("controller"):
+    for series, controller_data in grouped.groupby(SERIES_COLUMN):
         controller_data = controller_data.copy()
 
         controller_data["scenario"] = pandas.Categorical(
@@ -119,7 +145,7 @@ def plot_average_speed_vs_density(df):
             marker="o",
             linewidth=2,
             markersize=7,
-            label=format_controller_name(controller)
+            label=series
         )
 
     plt.title("Average Speed vs Vehicle Density")
@@ -146,7 +172,7 @@ def plot_max_queue_length(df):
     scenario_order = get_scenario_order(df)
 
     grouped = (
-        df.groupby(["scenario", "controller"])["max_queue_length"]
+        df.groupby(["scenario", SERIES_COLUMN])["max_queue_length"]
         .mean()
         .unstack()
         .reindex(scenario_order)
@@ -164,10 +190,7 @@ def plot_max_queue_length(df):
 
     ax.legend(
         title="Controller",
-        labels=[
-            format_controller_name(controller)
-            for controller in grouped.columns
-        ]
+        labels=list(grouped.columns),
     )
 
     plt.xticks(rotation=0)
@@ -190,7 +213,7 @@ def plot_average_queue_length(df):
     scenario_order = get_scenario_order(df)
 
     grouped = (
-        df.groupby(["scenario", "controller"])["average_queue_length"]
+        df.groupby(["scenario", SERIES_COLUMN])["average_queue_length"]
         .mean()
         .unstack()
         .reindex(scenario_order)
@@ -208,10 +231,7 @@ def plot_average_queue_length(df):
 
     ax.legend(
         title="Controller",
-        labels=[
-            format_controller_name(controller)
-            for controller in grouped.columns
-        ]
+        labels=list(grouped.columns),
     )
 
     plt.xticks(rotation=0)
@@ -234,7 +254,7 @@ def plot_throughput(df):
     scenario_order = get_scenario_order(df)
 
     grouped = (
-        df.groupby(["scenario", "controller"])["throughput"]
+        df.groupby(["scenario", SERIES_COLUMN])["throughput"]
         .mean()
         .unstack()
         .reindex(scenario_order)
@@ -252,10 +272,7 @@ def plot_throughput(df):
 
     ax.legend(
         title="Controller",
-        labels=[
-            format_controller_name(controller)
-            for controller in grouped.columns
-        ]
+        labels=list(grouped.columns),
     )
 
     plt.xticks(rotation=0)
@@ -289,7 +306,7 @@ def main():
     print(f"Loaded {len(df)} experiment result(s).")
     print(
         "Controllers:",
-        ", ".join(sorted(df["controller"].unique()))
+        ", ".join(sorted(df[SERIES_COLUMN].unique()))
     )
 
     plot_average_waiting_time(df)
