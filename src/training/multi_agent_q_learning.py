@@ -92,6 +92,7 @@ class MultiAgentQLearningConfig:
     spatial_observations: bool = False
     spatial_neighbor_limit: int = DEFAULT_SPATIAL_NEIGHBOR_LIMIT
     reward_mode: RewardMode = "local"
+    results_path: Path = Path("results/experiments.csv")
 
     def __post_init__(self) -> None:
         """Validate runner settings before a SUMO process is started."""
@@ -182,6 +183,8 @@ class MultiAgentQLearningConfig:
             raise ValueError(
                 "spatial_neighbor_limit must be a positive integer."
             )
+        if self.results_path is not None:
+            object.__setattr__(self, "results_path", Path(self.results_path))
         if self.reward_mode not in _REWARD_MODES:
             valid_modes = ", ".join(_REWARD_MODES)
             raise ValueError(
@@ -779,7 +782,7 @@ class MultiAgentQLearningTrainer:
                     demand_seconds=self.config.episode_seconds,
                     cooldown_seconds=self.config.cooldown_seconds,
                 )
-                append_result(episode_metrics)
+                append_result(episode_metrics, path=self.config.results_path)
 
             agent_summaries = {
                 agent_id: AgentEpisodeSummary(

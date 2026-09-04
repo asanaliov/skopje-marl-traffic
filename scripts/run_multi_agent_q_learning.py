@@ -45,13 +45,41 @@ def _positive_float(value: str) -> float:
     return number
 
 
+def default_checkpoint_path(
+    scenario: str,
+    seed: int,
+    reward_mode: str = "local",
+    spatial_observations: bool = False,
+) -> Path:
+    """Generate a deterministic checkpoint path from run arguments."""
+    spatial_tag = "_spatial" if spatial_observations else ""
+    return (
+        Path("checkpoints")
+        / f"marl_{reward_mode}_{scenario}_seed{seed}{spatial_tag}.json"
+    )
+
+
 def _common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--scenario", default="medium")
     parser.add_argument("--seed", type=_positive_int, default=42)
     parser.add_argument("--episode-seconds", type=_positive_float, default=600.0)
     parser.add_argument("--cooldown-seconds", type=_positive_float, default=600.0)
     parser.add_argument("--decision-interval", type=_positive_float, default=5.0)
-    parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        default=None,
+        help=(
+            "Path to save or load the checkpoint. If omitted, a deterministic path "
+            "encoding reward-mode, scenario, and seed is generated automatically."
+        ),
+    )
+    parser.add_argument(
+        "--results-path",
+        type=Path,
+        default=Path("results/experiments.csv"),
+        help="Path to results CSV (default: results/experiments.csv).",
+    )
     parser.add_argument("--gui", action="store_true")
     parser.add_argument(
         "--spatial-observations",
@@ -172,6 +200,12 @@ def main() -> int:
         f"agent(s): {', '.join(agent_ids)}. Each agent learns its own "
         f"Q-table. {observation_note} {reward_note}"
     )
+    checkpoint_path = args.checkpoint or default_checkpoint_path(
+        scenario=args.scenario,
+        seed=args.seed,
+        reward_mode=args.reward_mode,
+        spatial_observations=args.spatial_observations,
+    )
     if args.command == "train":
         config = MultiAgentQLearningConfig(
             agent_ids=agent_ids,
@@ -182,13 +216,14 @@ def main() -> int:
             cooldown_seconds=args.cooldown_seconds,
             decision_interval_seconds=args.decision_interval,
             gui=args.gui,
-            checkpoint_path=args.checkpoint,
+            checkpoint_path=checkpoint_path,
             checkpoint_interval=args.checkpoint_interval,
             mode="train",
             resume=args.resume,
             spatial_observations=args.spatial_observations,
             spatial_neighbor_limit=args.neighbor_limit,
             reward_mode=args.reward_mode,
+            results_path=args.results_path,
         )
         MultiAgentQLearningTrainer(config).train()
     else:
@@ -204,12 +239,13 @@ def main() -> int:
             cooldown_seconds=args.cooldown_seconds,
             decision_interval_seconds=args.decision_interval,
             gui=args.gui,
-            checkpoint_path=args.checkpoint,
+            checkpoint_path=checkpoint_path,
             mode="evaluate",
             allow_cross_seed_evaluation=args.allow_cross_seed,
             spatial_observations=args.spatial_observations,
             spatial_neighbor_limit=args.neighbor_limit,
             reward_mode=args.reward_mode,
+            results_path=args.results_path,
         )
         MultiAgentQLearningTrainer(config).evaluate()
     return 0

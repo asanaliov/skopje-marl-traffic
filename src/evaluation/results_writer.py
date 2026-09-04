@@ -12,6 +12,8 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
+from filelock import FileLock
+
 from src.evaluation.metrics import EpisodeMetrics
 
 DEFAULT_RESULTS_PATH = Path("results/experiments.csv")
@@ -49,18 +51,22 @@ def append_result(
     Creates the results directory if needed and writes the header only if
     the file does not already exist (or exists but is empty). Never
     truncates or rewrites existing rows -- opens in append mode.
+    Acquires an advisory file lock so concurrent processes cannot interleave
+    writes or duplicate headers.
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = path.with_suffix(path.suffix + ".lock")
 
-    row = metrics.as_flat_dict()
-    needs_header = not path.exists() or path.stat().st_size == 0
-
-    with path.open("a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=COLUMNS)
-        if needs_header:
-            writer.writeheader()
-        writer.writerow({col: row.get(col, "") for col in COLUMNS})
+    lock = FileLock(lock_path)
+    with lock:
+        needs_header = not path.exists() or path.stat().st_size == 0
+        row = metrics.as_flat_dict()
+        with path.open("a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=COLUMNS)
+            if needs_header:
+                writer.writeheader()
+            writer.writerow({col: row.get(col, "") for col in COLUMNS})
 
 
 def read_results(path: Path | str = DEFAULT_RESULTS_PATH) -> list[dict]:
@@ -73,6 +79,9 @@ def read_results(path: Path | str = DEFAULT_RESULTS_PATH) -> list[dict]:
     if not path.exists() or path.stat().st_size == 0:
         return []
 
-    with path.open("r", newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        return list(reader)
+    lock_path = path.with_suffix(path.suffix + ".lock")
+    lock = FileLock(lock_path)
+    with lock:
+        with path.open("r", newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            return list(reader)

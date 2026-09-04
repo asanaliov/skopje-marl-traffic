@@ -30,6 +30,11 @@ def _positive_float(value: str) -> float:
     return number
 
 
+def default_checkpoint_path(agent_id: str, scenario: str, seed: int) -> Path:
+    """Generate a deterministic checkpoint path from run arguments."""
+    return Path("checkpoints") / f"{agent_id}_{scenario}_seed{seed}.json"
+
+
 def _common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--agent-id",
@@ -42,7 +47,21 @@ def _common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--episode-seconds", type=_positive_float, default=600.0)
     parser.add_argument("--cooldown-seconds", type=_positive_float, default=600.0)
     parser.add_argument("--decision-interval", type=_positive_float, default=5.0)
-    parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        default=None,
+        help=(
+            "Path to save or load the checkpoint. If omitted, a deterministic path "
+            "encoding agent ID, scenario, and seed is generated automatically."
+        ),
+    )
+    parser.add_argument(
+        "--results-path",
+        type=Path,
+        default=Path("results/experiments.csv"),
+        help="Path to results CSV (default: results/experiments.csv).",
+    )
     parser.add_argument("--gui", action="store_true")
 
 
@@ -86,6 +105,11 @@ def main() -> int:
         f"This is a {args.agent_id} independent Q-learning run. No baseline comparison or "
         "coordinated MARL is active."
     )
+    checkpoint_path = args.checkpoint or default_checkpoint_path(
+        agent_id=args.agent_id,
+        scenario=args.scenario,
+        seed=args.seed,
+    )
     if args.command == "train":
         config = QLearningTrainingConfig(
             agent_id=args.agent_id,
@@ -96,10 +120,11 @@ def main() -> int:
             cooldown_seconds=args.cooldown_seconds,
             decision_interval_seconds=args.decision_interval,
             gui=args.gui,
-            checkpoint_path=args.checkpoint,
+            checkpoint_path=checkpoint_path,
             checkpoint_interval=args.checkpoint_interval,
             mode="train",
             resume=args.resume,
+            results_path=args.results_path,
         )
         IndependentQLearningTrainer(config).train()
     else:
@@ -112,9 +137,10 @@ def main() -> int:
             cooldown_seconds=args.cooldown_seconds,
             decision_interval_seconds=args.decision_interval,
             gui=args.gui,
-            checkpoint_path=args.checkpoint,
+            checkpoint_path=checkpoint_path,
             mode="evaluate",
             allow_cross_seed_evaluation=args.allow_cross_seed,
+            results_path=args.results_path,
         )
         IndependentQLearningTrainer(config).evaluate()
     return 0

@@ -51,6 +51,7 @@ class QLearningTrainingConfig:
     mode: TrainingMode = "train"
     resume: bool = False
     allow_cross_seed_evaluation: bool = False
+    results_path: Path = Path("results/experiments.csv")
 
     def __post_init__(self) -> None:
         """Validate runner settings before a SUMO process is started."""
@@ -107,6 +108,8 @@ class QLearningTrainingConfig:
             raise ValueError("resume is only supported in 'train' mode.")
         if self.resume and self.checkpoint_path is None:
             raise ValueError("resume requires a checkpoint path.")
+        if self.results_path is not None:
+            object.__setattr__(self, "results_path", Path(self.results_path))
 
 
 @dataclass(frozen=True, slots=True)
@@ -363,7 +366,7 @@ class IndependentQLearningTrainer:
                     demand_seconds=self.config.episode_seconds,
                     cooldown_seconds=self.config.cooldown_seconds,
                 )
-                append_result(episode_metrics)
+                append_result(episode_metrics, path=self.config.results_path)
 
             return EpisodeSummary(
                 episode=episode,
