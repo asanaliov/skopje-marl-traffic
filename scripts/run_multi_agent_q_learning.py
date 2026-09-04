@@ -133,6 +133,14 @@ def parse_args() -> argparse.Namespace:
 
     evaluate = subparsers.add_parser("evaluate")
     _common_arguments(evaluate)
+    evaluate.add_argument(
+        "--allow-cross-seed",
+        action="store_true",
+        help=(
+            "Allow evaluation traffic to use a different seed from the "
+            "checkpoint's training traffic. Training and resume remain strict."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -198,6 +206,7 @@ def main() -> int:
             gui=args.gui,
             checkpoint_path=args.checkpoint,
             mode="evaluate",
+            allow_cross_seed_evaluation=args.allow_cross_seed,
             spatial_observations=args.spatial_observations,
             spatial_neighbor_limit=args.neighbor_limit,
             reward_mode=args.reward_mode,

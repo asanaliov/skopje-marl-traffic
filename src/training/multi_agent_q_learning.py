@@ -88,6 +88,7 @@ class MultiAgentQLearningConfig:
     checkpoint_interval: int = 1
     mode: TrainingMode = "train"
     resume: bool = False
+    allow_cross_seed_evaluation: bool = False
     spatial_observations: bool = False
     spatial_neighbor_limit: int = DEFAULT_SPATIAL_NEIGHBOR_LIMIT
     reward_mode: RewardMode = "local"
@@ -161,6 +162,12 @@ class MultiAgentQLearningConfig:
             raise ValueError("evaluation requires an existing checkpoint path.")
         if not isinstance(self.resume, bool):
             raise ValueError("resume must be a boolean.")
+        if not isinstance(self.allow_cross_seed_evaluation, bool):
+            raise ValueError("allow_cross_seed_evaluation must be a boolean.")
+        if self.allow_cross_seed_evaluation and self.mode != "evaluate":
+            raise ValueError(
+                "allow_cross_seed_evaluation is only supported in 'evaluate' mode."
+            )
         if self.resume and self.mode != "train":
             raise ValueError("resume is only supported in 'train' mode.")
         if self.resume and self.checkpoint_path is None:
@@ -635,7 +642,10 @@ class MultiAgentQLearningTrainer:
                 "Refusing to load a checkpoint from a different scenario -- "
                 "this would silently mix traffic patterns into one Q-table."
             )
-        if payload.get("seed") != self.config.seed:
+        if (
+            payload.get("seed") != self.config.seed
+            and not self.config.allow_cross_seed_evaluation
+        ):
             raise ValueError(
                 f"Checkpoint {target} was trained with seed "
                 f"{payload.get('seed')!r}, not {self.config.seed!r}. "
