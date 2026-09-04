@@ -188,7 +188,7 @@ Review the medium scenario visually:
 python scripts/run_traffic_scenario.py --scenario medium --seed 42 --gui
 ```
 
-Fixed-time, independent RL, and coordinated MARL comparisons are not implemented yet.
+The synthetic demand sets provide reproducible benchmarks for evaluating both baseline and learning controllers.
 See `sumo/skopje/documentation/traffic_demand.md` for generation details, validation results, limitations, and reproducibility guarantees.
 
 ## Traffic-Agent Interface
@@ -196,8 +196,8 @@ See `sumo/skopje/documentation/traffic_demand.md` for generation details, valida
 The selected agents can observe queue lengths, vehicle counts, mean accumulated waiting times, and mean speeds for their controlled incoming lanes.
 Their only actions are `KEEP` and `NEXT_GREEN`.
 The safe action wrapper preserves the immediate yellow and all-red phases from each original SUMO program and never jumps directly between conflicting greens.
-Pure local rewards and optional future neighbor-aware and global corridor reward helpers are defined separately from experiment metrics.
-No learning algorithm is implemented yet.
+Pure local rewards and neighbor-aware and global corridor reward helpers are defined separately from experiment metrics.
+Single-agent and multi-agent reinforcement learning runners build directly on top of this interface.
 
 Inspect A19 in the canonical medium scenario:
 
@@ -252,30 +252,32 @@ Every controller (fixed-time, independent RL, coordinated MARL) reports results
 through the same shared package in `src/evaluation/`, so runs stay directly
 comparable.
 
-`EpisodeMetrics` is a typed, validated result record (non-negative counts and
-durations, arrived ≤ departed, etc). `MetricsCollector` isolates all TraCI calls
-needed to build one during a run; it does not start or close SUMO itself — the
-calling script owns that lifecycle. Results are appended to
-`results/experiments.csv` with a stable column order and a header written once.
+`EpisodeMetrics` is a typed, validated result record (non-negative counts and durations, arrived ≤ departed, etc).
+`MetricsCollector` isolates all TraCI calls needed to build one during a run; it does not start or close SUMO itself - the calling script owns that lifecycle.
+Results are appended to `results/experiments.csv` with a stable column order and a header written once.
 
-Average waiting time is the mean, over vehicles that departed during the run,
-of each vehicle's accumulated waiting time, read once per vehicle rather than
-summed across steps. Average speed excludes steps with zero active vehicles
-rather than counting them as speed 0. `total_reward` is left unset (not zero)
-for non-learning controllers such as fixed-time.
+Average waiting time is the mean, over vehicles that departed during the run, of each vehicle's accumulated waiting time, read once per vehicle rather than summed across steps.
+Average speed excludes steps with zero active vehicles rather than counting them as speed 0.
+`total_reward` is left unset (not zero) for non-learning controllers such as fixed-time.
 
 Summaries and plots group by controller, scenario, **and episode length**.
-Episode length changes what a metric means -- a 600-second evaluation releases
-a sixth of the traffic a 3600-second one does -- so runs of different lengths
-are never averaged into one number, and the plot legend names the demand period
-as soon as a results file holds more than one. Compare controllers only within
-one episode length; `--episode-seconds 3600` matches the baselines.
+Episode length changes what a metric means -- a 600-second evaluation releases a sixth of the traffic a 3600-second one does -- so runs of different lengths are never averaged into one number, and the plot legend names the demand period as soon as a results file holds more than one.
+Compare controllers only within one episode length; `--episode-seconds 3600` matches the baselines.
 
 Print a summary grouped by controller, scenario, and episode length:
 
 ```powershell
 python scripts/summarize_experiments.py
 ```
+
+Render comparison plots across scenarios and controllers:
+
+```powershell
+python scripts/visualize_results.py
+```
+
+This saves high-resolution comparison charts in `results/plots/` for average waiting time, average speed versus traffic density, average queue length, and throughput.
+Series labels automatically distinguish between different demand periods (such as 600-second and 3600-second runs) to ensure fair comparisons.
 
 Run the metrics tests, which do not require SUMO or SUMO-GUI:
 
@@ -349,6 +351,45 @@ python -m pytest tests/test_imported_actuated_baseline.py
 
 See `sumo/skopje/documentation/imported_actuated_baseline.md` for the zero-action design, experiment-timing windows, and validation checklist.
 
+## Single-Agent Independent Q-Learning
+
+The single-agent trainer (`independent_rl`) trains one corridor agent (default `A19`) with tabular Q-learning while all other traffic lights follow their imported SUMO programs.
+Each discrete state encodes controlled incoming queue buckets, vehicle counts, waiting times, and active phase.
+Only evaluation runs append their final performance metrics to `results/experiments.csv`.
+
+Train a single agent:
+
+```powershell
+python scripts/run_q_learning.py train --agent A19 --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/a19_medium.json
+```
+
+Continue an interrupted run with `--resume`:
+
+```powershell
+python scripts/run_q_learning.py train --agent A19 --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/a19_medium.json --resume
+```
+
+Evaluate a trained model greedily on the training scenario and seed:
+
+```powershell
+python scripts/run_q_learning.py evaluate --agent A19 --scenario medium --seed 42 --checkpoint checkpoints/a19_medium.json
+```
+
+Evaluate on an unseen random traffic seed to test policy generalization across traffic distributions:
+
+```powershell
+python scripts/run_q_learning.py evaluate --agent A19 --scenario medium --seed 43 --checkpoint checkpoints/a19_medium.json --allow-cross-seed
+```
+
+Checkpoints strictly enforce that scenario, seed, and agent IDs match to prevent accidental parameter drift during training and resume.
+Passing `--allow-cross-seed` during evaluation permits testing policy robustness across different random traffic realizations.
+
+Run the unit tests, which do not require SUMO:
+
+```powershell
+python -m pytest tests/test_q_learning_agent.py tests/test_q_learning_training.py
+```
+
 ## Multi-Agent Independent Q-Learning
 
 The multi-agent independent RL controller (`multi_agent_independent_rl`) runs all eight selected corridor agents (`A9, A18, A19, A20, A24, A25, A26, A29`) as learners in the *same* SUMO episode.
@@ -363,54 +404,90 @@ Train all eight agents:
 python scripts/run_multi_agent_q_learning.py train --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/multi_agent_medium.json
 ```
 
-Training writes an inspectable JSON checkpoint holding all eight Q-tables plus each agent's exploration state. Continue an interrupted run with `--resume`:
+Training writes an inspectable JSON checkpoint holding all eight Q-tables plus each agent's exploration state.
+Continue an interrupted run with `--resume`:
 
 ```powershell
 python scripts/run_multi_agent_q_learning.py train --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/multi_agent_medium.json --resume
 ```
 
-Evaluate a trained checkpoint with exploration switched off. Only evaluation episodes are appended to `results/experiments.csv`, under the controller label `multi_agent_independent_rl`, with `total_reward` recorded as the combined reward across all eight agents:
+Evaluate a trained checkpoint with exploration switched off.
+Only evaluation episodes are appended to `results/experiments.csv`, under the controller label `multi_agent_independent_rl`, with `total_reward` recorded as the combined reward across all eight agents:
 
 ```powershell
 python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 42 --checkpoint checkpoints/multi_agent_medium.json
 ```
 
-Use `--agents A19 A20` to control a subset of the corridor. A checkpoint records the agent set it was trained on and refuses to load into a run configured with a different one, and likewise refuses a mismatched scenario or seed.
+Evaluate on an unseen random traffic seed with `--allow-cross-seed` to test multi-agent generalization:
+
+```powershell
+python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 43 --checkpoint checkpoints/multi_agent_medium.json --allow-cross-seed
+```
+
+Use `--agents A19 A20` to control a subset of the corridor.
+A checkpoint records the agent set it was trained on and refuses to load into a run configured with a different one, and likewise refuses a mismatched scenario or seed unless `--allow-cross-seed` is explicitly passed during evaluation.
 
 ### Spatial observation sharing between neighbor nodes
 
-By default every agent sees only its own junction. `--spatial-observations` adds
-the corridor's one communication channel: each agent additionally observes a
-single congestion flag per neighbor -- `1` once that neighbor holds four or more
-queued vehicles, `0` below that -- so it can react to a platoon before the
-platoon reaches its own stop line. Rewards stay purely local; this changes what
-an agent *sees*, not what it is paid for.
+By default every agent sees only its own junction.
+`--spatial-observations` adds the corridor's one communication channel: each agent additionally observes a single congestion flag per neighbor -- `1` once that neighbor holds four or more queued vehicles, `0` below that -- so it can react to a platoon before the platoon reaches its own stop line.
+Rewards stay purely local; this changes what an agent *sees*, not what it is paid for.
 
 ```powershell
 python scripts/run_multi_agent_q_learning.py train --scenario medium --seed 42 --episodes 30 --checkpoint checkpoints/multi_agent_medium_spatial.json --spatial-observations
 python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 42 --checkpoint checkpoints/multi_agent_medium_spatial.json --spatial-observations
 ```
 
-Neighbors come from the audited `SELECTED_CORRIDOR.neighbor_map`, ordered by
-network distance, and `--neighbor-limit` (default 2) keeps only the closest
-ones. That bound is the whole design constraint: each observed neighbor is one
-extra bit of a tabular state, so it doubles the reachable Q-table, and A26 alone
-has six audited neighbors. A subset run only observes agents it actually
-controls, so `--agents A19` falls back to purely local states.
+Evaluate the spatial checkpoint on an unseen traffic seed:
 
-Spatial runs are written to `results/experiments.csv` under the controller label
-`multi_agent_spatial_rl`, next to the local `multi_agent_independent_rl` rows,
-which is what makes the two directly comparable. Their checkpoints are not
-interchangeable -- a spatial Q-table is keyed by states a local agent cannot
-even represent -- and a checkpoint also refuses to load into a run using a
-different `--neighbor-limit`.
+```powershell
+python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 43 --checkpoint checkpoints/multi_agent_medium_spatial.json --spatial-observations --allow-cross-seed
+```
 
-See `sumo/skopje/documentation/spatial_observation_sharing.md` for the state
-design, the per-agent neighborhoods, and the measured 30-episode comparison
-against purely local agents. That comparison is not yet a win for spatial
-observations: the larger state space is under-trained at 30 episodes, and
-purely local rewards give an agent no reason to spend a neighbor flag on the
-corridor rather than on itself.
+Neighbors come from the audited `SELECTED_CORRIDOR.neighbor_map`, ordered by network distance, and `--neighbor-limit` (default 2) keeps only the closest ones.
+That bound is the whole design constraint: each observed neighbor is one extra bit of a tabular state, so it doubles the reachable Q-table, and A26 alone has six audited neighbors.
+A subset run only observes agents it actually controls, so `--agents A19` falls back to purely local states.
+
+Spatial runs are written to `results/experiments.csv` under the controller label `multi_agent_spatial_rl`, next to the local `multi_agent_independent_rl` rows, which is what makes the two directly comparable.
+Their checkpoints are not interchangeable -- a spatial Q-table is keyed by states a local agent cannot even represent -- and a checkpoint also refuses to load into a run using a different `--neighbor-limit`.
+
+See `sumo/skopje/documentation/spatial_observation_sharing.md` for the state design, the per-agent neighborhoods, and the measured 30-episode comparison against purely local agents.
+That comparison is not yet a win for spatial observations: the larger state space is under-trained at 30 episodes, and purely local rewards give an agent no reason to spend a neighbor flag on the corridor rather than on itself.
+
+### Coordinated MARL via neighbor-aware and global reward mixing
+
+Independent multi-agent Q-learning rewards each agent strictly based on its own local incoming lanes.
+This can encourage selfish behavior where an agent clears its own queue by dumping a bottleneck onto adjacent intersections.
+The `--reward-mode` setting coordinates the corridor through reward shaping:
+
+- `local` (default): Pure local junction reward. Recorded under controller label `multi_agent_independent_rl`.
+- `neighbor_aware`: Blends 75% of an agent's local reward with 25% of the average reward of its topological neighbors. Recorded under controller label `marl_neighbor_reward`.
+- `global`: Every agent receives the corridor-wide average reward across all controlled intersections. Recorded under controller label `marl_global_reward`.
+
+Train all eight agents with neighbor-aware reward coordination:
+
+```powershell
+python scripts/run_multi_agent_q_learning.py train --scenario medium --seed 42 --episodes 30 --reward-mode neighbor_aware --checkpoint checkpoints/marl_neighbor.json
+```
+
+Evaluate the neighbor-aware checkpoint:
+
+```powershell
+python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 42 --reward-mode neighbor_aware --checkpoint checkpoints/marl_neighbor.json
+```
+
+Evaluate on an unseen seed with cross-seed evaluation:
+
+```powershell
+python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 43 --reward-mode neighbor_aware --checkpoint checkpoints/marl_neighbor.json --allow-cross-seed
+```
+
+Train and evaluate with global corridor-wide reward sharing:
+
+```powershell
+python scripts/run_multi_agent_q_learning.py train --scenario medium --seed 42 --episodes 30 --reward-mode global --checkpoint checkpoints/marl_global.json
+python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 42 --reward-mode global --checkpoint checkpoints/marl_global.json
+```
 
 Summarize saved results:
 
@@ -418,7 +495,7 @@ Summarize saved results:
 python scripts/summarize_experiments.py
 ```
 
-Run the runner's unit tests, which do not require SUMO or SUMO-GUI:
+Run the multi-agent runner's unit tests, which do not require SUMO or SUMO-GUI:
 
 ```powershell
 python -m pytest tests/test_multi_agent_q_learning.py
@@ -483,5 +560,9 @@ Stable-Baselines3 builds the policy network from the wrapper's spaces and runs i
 
 ## Current status
 
-The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, imported actuated baseline, independent Q-learning trainer for any single corridor agent, multi-agent independent Q-learning across all eight agents, spatial observation sharing between neighbor nodes, and Gymnasium and PettingZoo wrappers for deep RL integration are in place.
-Traffic-light cleanup, calibrated real-world demand, and coordinated MARL are not implemented yet.
+The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, and imported actuated baseline are in place.
+Single-agent and multi-agent tabular Q-learning runners support training, resuming, strict checkpoint validation, and cross-seed evaluation.
+Coordinated MARL is supported through spatial observation sharing (neighbor congestion flags) and reward coordination (neighbor-aware and global reward mixing).
+Results can be summarized across episode durations and visualized as publication-quality comparison charts.
+Gymnasium and PettingZoo parallel environment wrappers are validated and ready for deep reinforcement learning libraries, with a single-agent Stable-Baselines3 demo included.
+Full multi-seed 3600-second benchmark runs for the multi-agent models, multi-agent deep RL training across all eight agents, real-world calibrated demand, and netedit junction geometry cleanup are future work.
