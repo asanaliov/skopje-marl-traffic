@@ -545,6 +545,33 @@ def test_checkpoint_rejects_mismatched_scenario_seed_or_agents(tmp_path):
             ).train()
 
 
+def test_evaluation_can_use_a_different_seed_when_explicitly_allowed(tmp_path):
+    trainer, _ = make_trainer(
+        tmp_path,
+        [result(5, 1.0, terminated=True)],
+        episodes=1,
+    )
+    trainer.train()
+
+    evaluation = MultiAgentQLearningConfig(
+        scenario="low",
+        seed=7,
+        episodes=1,
+        episode_seconds=10,
+        decision_interval_seconds=5,
+        checkpoint_path=tmp_path / "checkpoint.json",
+        mode="evaluate",
+        allow_cross_seed_evaluation=True,
+    )
+    loaded = MultiAgentQLearningTrainer(
+        evaluation,
+        environment_factory=lambda cfg, on_raw_step=None: FakeEnvironment(
+            cfg, []
+        ),
+    ).load_checkpoint()
+    assert loaded == tmp_path / "checkpoint.json"
+
+
 def test_single_agent_checkpoint_is_rejected(tmp_path):
     """A19-only checkpoints must not silently load into the 8-agent runner."""
     checkpoint = tmp_path / "single.json"
