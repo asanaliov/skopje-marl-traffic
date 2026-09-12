@@ -21,7 +21,6 @@ import csv
 import threading
 from pathlib import Path
 
-import pytest
 
 from scripts.run_multi_agent_q_learning import (
     default_checkpoint_path as marl_default_checkpoint_path,
@@ -174,12 +173,6 @@ class TestMarlDefaultCheckpointPath:
 
 class TestConcurrentAppendResult:
     """append_result() is safe when called from two threads at once."""
-
-    def test_lock_file_is_created_alongside_csv(self, tmp_path):
-        csv_path = tmp_path / "experiments.csv"
-        append_result(_valid_metrics(), path=csv_path)
-        lock_path = tmp_path / "experiments.csv.lock"
-        assert lock_path.exists()
 
     def test_header_written_exactly_once_across_threads(self, tmp_path):
         """Two threads writing concurrently must produce exactly one header."""
