@@ -60,3 +60,9 @@ results/**/*.jpg
 results/**/*.jpeg
 results/**/*.svg
 results/**/*.pdf
+
+# The canonical results table is the one artifact that has to be shared
+# between machines -- training is split across two of them and the final
+# comparison needs every row in one file. Scratch and per-run CSVs stay
+# ignored; merge incoming rows with scripts/merge_results.py.
+!results/experiments.csv
