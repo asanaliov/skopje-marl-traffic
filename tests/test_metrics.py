@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import pandas
 import pytest
+from traci import constants as tc
 
 from scripts.summarize_experiments import summarize
 from scripts.visualize_results import add_series_labels, format_run_length
@@ -245,6 +246,191 @@ def test_collector_add_reward_is_only_set_when_called():
     collector.add_reward(2.5)
     metrics = collector.finalize(simulation_seconds=1.0)
     assert metrics.total_reward == pytest.approx(3.5)
+
+
+# ---------------------------------------------------------------------------
+# MetricsCollector batched reads via TraCI subscriptions
+# ---------------------------------------------------------------------------
+
+
+class SubscribingVehicleAPI(FakeVehicleAPI):
+    """Vehicle domain with TraCI's real subscription timing.
+
+    A subscription made during a step delivers nothing until the *next*
+    step, so `active` holds the ids whose batched rows exist this step --
+    the test advances it between steps the way SUMO would. Direct getter
+    calls are recorded so the test can prove they only happen as the
+    one-step fallback for a vehicle that has just appeared.
+    """
+
+    def __init__(self, speeds, waiting_times, active=()):
+        super().__init__(speeds, waiting_times)
+        self.active = set(active)
+        self.subscribe_calls: list[str] = []
+        self.getter_calls: list[tuple[str, str]] = []
+
+    def subscribe(self, vid, var_ids):
+        self.subscribe_calls.append(vid)
+
+    def getAllSubscriptionResults(self):
+        return {
+            vid: {
+                tc.VAR_SPEED: self._speeds[vid],
+                tc.VAR_ACCUMULATED_WAITING_TIME: self._waiting_times[vid],
+            }
+            for vid in self._speeds
+            if vid in self.active
+        }
+
+    def getSpeed(self, vid):
+        self.getter_calls.append(("speed", vid))
+        return super().getSpeed(vid)
+
+    def getAccumulatedWaitingTime(self, vid):
+        self.getter_calls.append(("wait", vid))
+        return super().getAccumulatedWaitingTime(vid)
+
+
+class SubscribingLaneAPI(FakeLaneAPI):
+    def __init__(self, halting_by_lane, active=()):
+        super().__init__(halting_by_lane)
+        self.active = set(active)
+        self.subscribe_calls: list[str] = []
+        self.getter_calls: list[str] = []
+
+    def subscribe(self, lane_id, var_ids):
+        self.subscribe_calls.append(lane_id)
+
+    def getAllSubscriptionResults(self):
+        return {
+            lane_id: {tc.LAST_STEP_VEHICLE_HALTING_NUMBER: count}
+            for lane_id, count in self._halting_by_lane.items()
+            if lane_id in self.active
+        }
+
+    def getLastStepHaltingNumber(self, lane_id):
+        self.getter_calls.append(lane_id)
+        return super().getLastStepHaltingNumber(lane_id)
+
+
+_STEP1_SPEEDS = {"v1": 0.0, "v2": 5.0}
+_STEP1_WAITS = {"v1": 2.0, "v2": 0.0}
+_STEP1_LANES = {"laneA": 1, "laneB": 0}
+_STEP2_SPEEDS = {"v1": 0.0, "v2": 6.0}
+_STEP2_WAITS = {"v1": 3.0, "v2": 0.0}
+_STEP2_LANES = {"laneA": 1, "laneB": 1}
+
+
+def _collector():
+    return MetricsCollector(
+        controller="static_fixed_time",
+        scenario="medium",
+        seed=42,
+        monitored_lanes=["laneA", "laneB"],
+        stopped_speed_threshold=0.1,
+    )
+
+
+def test_subscription_path_reproduces_getter_path_exactly():
+    """Batching changes how values are fetched, never which are counted."""
+    legacy = _collector()
+    legacy.record_step(
+        FakeTraci(
+            vehicle=FakeVehicleAPI(_STEP1_SPEEDS, _STEP1_WAITS),
+            lane=FakeLaneAPI(_STEP1_LANES),
+            simulation=FakeSimulationAPI(departed=["v1", "v2"]),
+        )
+    )
+    legacy.record_step(
+        FakeTraci(
+            vehicle=FakeVehicleAPI(_STEP2_SPEEDS, _STEP2_WAITS),
+            lane=FakeLaneAPI(_STEP2_LANES),
+            simulation=FakeSimulationAPI(arrived=["v2"], teleports=["v1"]),
+        )
+    )
+
+    batched = _collector()
+    batched.record_step(
+        FakeTraci(
+            vehicle=SubscribingVehicleAPI(_STEP1_SPEEDS, _STEP1_WAITS, active=()),
+            lane=SubscribingLaneAPI(_STEP1_LANES, active=()),
+            simulation=FakeSimulationAPI(departed=["v1", "v2"]),
+        )
+    )
+    batched.record_step(
+        FakeTraci(
+            vehicle=SubscribingVehicleAPI(
+                _STEP2_SPEEDS, _STEP2_WAITS, active={"v1", "v2"}
+            ),
+            lane=SubscribingLaneAPI(_STEP2_LANES, active={"laneA", "laneB"}),
+            simulation=FakeSimulationAPI(arrived=["v2"], teleports=["v1"]),
+        )
+    )
+
+    assert batched.finalize(2.0) == legacy.finalize(2.0)
+
+
+def test_subscriptions_are_made_once_and_getters_only_bridge_the_first_step():
+    collector = _collector()
+
+    step1_vehicle = SubscribingVehicleAPI(_STEP1_SPEEDS, _STEP1_WAITS, active=())
+    step1_lane = SubscribingLaneAPI(_STEP1_LANES, active=())
+    collector.record_step(
+        FakeTraci(step1_vehicle, step1_lane, FakeSimulationAPI(departed=["v1", "v2"]))
+    )
+
+    # Nothing is batched yet, so every value for this step came from a
+    # direct getter -- but each vehicle and lane was subscribed for next time.
+    assert step1_vehicle.subscribe_calls == ["v1", "v2"]
+    assert step1_lane.subscribe_calls == ["laneA", "laneB"]
+    assert sorted(step1_vehicle.getter_calls) == [
+        ("speed", "v1"),
+        ("speed", "v2"),
+        ("wait", "v1"),
+        ("wait", "v2"),
+    ]
+    assert step1_lane.getter_calls == ["laneA", "laneB"]
+
+    step2_vehicle = SubscribingVehicleAPI(
+        _STEP2_SPEEDS, _STEP2_WAITS, active={"v1", "v2"}
+    )
+    step2_lane = SubscribingLaneAPI(_STEP2_LANES, active={"laneA", "laneB"})
+    collector.record_step(
+        FakeTraci(step2_vehicle, step2_lane, FakeSimulationAPI(arrived=["v2"]))
+    )
+
+    # Already subscribed: no new subscriptions and no per-object getters at
+    # all -- the whole step was served by the two batched reads.
+    assert step2_vehicle.subscribe_calls == []
+    assert step2_lane.subscribe_calls == []
+    assert step2_vehicle.getter_calls == []
+    assert step2_lane.getter_calls == []
+
+
+def test_newly_appearing_vehicle_is_bridged_by_getters_mid_run():
+    """A vehicle departing mid-run is read directly for its first step only."""
+    collector = _collector()
+    collector.record_step(
+        FakeTraci(
+            SubscribingVehicleAPI({"v1": 1.0}, {"v1": 0.0}, active=()),
+            SubscribingLaneAPI({}, active=()),
+            FakeSimulationAPI(departed=["v1"]),
+        )
+    )
+
+    later = SubscribingVehicleAPI(
+        {"v1": 1.0, "v9": 0.0}, {"v1": 0.0, "v9": 4.0}, active={"v1"}
+    )
+    collector.record_step(
+        FakeTraci(later, SubscribingLaneAPI({}, active={"laneA", "laneB"}), FakeSimulationAPI(departed=["v9"]))
+    )
+
+    assert later.subscribe_calls == ["v9"]
+    assert sorted(later.getter_calls) == [("speed", "v9"), ("wait", "v9")]
+    metrics = collector.finalize(2.0)
+    # v9's first-step observation was counted despite having no batched row.
+    assert metrics.total_stopped_vehicles == 1
+    assert metrics.average_waiting_time == pytest.approx(2.0)
 
 
 # ---------------------------------------------------------------------------

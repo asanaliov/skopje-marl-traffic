@@ -13,7 +13,19 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 
+from traci import constants as tc
+
 from src.evaluation.metrics import EpisodeMetrics, PerAgentDiagnostics
+
+# Every TraCI getter is a socket round-trip to the SUMO process, and this
+# collector runs once per simulation step. Reading speed and waiting time
+# with per-vehicle getters costs several round-trips per active vehicle per
+# step -- millions per full-length episode -- and the runner ends up bound
+# on socket latency with the CPU mostly idle. Subscriptions replace that with
+# one batched read per domain per step; SUMO pushes the requested variables
+# for every subscribed object after each step.
+_VEHICLE_VARS = (tc.VAR_SPEED, tc.VAR_ACCUMULATED_WAITING_TIME)
+_LANE_VARS = (tc.LAST_STEP_VEHICLE_HALTING_NUMBER,)
 
 
 @dataclass
@@ -68,6 +80,63 @@ class MetricsCollector:
         self.stopped_speed_threshold = stopped_speed_threshold
         self._stats = _RunningStats()
         self._reward_total: float | None = None
+        self._subscribed_vehicles: set[str] = set()
+        self._lanes_subscribed = False
+
+    def _read_vehicles(
+        self, traci_conn, vehicle_ids: list[str]
+    ) -> tuple[dict[str, float], dict[str, float]]:
+        """Return this step's speed and accumulated waiting time per vehicle.
+
+        A subscription only starts delivering after the *next* simulation
+        step, so a vehicle seen for the first time here has no batched
+        result yet. Those are read directly for this one step, which keeps
+        every vehicle's first observation in the aggregates exactly as the
+        per-vehicle getters did -- the batching changes how values are
+        fetched, never which values are counted.
+        """
+        subscribe = getattr(traci_conn.vehicle, "subscribe", None)
+        batched: dict = {}
+        if subscribe is not None:
+            for vid in vehicle_ids:
+                if vid not in self._subscribed_vehicles:
+                    subscribe(vid, _VEHICLE_VARS)
+                    self._subscribed_vehicles.add(vid)
+            batched = traci_conn.vehicle.getAllSubscriptionResults() or {}
+
+        speeds: dict[str, float] = {}
+        waits: dict[str, float] = {}
+        for vid in vehicle_ids:
+            row = batched.get(vid)
+            if row is not None and tc.VAR_SPEED in row:
+                speeds[vid] = row[tc.VAR_SPEED]
+                waits[vid] = row[tc.VAR_ACCUMULATED_WAITING_TIME]
+            else:
+                speeds[vid] = traci_conn.vehicle.getSpeed(vid)
+                waits[vid] = traci_conn.vehicle.getAccumulatedWaitingTime(vid)
+        return speeds, waits
+
+    def _read_lane_queue(self, traci_conn) -> int:
+        """Return this step's summed halting count over the monitored lanes."""
+        subscribe = getattr(traci_conn.lane, "subscribe", None)
+        batched: dict = {}
+        if subscribe is not None:
+            if not self._lanes_subscribed:
+                for lane_id in self.monitored_lanes:
+                    subscribe(lane_id, _LANE_VARS)
+                self._lanes_subscribed = True
+            batched = traci_conn.lane.getAllSubscriptionResults() or {}
+
+        # Halting counts are integers and the recorded max_queue_length is
+        # written as one; an int seed keeps the sum an int like sum() did.
+        total = 0
+        for lane_id in self.monitored_lanes:
+            row = batched.get(lane_id)
+            if row is not None and tc.LAST_STEP_VEHICLE_HALTING_NUMBER in row:
+                total += row[tc.LAST_STEP_VEHICLE_HALTING_NUMBER]
+            else:
+                total += traci_conn.lane.getLastStepHaltingNumber(lane_id)
+        return total
 
     def record_step(self, traci_conn) -> None:
         """Read state for the step that was just advanced.
@@ -79,36 +148,34 @@ class MetricsCollector:
         self._stats.step_count += 1
 
         vehicle_ids: list[str] = list(traci_conn.vehicle.getIDList())
+        speeds, waits = self._read_vehicles(traci_conn, vehicle_ids)
 
         if self.monitored_lanes is not None:
-            step_queue = sum(
-                traci_conn.lane.getLastStepHaltingNumber(lane_id)
-                for lane_id in self.monitored_lanes
-            )
+            step_queue = self._read_lane_queue(traci_conn)
         else:
             step_queue = sum(
                 1
                 for vid in vehicle_ids
-                if traci_conn.vehicle.getSpeed(vid) < self.stopped_speed_threshold
+                if speeds[vid] < self.stopped_speed_threshold
             )
         self._stats.queue_sum += step_queue
         self._stats.queue_max = max(self._stats.queue_max, step_queue)
 
         if vehicle_ids:
-            speeds = [traci_conn.vehicle.getSpeed(vid) for vid in vehicle_ids]
-            self._stats.speed_sum += sum(speeds) / len(speeds)
+            # Summed in getIDList order, as before: float addition is not
+            # associative, and the run must reproduce its recorded metrics.
+            step_speed_sum = sum(speeds[vid] for vid in vehicle_ids)
+            self._stats.speed_sum += step_speed_sum / len(vehicle_ids)
             self._stats.speed_sample_steps += 1
 
         for vid in vehicle_ids:
-            if traci_conn.vehicle.getSpeed(vid) < self.stopped_speed_threshold:
+            if speeds[vid] < self.stopped_speed_threshold:
                 self._stats.stopped_vehicle_ids.add(vid)
             # Overwrite with the latest cumulative value each step, so the
             # final value kept per vehicle is its own last observation
             # (on arrival, or at the end of the run) -- never summed
             # across steps, which would double count.
-            self._stats.waiting_time_by_vehicle[vid] = (
-                traci_conn.vehicle.getAccumulatedWaitingTime(vid)
-            )
+            self._stats.waiting_time_by_vehicle[vid] = waits[vid]
 
         for vid in traci_conn.simulation.getDepartedIDList():
             self._stats.departed_ids.add(vid)
