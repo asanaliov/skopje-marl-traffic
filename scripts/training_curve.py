@@ -24,11 +24,26 @@ they are merged by episode number.
 from __future__ import annotations
 
 import argparse
+import codecs
 import csv
 import re
 import statistics
 import sys
 from pathlib import Path
+
+# Windows PowerShell 5.1's Tee-Object writes UTF-16LE with a BOM, not UTF-8,
+# so a log captured the documented way is not a UTF-8 file. Decoding it as
+# UTF-8 yields text whose every character is separated by a NUL, which
+# matches no episode line at all -- a silent empty curve rather than an
+# error. Longest BOMs are checked first: UTF-32LE starts with the UTF-16LE
+# BOM and would otherwise be misread as UTF-16.
+_BOMS = (
+    (codecs.BOM_UTF32_LE, "utf-32-le"),
+    (codecs.BOM_UTF32_BE, "utf-32-be"),
+    (codecs.BOM_UTF8, "utf-8"),
+    (codecs.BOM_UTF16_LE, "utf-16-le"),
+    (codecs.BOM_UTF16_BE, "utf-16-be"),
+)
 
 # Anchored on the "Episode N:" prefix so the indented per-agent lines the
 # multi-agent runner prints underneath ("  A19: reward=...") never match.
@@ -63,10 +78,24 @@ def _extract(line: str, patterns: tuple[str, ...]) -> float | None:
     return None
 
 
+def read_log_text(path: Path) -> str:
+    """Decode a log written by any of the shells used to capture one."""
+    raw = path.read_bytes()
+    for bom, encoding in _BOMS:
+        if raw.startswith(bom):
+            return raw[len(bom) :].decode(encoding, errors="replace")
+    # No BOM. A redirect can still produce UTF-16 without one, and its
+    # ASCII text is then riddled with NULs, so sniff for those rather than
+    # returning mojibake.
+    if b"\x00" in raw[:4096]:
+        return raw.decode("utf-16-le", errors="replace")
+    return raw.decode("utf-8", errors="replace")
+
+
 def parse_log(path: Path) -> dict[int, dict[str, float]]:
     """Extract every episode line from one log, keyed by episode number."""
     episodes: dict[int, dict[str, float]] = {}
-    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+    for line in read_log_text(path).splitlines():
         prefix = EPISODE_PREFIX.match(line)
         if not prefix:
             continue
@@ -199,9 +228,19 @@ def main() -> None:
 
     rows = merge_logs(args.logs)
     if not rows:
+        # A log holding SUMO's startup banner but no episode line yet is the
+        # normal state early in a run, not a failure: one full-length high
+        # scenario episode takes about three minutes before it reports.
+        started = any(read_log_text(path).strip() for path in args.logs)
+        if started:
+            parser.error(
+                "no 'Episode N:' lines yet -- the run has not finished its "
+                "first episode. A full-length episode takes roughly 1-3 "
+                "minutes depending on scenario. Try again shortly."
+            )
         parser.error(
-            "no 'Episode N:' lines found. Was the run's stdout captured? "
-            "Pipe training through Tee-Object to keep it."
+            "log is empty, so no stdout was captured. Pipe training through "
+            "Tee-Object, and pass -u to python so output is not buffered."
         )
 
     report(rows)
