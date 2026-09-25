@@ -584,6 +584,21 @@ python scripts/run_deep_marl.py evaluate --scenario medium --seed 44 --allow-cro
 
 Training prints `Episode N:` lines, so `scripts/training_curve.py` can recover the reward curve, and it writes nothing to `results/experiments.csv`. `evaluate` runs one greedy episode on the same protocol as every other controller (3600 s demand + 600 s cooldown, seeds 42/43/44, all three scenarios). It appends the episode under the controller label `marl_deep_ppo` (`marl_deep_ppo_neighbor` / `marl_deep_ppo_global` for the other reward modes), so it never shares a row with a tabular controller. Training resumes with `--resume`. A checkpoint (`checkpoints/deep_marl_<reward>_<scenario>_seed<seed>.pt`) is rejected when the agent set, scenario, reward mode or network shape differ, and a resume is also rejected when any training hyperparameter differs.
 
+**Results.** Each scenario was trained for 300 episodes on seed 42 with the `local` reward (the default hyperparameters in `DeepMarlConfig`), then evaluated greedily on seeds 42/43/44. The table shows means over the three seeds, next to the tabular controller with the same agents, observations and reward:
+
+| Scenario | Controller | Avg wait (s) | Avg queue | Vehicles left | Teleports |
+|---|---|---|---|---|---|
+| low | `marl_deep_ppo` | 5.28 | 1.97 | 0.67 | 0.00 |
+| low | `multi_agent_independent_rl` | 5.53 | 2.31 | 0.33 | 0.00 |
+| medium | `marl_deep_ppo` | 7.42 | 5.77 | 1.00 | 0.00 |
+| medium | `multi_agent_independent_rl` | 7.68 | 6.98 | 1.67 | 0.00 |
+| high | `marl_deep_ppo` | 12.68 | 13.02 | 15.00 | 0.33 |
+| high | `multi_agent_independent_rl` | 13.60 | 21.11 | 36.33 | 7.33 |
+
+The deep controller beats its tabular counterpart on waiting time and queue length in all three scenarios. The gap is small in low and medium traffic and large in high traffic, where the tabular controllers' coarse state buckets struggle most. In high traffic it is also the best of every controller that drives all eight junctions, including the coordinated tabular variants. It does not beat the imported actuated programs or single-agent RL on A19 in any scenario. On high seed 43 it leaves 41 vehicles in the network, against 3 and 1 on seeds 42 and 44, so its high-traffic result is less stable across demand seeds than the mean suggests.
+
+Training curves (from `scripts/training_curve.py` over the logs): low plateaued after about 90 episodes. High was still improving until about episode 250 and then levelled off. Medium peaked around episodes 200 to 225 and then fell about 8% over the final 50 episodes, typical of PPO with a constant learning rate. Its evaluated checkpoint is the final one, as for every tabular controller, so medium is reported slightly below the policy's best point. A learning-rate schedule is the obvious next change, but it was not tuned after the fact.
+
 ## Current status
 
 The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, and imported actuated baseline are in place.
