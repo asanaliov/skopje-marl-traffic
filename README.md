@@ -559,21 +559,30 @@ python scripts/run_deep_rl_demo.py --algorithm ppo --scenario medium --timesteps
 Stable-Baselines3 builds the policy network from the wrapper's spaces and runs its own loop end to end -- 128 PPO timesteps over 600-second episodes produced ten gradient updates and an `ep_rew_mean` of about -1.2e3 on the medium scenario. That is a compatibility demonstration, not a benchmark: a few hundred timesteps train nothing worth comparing, so the demo writes no row to `results/experiments.csv` and the comparison table stays reserved for controllers that were trained to convergence. Training a competitive deep policy is separate work.
 
 
-## Deep MARL Across All Eight Agents (Shared-Parameter PPO)
+## Deep MARL Across All Eight Agents (Parameter-Shared IPPO)
 
 `src/training/deep_marl.py` trains one PPO actor-critic (PyTorch) over `CorridorParallelEnv` for all eight corridor agents. `scripts/run_deep_marl.py` is the command-line entry point.
 
-**Training regime: parameter sharing.** All eight agents act through one network, and every agent's transitions go into the same PPO update. This was chosen over eight independent policies because SUMO stepping is the bottleneck: sharing gives the network eight times as many samples per simulated episode, which independent policies cannot match at 3600 s episodes. The junctions are not homogeneous (21 to 66 observation features, different phase programs), so the shared network gets zero-padded observations plus a one-hot agent ID, which lets it specialise per junction while sharing the common queue-to-switch structure. The cost is that one network has to fit eight different dynamics and that narrow junctions carry padding. Execution is decentralised: each agent acts greedily from its own padded local observation and ID only. `--reward-mode` (`local`, `neighbor_aware`, `global`) controls how much coordination the reward carries, exactly as for the tabular controllers.
+**Training regime: parameter sharing.** All eight agents act through one network, and every agent's transitions go into the same PPO update. This was chosen over eight independent policies because SUMO stepping is the bottleneck. Sharing gives the network eight times as many samples per simulated episode, which independent policies cannot match at 3600 s episodes. The junctions are not homogeneous (21 to 66 observation features, different phase programs), so the shared network gets zero-padded observations plus a one-hot agent ID. That lets it specialise per junction while sharing the common queue-to-switch structure. The cost is that one network has to fit eight different dynamics, and narrow junctions carry padding.
 
-**Compute budget.** One full-length medium-scenario episode (3600 s demand + 600 s cooldown, 840 decision steps) takes about 30 s of wall clock, of which the PPO update is a small fraction. 100 episodes is therefore roughly 50 minutes per scenario, still only about 84,000 joint decision steps. That is a far smaller budget than a deep method normally wants, so any result must be reported with its episode count.
+This is independent PPO (IPPO), not MAPPO: the actor *and* the critic see only the agent's own observation, and execution is fully decentralised. `--reward-mode` (`local`, `neighbor_aware`, `global`) controls how much coordination the reward carries, exactly as for the tabular controllers.
+
+**Which reward mode.** The primary deep run uses `local`. In the tabular results no coordinated reward beats local rewards consistently across scenarios, so the cleanest question a deep run can answer is whether function approximation beats tabular discretisation *under the same signal*. With `local` the deep controller (`marl_deep_ppo`) is the direct counterpart of `multi_agent_independent_rl`: same agents, same per-junction observations, same reward. Other reward modes are logged under separate labels.
+
+**Reward scaling.** Rewards are divided by a running standard deviation of the discounted return, as Stable-Baselines3's `VecNormalize` does, and clipped to ±10. Raw per-step rewards differ several-fold between low and high traffic, so a single fixed scale would suit only one scenario. The statistics are stored in the checkpoint.
+
+**Compute budget.** One full-length episode (3600 s demand + 600 s cooldown, 840 decision steps) takes about 30 s of wall clock on the medium scenario, and the PPO update is a small fraction of that. Training defaults to 300 episodes, the same SUMO budget as the tabular MARL runs, so neither method gets more simulated traffic than the other. That is about 2.5 hours per scenario, and the three scenarios can run in parallel. It is still only about 250,000 joint decision steps, which is small for a deep method, so any result must be reported with its episode count.
 
 ```powershell
 pip install torch
-python scripts/run_deep_marl.py train --scenario medium --episodes 100 --seed 42 *>&1 | Tee-Object logs/deep_marl_local_medium_seed42.log
+python scripts/run_deep_marl.py train --scenario medium --seed 42 *>&1 | Tee-Object logs/deep_marl_local_medium_seed42.log
+python scripts/training_curve.py logs/deep_marl_local_medium_seed42.log
 python scripts/run_deep_marl.py evaluate --scenario medium --seed 42
+python scripts/run_deep_marl.py evaluate --scenario medium --seed 43 --allow-cross-seed --checkpoint checkpoints/deep_marl_local_medium_seed42.pt
+python scripts/run_deep_marl.py evaluate --scenario medium --seed 44 --allow-cross-seed --checkpoint checkpoints/deep_marl_local_medium_seed42.pt
 ```
 
-Training prints `Episode N:` lines, so `scripts/training_curve.py` can recover the reward curve. Training writes nothing to `results/experiments.csv`. `evaluate` runs one greedy episode on the same protocol as every other controller (3600 s demand + 600 s cooldown; run it for seeds 42/43/44, using `--allow-cross-seed` for 43 and 44, on all three scenarios) and appends it under the controller label `marl_deep_ppo` (`marl_deep_ppo_neighbor` / `marl_deep_ppo_global` for the other reward modes), so it never shares a row with a tabular controller. Training resumes with `--resume`, and checkpoints (`checkpoints/deep_marl_<reward>_<scenario>_seed<seed>.pt`) are rejected when the agent set, scenario, reward mode or network size differ. No deep benchmark row is committed yet.
+Training prints `Episode N:` lines, so `scripts/training_curve.py` can recover the reward curve, and it writes nothing to `results/experiments.csv`. `evaluate` runs one greedy episode on the same protocol as every other controller (3600 s demand + 600 s cooldown, seeds 42/43/44, all three scenarios). It appends the episode under the controller label `marl_deep_ppo` (`marl_deep_ppo_neighbor` / `marl_deep_ppo_global` for the other reward modes), so it never shares a row with a tabular controller. Training resumes with `--resume`. A checkpoint (`checkpoints/deep_marl_<reward>_<scenario>_seed<seed>.pt`) is rejected when the agent set, scenario, reward mode or network shape differ, and a resume is also rejected when any training hyperparameter differs.
 
 ## Current status
 

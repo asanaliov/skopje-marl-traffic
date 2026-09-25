@@ -1,10 +1,11 @@
-"""Parameter-shared multi-agent PPO over the PettingZoo corridor wrapper.
+"""Parameter-shared independent PPO (IPPO) over the PettingZoo corridor wrapper.
 
 Training regime
 ---------------
 All eight corridor agents are controlled by **one** actor-critic network
-(parameter sharing, as in MAPPO-style independent-PPO with a shared policy).
-Every agent contributes its own transitions to the same PPO update, so the
+(parameter sharing). This is independent PPO, not MAPPO: both the actor and
+the critic see only the agent's own observation, so there is no centralised
+critic. Every agent contributes its own transitions to the same PPO update, so the
 network sees eight times as many samples per SUMO step -- which matters
 because stepping SUMO, not the gradient update, is the compute bottleneck.
 
@@ -26,7 +27,15 @@ Learning is per-agent decentralised execution: at evaluation time each agent
 acts greedily from its own padded local observation and ID only. The critic is
 also local, so the reward mode (``local`` / ``neighbor_aware`` / ``global``)
 alone decides how much coordination the signal carries, mirroring the tabular
-controllers.
+controllers. With the default ``local`` reward the controller is the deep
+counterpart of ``multi_agent_independent_rl`` -- same agents, same per-junction
+observations, same reward -- so the comparison isolates function approximation
+versus tabular discretisation.
+
+Rewards are divided by a running standard deviation of the discounted return
+(as Stable-Baselines3's ``VecNormalize`` does), because raw per-step rewards
+differ several-fold between the low and high scenarios and a single hand-set
+scale would suit only one of them. The statistics are saved in the checkpoint.
 
 Evaluation follows the tabular protocol exactly: one greedy episode of
 ``demand_seconds`` + ``cooldown_seconds`` on the configured scenario/seed,
@@ -60,7 +69,27 @@ from src.evaluation.results_writer import append_result
 
 
 CONTROLLER_NAME = "marl_deep_ppo"
-CHECKPOINT_SCHEMA_VERSION = 1
+CHECKPOINT_SCHEMA_VERSION = 2
+DEFAULT_TRAINING_EPISODES = 300
+"""Matches the tabular MARL runs, so both methods get the same SUMO budget."""
+
+_HYPERPARAMETERS = (
+    "hidden_size",
+    "learning_rate",
+    "gamma",
+    "gae_lambda",
+    "clip_range",
+    "entropy_coefficient",
+    "value_coefficient",
+    "max_grad_norm",
+    "update_epochs",
+    "minibatch_size",
+    "reward_clip",
+    "decision_interval_seconds",
+    "episode_seconds",
+    "cooldown_seconds",
+)
+"""Settings a resumed run must share with its checkpoint."""
 _REWARD_SUFFIX = {"local": "", "neighbor_aware": "_neighbor", "global": "_global"}
 
 
@@ -76,7 +105,7 @@ class DeepMarlConfig:
     agent_ids: tuple[str, ...] = SELECTED_CORRIDOR.agent_ids
     scenario: str = "medium"
     seed: int = 42
-    episodes: int = 10
+    episodes: int = DEFAULT_TRAINING_EPISODES
     episode_seconds: float = 3600.0
     cooldown_seconds: float = 600.0
     decision_interval_seconds: float = 5.0
@@ -94,7 +123,7 @@ class DeepMarlConfig:
     max_grad_norm: float = 0.5
     update_epochs: int = 4
     minibatch_size: int = 512
-    reward_scale: float = 0.1
+    reward_clip: float = 10.0
     torch_seed: int = 0
     allow_cross_seed_evaluation: bool = False
 
@@ -115,6 +144,51 @@ class DeepMarlConfig:
             "agent_ids",
             tuple(a for a in SELECTED_CORRIDOR.agent_ids if a in self.agent_ids),
         )
+
+
+class RunningReturnScaler:
+    """Running variance of discounted returns, used to scale raw rewards."""
+
+    def __init__(self, gamma: float, clip: float) -> None:
+        self.gamma = gamma
+        self.clip = clip
+        self.count = 1e-4
+        self.mean = 0.0
+        self.var = 1.0
+
+    def _update(self, values: np.ndarray) -> None:
+        batch_mean = float(values.mean())
+        batch_var = float(values.var())
+        batch_count = values.size
+        delta = batch_mean - self.mean
+        total = self.count + batch_count
+        self.mean += delta * batch_count / total
+        m2 = (
+            self.var * self.count
+            + batch_var * batch_count
+            + delta**2 * self.count * batch_count / total
+        )
+        self.var = m2 / total
+        self.count = total
+
+    def scale(self, rewards: np.ndarray) -> np.ndarray:
+        """Update statistics from a (steps, agents) episode and scale it."""
+        returns = np.zeros_like(rewards)
+        running = np.zeros(rewards.shape[1:], dtype=rewards.dtype)
+        for step in range(rewards.shape[0]):
+            running = running * self.gamma + rewards[step]
+            returns[step] = running
+        self._update(returns)
+        scaled = rewards / np.sqrt(self.var + 1e-8)
+        return np.clip(scaled, -self.clip, self.clip).astype(np.float32)
+
+    def state(self) -> dict[str, float]:
+        return {"count": self.count, "mean": self.mean, "var": self.var}
+
+    def load(self, state: Mapping[str, float]) -> None:
+        self.count = float(state["count"])
+        self.mean = float(state["mean"])
+        self.var = float(state["var"])
 
 
 class SharedActorCritic(nn.Module):
@@ -201,8 +275,8 @@ class DeepMarlTrainer:
         self.optimizer = torch.optim.Adam(
             self.network.parameters(), lr=config.learning_rate, eps=1e-5
         )
+        self.reward_scaler = RunningReturnScaler(config.gamma, config.reward_clip)
         self.completed_episodes = 0
-        self.training_seed: int | None = None
 
     # ------------------------------------------------------------------ obs
     def _stack(self, observations: Mapping[str, np.ndarray]) -> np.ndarray:
@@ -276,6 +350,7 @@ class DeepMarlTrainer:
         terminated = truncated = False
         simulated_seconds = 0.0
         total_reward = 0.0
+        decision_steps = 0
         try:
             observations, _ = parallel.reset()
             if collector_factory is not None:
@@ -287,6 +362,7 @@ class DeepMarlTrainer:
                     {a: int(actions[i]) for i, a in enumerate(agents)}
                 )
                 reward_row = np.array([rewards[a] for a in agents], dtype=np.float32)
+                decision_steps += 1
                 total_reward += float(reward_row.sum())
                 if collector is not None:
                     collector.add_reward(float(reward_row.sum()))
@@ -325,13 +401,13 @@ class DeepMarlTrainer:
                 "actions": actions_array,
                 "logp": np.stack(logp_log),
                 "values": np.stack(val_log),
-                "rewards": np.stack(rew_log) * self.config.reward_scale,
+                "rewards": self.reward_scaler.scale(np.stack(rew_log)),
                 "last_batch": batch,
                 "terminated": terminated,
             }
         summary = DeepEpisodeSummary(
             episode=episode,
-            decision_steps=len(obs_log) if training else 0,
+            decision_steps=decision_steps,
             simulated_seconds=simulated_seconds,
             combined_total_reward=total_reward,
             terminated=terminated,
@@ -409,7 +485,8 @@ class DeepMarlTrainer:
                 "seed": cfg.seed,
                 "reward_mode": cfg.reward_mode,
                 "input_size": self.input_size,
-                "hidden_size": cfg.hidden_size,
+                "hyperparameters": {k: getattr(cfg, k) for k in _HYPERPARAMETERS},
+                "reward_scaler": self.reward_scaler.state(),
             },
             target,
         )
@@ -428,7 +505,6 @@ class DeepMarlTrainer:
             "scenario": cfg.scenario,
             "reward_mode": cfg.reward_mode,
             "input_size": self.input_size,
-            "hidden_size": cfg.hidden_size,
         }
         if for_training or not cfg.allow_cross_seed_evaluation:
             expected["seed"] = cfg.seed
@@ -438,9 +514,20 @@ class DeepMarlTrainer:
                     f"Checkpoint {key}={payload.get(key)!r} does not match this "
                     f"run ({value!r})."
                 )
+        # Evaluation only needs a network of the same shape; resuming training
+        # with different hyperparameters would silently splice two runs.
+        stored = payload["hyperparameters"]
+        checked = _HYPERPARAMETERS if for_training else ("hidden_size",)
+        for key in checked:
+            if stored.get(key) != getattr(cfg, key):
+                raise ValueError(
+                    f"Checkpoint {key}={stored.get(key)!r} does not match this "
+                    f"run ({getattr(cfg, key)!r})."
+                )
         self.network.load_state_dict(payload["network"])
         if for_training:
             self.optimizer.load_state_dict(payload["optimizer"])
+            self.reward_scaler.load(payload["reward_scaler"])
         self.completed_episodes = int(payload["completed_episodes"])
         return source
 
@@ -463,7 +550,6 @@ class DeepMarlTrainer:
             p_loss, v_loss, entropy = self._update(rollout)
             summary = replace(
                 summary,
-                decision_steps=summary.decision_steps,
                 policy_loss=p_loss,
                 value_loss=v_loss,
                 entropy=entropy,
@@ -514,7 +600,8 @@ class DeepMarlTrainer:
         )
         print(
             f"Evaluation: controller={label} scenario={cfg.scenario} "
-            f"seed={cfg.seed} seconds={summary.simulated_seconds:.1f} "
+            f"seed={cfg.seed} steps={summary.decision_steps} "
+            f"seconds={summary.simulated_seconds:.1f} "
             f"combined_reward={summary.combined_total_reward:.3f} "
             f"trained_episodes={self.completed_episodes}"
         )

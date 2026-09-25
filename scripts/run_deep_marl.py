@@ -9,7 +9,7 @@ it to ``results/experiments.csv`` under ``marl_deep_ppo`` (``_neighbor`` /
 
 Requires PyTorch (``pip install torch``).
 
-    python scripts/run_deep_marl.py train --scenario medium --episodes 100 --episode-seconds 3600
+    python scripts/run_deep_marl.py train --scenario medium --episodes 300
     python scripts/run_deep_marl.py evaluate --scenario medium --seed 42
 """
 
@@ -24,6 +24,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
+
+DEFAULT_TRAINING_EPISODES = 300  # kept in sync with src/training/deep_marl.py
 
 
 def _positive_int(value: str) -> int:
@@ -62,6 +64,10 @@ def _common(parser: argparse.ArgumentParser) -> None:
         "--reward-mode",
         choices=("local", "neighbor_aware", "global"),
         default="local",
+        help=(
+            "Reward every agent learns from (default: local, the deep "
+            "counterpart of multi_agent_independent_rl)."
+        ),
     )
     parser.add_argument("--checkpoint", type=Path, default=None)
     parser.add_argument("--results-path", type=Path, default=Path("results/experiments.csv"))
@@ -74,7 +80,12 @@ def parse_args(argv=None) -> argparse.Namespace:
     sub = parser.add_subparsers(dest="command", required=True)
     train = sub.add_parser("train")
     _common(train)
-    train.add_argument("--episodes", type=_positive_int, default=100)
+    train.add_argument(
+        "--episodes",
+        type=_positive_int,
+        default=DEFAULT_TRAINING_EPISODES,
+        help="Training episodes (default: 300, the tabular MARL budget).",
+    )
     train.add_argument("--resume", action="store_true")
     train.add_argument("--learning-rate", type=_positive_float, default=3e-4)
     train.add_argument("--hidden-size", type=_positive_int, default=128)

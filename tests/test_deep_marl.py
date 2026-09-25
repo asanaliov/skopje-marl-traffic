@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import csv
+
 import numpy as np
 import pytest
 
@@ -103,3 +105,44 @@ def test_config_orders_agents_and_rejects_unknown_ones():
     assert config.agent_ids == ("A19", "A26")
     with pytest.raises(ValueError):
         DeepMarlConfig(agent_ids=("A99",))
+
+
+def test_return_scaler_brings_scenarios_of_different_magnitude_to_unit_scale():
+    from src.training.deep_marl import RunningReturnScaler
+
+    peaks = []
+    for magnitude in (1.0, 50.0):
+        scaler = RunningReturnScaler(gamma=0.99, clip=10.0)
+        rewards = -magnitude * np.ones((200, 4), dtype=np.float32)
+        peaks.append(np.abs(scaler.scale(rewards)).max())
+    assert peaks[0] < 1.0
+    assert peaks[1] == pytest.approx(peaks[0], rel=1e-3)
+
+
+def test_resume_with_different_hyperparameters_is_rejected(tmp_path):
+    make_trainer(tmp_path).train()
+    changed = make_trainer(tmp_path, learning_rate=1e-3)
+    with pytest.raises(ValueError, match="learning_rate"):
+        changed.train(resume=True)
+    # Evaluation only needs the same network shape.
+    evaluator = make_trainer(tmp_path, learning_rate=1e-3)
+    evaluator.load_checkpoint(for_training=False)
+
+
+def test_resume_restores_the_reward_statistics(tmp_path):
+    first = make_trainer(tmp_path)
+    first.train()
+    resumed = make_trainer(tmp_path)
+    resumed.load_checkpoint(for_training=True)
+    assert resumed.reward_scaler.state() == first.reward_scaler.state()
+
+
+def test_evaluation_appends_one_labelled_row_and_counts_its_steps(tmp_path):
+    make_trainer(tmp_path).train()
+    evaluator = make_trainer(tmp_path, reward_mode="local")
+    summary = evaluator.evaluate()
+    assert summary.decision_steps > 0
+    with (tmp_path / "results.csv").open(encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    assert [row["controller"] for row in rows] == [CONTROLLER_NAME]
+    assert rows[0]["demand_seconds"] == "3600.0"
