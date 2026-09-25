@@ -558,6 +558,23 @@ python scripts/run_deep_rl_demo.py --algorithm ppo --scenario medium --timesteps
 
 Stable-Baselines3 builds the policy network from the wrapper's spaces and runs its own loop end to end -- 128 PPO timesteps over 600-second episodes produced ten gradient updates and an `ep_rew_mean` of about -1.2e3 on the medium scenario. That is a compatibility demonstration, not a benchmark: a few hundred timesteps train nothing worth comparing, so the demo writes no row to `results/experiments.csv` and the comparison table stays reserved for controllers that were trained to convergence. Training a competitive deep policy is separate work.
 
+
+## Deep MARL Across All Eight Agents (Shared-Parameter PPO)
+
+`src/training/deep_marl.py` trains one PPO actor-critic (PyTorch) over `CorridorParallelEnv` for all eight corridor agents. `scripts/run_deep_marl.py` is the command-line entry point.
+
+**Training regime: parameter sharing.** All eight agents act through one network, and every agent's transitions go into the same PPO update. This was chosen over eight independent policies because SUMO stepping is the bottleneck: sharing gives the network eight times as many samples per simulated episode, which independent policies cannot match at 3600 s episodes. The junctions are not homogeneous (21 to 66 observation features, different phase programs), so the shared network gets zero-padded observations plus a one-hot agent ID, which lets it specialise per junction while sharing the common queue-to-switch structure. The cost is that one network has to fit eight different dynamics and that narrow junctions carry padding. Execution is decentralised: each agent acts greedily from its own padded local observation and ID only. `--reward-mode` (`local`, `neighbor_aware`, `global`) controls how much coordination the reward carries, exactly as for the tabular controllers.
+
+**Compute budget.** One full-length medium-scenario episode (3600 s demand + 600 s cooldown, 840 decision steps) takes about 30 s of wall clock, of which the PPO update is a small fraction. 100 episodes is therefore roughly 50 minutes per scenario, still only about 84,000 joint decision steps. That is a far smaller budget than a deep method normally wants, so any result must be reported with its episode count.
+
+```powershell
+pip install torch
+python scripts/run_deep_marl.py train --scenario medium --episodes 100 --seed 42 *>&1 | Tee-Object logs/deep_marl_local_medium_seed42.log
+python scripts/run_deep_marl.py evaluate --scenario medium --seed 42
+```
+
+Training prints `Episode N:` lines, so `scripts/training_curve.py` can recover the reward curve. Training writes nothing to `results/experiments.csv`. `evaluate` runs one greedy episode on the same protocol as every other controller (3600 s demand + 600 s cooldown; run it for seeds 42/43/44, using `--allow-cross-seed` for 43 and 44, on all three scenarios) and appends it under the controller label `marl_deep_ppo` (`marl_deep_ppo_neighbor` / `marl_deep_ppo_global` for the other reward modes), so it never shares a row with a tabular controller. Training resumes with `--resume`, and checkpoints (`checkpoints/deep_marl_<reward>_<scenario>_seed<seed>.pt`) are rejected when the agent set, scenario, reward mode or network size differ. No deep benchmark row is committed yet.
+
 ## Current status
 
 The initial package structure, shared configuration, setup checker, random-agent integration smoke test, first imported Skopje scenario, shared experiment-metrics package, static fixed-time baseline, and imported actuated baseline are in place.
@@ -565,4 +582,4 @@ Single-agent and multi-agent tabular Q-learning runners support training, resumi
 Coordinated MARL is supported through spatial observation sharing (neighbor congestion flags) and reward coordination (neighbor-aware and global reward mixing).
 Results can be summarized across episode durations and visualized as publication-quality comparison charts.
 Gymnasium and PettingZoo parallel environment wrappers are validated and ready for deep reinforcement learning libraries, with a single-agent Stable-Baselines3 demo included.
-Full multi-seed 3600-second benchmark runs for the multi-agent models, multi-agent deep RL training across all eight agents, real-world calibrated demand, and netedit junction geometry cleanup are future work.
+Full multi-seed 3600-second benchmark runs for the multi-agent models, real-world calibrated demand, and netedit junction geometry cleanup are future work.

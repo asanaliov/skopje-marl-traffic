@@ -1,3 +1,4 @@
 pytest
 ruff
 stable-baselines3
+torch
