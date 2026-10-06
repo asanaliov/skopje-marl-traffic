@@ -78,6 +78,9 @@ Useful flags for both runners:
 | `--spatial-observations` | Agents see neighbor congestion flags (multi-agent only) |
 | `--agents A19 A20` | Train only a subset of the corridor (multi-agent only) |
 
+`neighbor_aware` averages over all of an agent's audited neighbors that are in the run
+(up to six for A26). `--neighbor-limit` only applies to `--spatial-observations`.
+
 Use the same `--reward-mode` / `--spatial-observations` for train and evaluate.
 Checkpoints refuse to load if the scenario, seed, agents, or settings don't match.
 
