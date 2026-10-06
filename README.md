@@ -21,6 +21,7 @@ keeps its original SUMO program.
 | `multi_agent_spatial_rl` | Same, plus each agent sees its neighbors' congestion |
 | `marl_neighbor_reward` | Reward = 70% own + 30% neighbors' average |
 | `marl_global_reward` | Every agent gets the corridor-wide average reward |
+| `marl_deep_ppo` | One shared PPO network for all 8 agents, local reward |
 
 ## Setup (Windows)
 
@@ -115,11 +116,49 @@ with CorridorParallelEnv(config) as env:
 ```
 
 Actions are `0 = KEEP`, `1 = NEXT_GREEN`. A safety layer enforces minimum/maximum
-green and yellow transitions. A short PPO demo (`stable-baselines3` is in `requirements-dev.txt`):
+green and yellow transitions. A short PPO demo (`stable-baselines3` and `torch` are in `requirements-dev.txt`):
 
 ```powershell
 python scripts/run_deep_rl_demo.py --algorithm ppo --scenario medium --timesteps 128 --episode-seconds 600
 ```
+
+## Deep MARL (shared-parameter PPO)
+
+`src/training/deep_marl.py` trains one PyTorch PPO network shared by all eight agents
+(independent PPO: actor and critic see only the agent's own observation). Observations are
+zero-padded to the widest junction and tagged with a one-hot agent ID.
+
+- **Why shared:** SUMO is the bottleneck, and sharing gives the network 8x the samples per episode.
+- **Why `local` reward:** no coordinated tabular reward won consistently, so this is the direct
+  deep counterpart of `multi_agent_independent_rl`. Same budget: 300 episodes on seed 42.
+- Rewards are scaled by a running return std and clipped to ±10 (like SB3's `VecNormalize`).
+
+```powershell
+python scripts/run_deep_marl.py train    --scenario medium --seed 42 *>&1 | Tee-Object logs/deep_marl_local_medium_seed42.log
+python scripts/run_deep_marl.py evaluate --scenario medium --seed 42
+python scripts/run_deep_marl.py evaluate --scenario medium --seed 43 --allow-cross-seed --checkpoint checkpoints/deep_marl_local_medium_seed42.pt
+```
+
+Other reward modes are recorded as `marl_deep_ppo_neighbor` / `marl_deep_ppo_global`.
+Checkpoints are saved as `checkpoints/deep_marl_<reward>_<scenario>_seed<seed>.pt`.
+
+**Results** (mean over seeds 42/43/44):
+
+| Scenario | Controller | Avg wait (s) | Avg queue | Vehicles left | Teleports |
+|---|---|---|---|---|---|
+| low | `marl_deep_ppo` | 5.28 | 1.97 | 0.67 | 0.00 |
+| low | `multi_agent_independent_rl` | 5.53 | 2.31 | 0.33 | 0.00 |
+| medium | `marl_deep_ppo` | 7.42 | 5.77 | 1.00 | 0.00 |
+| medium | `multi_agent_independent_rl` | 7.68 | 6.98 | 1.67 | 0.00 |
+| high | `marl_deep_ppo` | 12.68 | 13.02 | 15.00 | 0.33 |
+| high | `multi_agent_independent_rl` | 13.60 | 21.11 | 36.33 | 7.33 |
+
+Beats its tabular counterpart everywhere, by a large margin in high traffic, where it is the
+best 8-junction controller. It does not beat `imported_actuated` or single-agent `independent_rl`.
+
+Caveats: high seed 43 leaves 41 vehicles in the network (vs 3 and 1 on seeds 42/44).
+Medium training reward peaked around episodes 200–225 and dropped ~8% by the end; the final
+checkpoint is the one evaluated, as for every tabular run.
 
 ## Tests
 
@@ -136,11 +175,11 @@ src/
   demand/        synthetic traffic generation
   environment/   SUMO environment, signals, rewards, Gym/PettingZoo wrappers
   evaluation/    metrics collection and results CSV
-  training/      single- and multi-agent training loops
+  training/      tabular and deep MARL training loops
 scripts/         command-line entry points
 sumo/skopje/     network, demand, configs, and documentation
 results/         experiments.csv, plots, training curves
-checkpoints/     saved Q-tables
+checkpoints/     saved Q-tables and PPO networks
 ```
 
 ## More detail
@@ -156,7 +195,7 @@ Design notes live in `sumo/skopje/documentation/`:
 ## Status
 
 Done: baselines, single/multi-agent Q-learning, coordinated MARL (spatial,
-neighbor-aware, global), metrics and plots, Gym/PettingZoo wrappers.
+neighbor-aware, global), deep MARL (shared PPO), metrics and plots, Gym/PettingZoo wrappers.
 
-Not done: multi-agent deep RL training, calibrated real-world demand,
+Not done: calibrated real-world demand,
 junction geometry cleanup in netedit.
