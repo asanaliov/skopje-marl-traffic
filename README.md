@@ -19,7 +19,7 @@ keeps its original SUMO program.
 | `independent_rl` | Q-learning on one agent, others on SUMO programs |
 | `multi_agent_independent_rl` | All 8 agents learn, each with its own local reward |
 | `multi_agent_spatial_rl` | Same, plus each agent sees its neighbors' congestion |
-| `marl_neighbor_reward` | Reward = 75% own + 25% neighbors' average |
+| `marl_neighbor_reward` | Reward = 70% own + 30% neighbors' average |
 | `marl_global_reward` | Every agent gets the corridor-wide average reward |
 
 ## Setup (Windows)
@@ -57,8 +57,8 @@ python scripts/run_imported_actuated_suite.py --seed 42
 **Single-agent Q-learning**
 
 ```powershell
-python scripts/run_q_learning.py train    --agent A19 --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/a19_medium.json
-python scripts/run_q_learning.py evaluate --agent A19 --scenario medium --seed 42 --checkpoint checkpoints/a19_medium.json
+python scripts/run_q_learning.py train    --agent-id A19 --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/a19_medium.json
+python scripts/run_q_learning.py evaluate --agent-id A19 --scenario medium --seed 42 --checkpoint checkpoints/a19_medium.json
 ```
 
 **Multi-agent Q-learning**
@@ -112,7 +112,7 @@ with CorridorParallelEnv(config) as env:
 ```
 
 Actions are `0 = KEEP`, `1 = NEXT_GREEN`. A safety layer enforces minimum/maximum
-green and yellow transitions. A short PPO demo (needs `stable-baselines3`):
+green and yellow transitions. A short PPO demo (`stable-baselines3` is in `requirements-dev.txt`):
 
 ```powershell
 python scripts/run_deep_rl_demo.py --algorithm ppo --scenario medium --timesteps 128 --episode-seconds 600
