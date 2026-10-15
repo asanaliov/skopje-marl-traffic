@@ -99,23 +99,28 @@ Only compare runs with the same episode length. Baselines use 3600 seconds.
 
 ### Current comparison
 
-Mean average waiting time in seconds across the recorded seed 42, 43, and 44 evaluations.
+Mean average waiting time in seconds across the recorded seed 42, 43, and 44 evaluations for all eight controller labels in the results CSV.
 Lower is better.
 The chart is limited to these three seeds and synthetic demand; it is descriptive, not evidence of statistical significance.
 
 ![Line chart comparing mean average waiting time across traffic scenarios](results/waiting-time-comparison.svg)
 
-| Scenario | Fixed-time | Imported actuated | Single-agent RL | 8-agent tabular RL | 8-agent deep PPO |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Low | 7.65 | 4.31 | 4.46 | 5.53 | 5.28 |
-| Medium | 10.33 | 6.01 | 6.89 | 9.63 | 7.42 |
-| High | 15.17 | 10.44 | 11.44 | 13.60 | 12.68 |
+| Controller | Low | Medium | High |
+| --- | ---: | ---: | ---: |
+| `static_fixed_time` | 7.65 | 10.33 | 15.17 |
+| `imported_actuated` | 4.31 | 6.01 | 10.44 |
+| `independent_rl` | 4.46 | 6.89 | 11.44 |
+| `multi_agent_independent_rl` | 5.53 | 9.63 | 13.60 |
+| `multi_agent_spatial_rl` | 5.84 | 7.24 | 14.01 |
+| `marl_neighbor_reward` | 5.27 | 10.69 | 17.25 |
+| `marl_global_reward` | 5.91 | 10.08 | 14.31 |
+| `marl_deep_ppo` | 5.28 | 7.42 | 12.68 |
 
 Values are calculated from `results/experiments.csv` by controller and scenario.
 Some controller/scenario groups contain repeated rows for seed 42, so the means above include those repeats rather than silently choosing one result.
 Use `python scripts/summarize_experiments.py` to inspect run counts and standard deviations.
-The comparison suggests the imported actuated baseline has the lowest mean wait in all three scenarios among the listed controllers.
-Deep PPO has a lower mean wait than tabular multi-agent RL in medium and high demand, but the single-agent baseline is lower in all scenarios.
+The imported actuated baseline has the lowest mean wait in all three scenarios in the current results table.
+The learned controllers do not consistently improve on that baseline, and their relative performance changes with demand level.
 These results do not establish a novel or generally superior controller.
 
 ## Deep RL wrappers
