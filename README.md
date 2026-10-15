@@ -90,6 +90,7 @@ Checkpoints refuse to load if the scenario, seed, agents, or settings don't matc
 ```powershell
 python scripts/summarize_experiments.py                       # table by controller, scenario, episode length
 python scripts/visualize_results.py                           # plots in results/plots/
+python scripts/generate_waiting_time_chart.py                  # refresh the README SVG from experiments.csv
 python scripts/experiment_matrix.py results/experiments.csv   # which runs are still missing
 python scripts/training_curve.py logs/<run>.log --csv out.csv # reward curve from a training log
 python scripts/merge_results.py other_machine.csv             # merge results from another machine
@@ -99,9 +100,9 @@ Only compare runs with the same episode length. Baselines use 3600 seconds.
 
 ### Current comparison
 
-Mean average waiting time in seconds across the recorded seed 42, 43, and 44 evaluations for all eight controller labels in the results CSV.
+Mean average waiting time in seconds across the recorded evaluations for every controller label in the results CSV.
 Lower is better.
-The chart is limited to these three seeds and synthetic demand; it is descriptive, not evidence of statistical significance.
+The results use synthetic demand and a limited set of seeds; the comparison is descriptive, not evidence of statistical significance.
 
 ![Line chart comparing mean average waiting time across traffic scenarios](results/waiting-time-comparison.svg)
 
@@ -117,6 +118,7 @@ The chart is limited to these three seeds and synthetic demand; it is descriptiv
 | `marl_deep_ppo` | 5.28 | 7.42 | 12.68 |
 
 Values are calculated from `results/experiments.csv` by controller and scenario.
+Run `python scripts/generate_waiting_time_chart.py` to refresh the chart after adding experiment rows.
 Some controller/scenario groups contain repeated rows for seed 42, so the means above include those repeats rather than silently choosing one result.
 Use `python scripts/summarize_experiments.py` to inspect run counts and standard deviations.
 The imported actuated baseline has the lowest mean wait in all three scenarios in the current results table.
