@@ -103,6 +103,8 @@ Mean average waiting time in seconds across the recorded seed 42, 43, and 44 eva
 Lower is better.
 The chart is limited to these three seeds and synthetic demand; it is descriptive, not evidence of statistical significance.
 
+![Line chart comparing mean average waiting time across traffic scenarios](results/waiting-time-comparison.svg)
+
 | Scenario | Fixed-time | Imported actuated | Single-agent RL | 8-agent tabular RL | 8-agent deep PPO |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Low | 7.65 | 4.31 | 4.46 | 5.53 | 5.28 |
