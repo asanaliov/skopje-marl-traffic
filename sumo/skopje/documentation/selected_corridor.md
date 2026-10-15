@@ -111,22 +111,13 @@ This evidence supports scenario stability only and does not establish traffic-co
 
 The labeled overview shows the selected junctions in the context of the complete Skopje network.
 
-## Limitations
+## Known limitations
 
 - A9 and A26 have short controlled-edge warnings that require care when lane-level observations are designed.
 - A19 has a wizard detector warning and still needs a focused detector and phase review.
-- The current demand is synthetic and does not represent measured Skopje traffic volumes.
-- The current demand appears relatively light and uneven.
-- Medium and high traffic scenarios are still required.
-- Fixed-time, independent RL, and coordinated MARL comparisons are not yet implemented.
+- Demand is synthetic and does not represent measured Skopje traffic volumes.
 - Phase-by-phase visual conflict checks are incomplete for A9, A19, and A26.
 - Close-up lane and turn reviews are incomplete for A18, A20, A24, A25, and A29.
 
-## Next steps
-
-1. Use the fixed-program selected-corridor runner to keep validating the unchanged full-network scenario.
-2. Complete the A19 detector review and the remaining phase, lane, and turn inspections.
-3. Create reproducible medium and high demand scenarios in a separate demand-modeling task.
-4. Define a fixed-time evaluation baseline without changing the teammate-owned metrics implementation.
-5. Add an environment that exposes only the eight selected controllers as agents while leaving every other SUMO program active.
-6. Implement independent RL and coordinated MARL comparisons only after the environment and demand scenarios are validated.
+The earlier project-status checklist below this report's original review is superseded by the current repository state.
+Demand scenarios and controller experiments have since been implemented; see the top-level README and `traffic_demand.md` for current evidence.

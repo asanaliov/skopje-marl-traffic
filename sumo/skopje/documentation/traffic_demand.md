@@ -136,8 +136,7 @@ python scripts/run_traffic_scenario.py --scenario medium --seed 42 --gui
 - Origin and destination sampling does not model observed neighborhood travel demand.
 - SUMO shortest-path routing does not represent route choice learned from real drivers.
 - The 600-second validation covers only the first part of each 3,600-second scenario.
-- Fixed-time, independent RL, and coordinated MARL experiments are not implemented yet.
-- Queue observations in this document are local smoke-test diagnostics and must not replace the teammate-owned evaluation metrics.
+- Queue observations in this document are local smoke-test diagnostics and should not be mixed with the experiment metrics in `results/experiments.csv`.
 
 ## Future calibration
 

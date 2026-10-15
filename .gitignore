@@ -10,6 +10,7 @@ __pycache__/
 .ruff_cache/
 
 # Generated SUMO logs and output files
+/logs/
 sumo/**/output/
 sumo/**/outputs/
 sumo/**/runtime/
