@@ -3,7 +3,7 @@
 set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-manual="$repo_root/SCRIPT_USAGE.md"
+manual="$repo_root/README.md"
 
 if [[ "${1:-}" == "--full" ]]; then
     if command -v less >/dev/null 2>&1; then
