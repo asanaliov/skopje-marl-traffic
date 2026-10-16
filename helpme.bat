@@ -1,6 +1,6 @@
 @echo off
 if /I "%~1"=="--full" (
-    type "%~dp0README.md" | more
+    type "%~dp0scripts.md" | more
     exit /b
 )
 
