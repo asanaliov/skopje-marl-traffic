@@ -216,6 +216,8 @@ checkpoints/     saved Q-tables and PPO networks
 
 ## More detail
 
+See the [scripts usage manual](scripts/README.md) for descriptions and example commands for every runnable script.
+
 Design notes live in `sumo/skopje/documentation/`:
 
 - `selected_corridor.md`: why these 8 lights, neighbor distances
