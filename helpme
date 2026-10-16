@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+manual="$repo_root/scripts/README.md"
+
+if command -v less >/dev/null 2>&1; then
+    less "$manual"
+else
+    cat "$manual"
+fi

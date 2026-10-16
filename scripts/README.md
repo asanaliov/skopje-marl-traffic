@@ -6,6 +6,10 @@ Run commands from the repository root, with the project virtual environment acti
 
 On Windows PowerShell, the commands below use `python`, as do the examples in the root README.
 
+On Linux or macOS, open this manual in the terminal from the repository root with `./helpme`.
+
+The command uses `less` when it is installed and otherwise prints the manual with `cat`.
+
 Most scripts accept `--help` to show all options.
 
 Some scripts need SUMO or project dependencies before they can start, so run the setup check first.
