@@ -96,7 +96,7 @@ def build_environment_config(
     ``decision_interval_seconds`` defaults to
     ``DEFAULT_DECISION_INTERVAL_SECONDS`` (one raw SUMO second) so that a
     caller sampling metrics once per ``environment.step(None)`` call -- as
-    ``scripts/run_imported_actuated_experiment.py`` does -- stays aligned
+    ``scripts/experiments/run_imported_actuated_experiment.py`` does -- stays aligned
     with SUMO's own per-step reporting; see that constant's docstring.
     ``**overrides`` may set any other ``MultiAgentEnvironmentConfig`` field
     (for example ``gui``) without letting a caller narrow the configured

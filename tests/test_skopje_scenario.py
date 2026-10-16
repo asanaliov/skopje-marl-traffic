@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.inspect_skopje_network import NetworkStats, render_network_summary
+from scripts.inspection.inspect_skopje_network import NetworkStats, render_network_summary
 from src.config import (
     SKOPJE_CONFIG_DIR,
     SKOPJE_DEMAND_DIR,

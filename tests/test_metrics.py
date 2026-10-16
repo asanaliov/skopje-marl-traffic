@@ -11,8 +11,8 @@ import pandas
 import pytest
 from traci import constants as tc
 
-from scripts.summarize_experiments import summarize
-from scripts.visualize_results import add_series_labels, format_run_length
+from scripts.analysis.summarize_experiments import summarize
+from scripts.analysis.visualize_results import add_series_labels, format_run_length
 from src.evaluation.collector import MetricsCollector
 from src.evaluation.metrics import (
     EpisodeMetrics,
