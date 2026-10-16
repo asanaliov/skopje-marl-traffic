@@ -217,7 +217,7 @@ def _build_sumo_command(
     return [
         str(executable),
         "-c",
-        str(_project_relative(configuration_file)),
+        str(configuration_file.resolve()),
         "--end",
         str(total_seconds),
         "--seed",

@@ -132,7 +132,7 @@ def _build_sumo_command(
     return [
         str(executable),
         "-c",
-        str(_project_relative(configuration_file)),
+        str(configuration_file.resolve()),
         "--end",
         str(seconds),
         "--seed",
@@ -380,7 +380,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise FileNotFoundError(
                 f"Generated scenario configuration is missing: "
                 f"{outputs.configuration_file}. Run "
-                f"python scripts/demand/generate_traffic_demand.py --scenario "
+                f"python demand/generate_traffic_demand.py --scenario "
                 f"{scenario.name} --seed {args.seed} first."
             )
         agent_ids = _selected_agent_ids(args.agent, args.all)

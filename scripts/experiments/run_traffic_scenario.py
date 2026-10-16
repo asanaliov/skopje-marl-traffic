@@ -200,7 +200,7 @@ def run_scenario(
     command = [
         str(executable),
         "-c",
-        str(_project_relative(configuration_file)),
+        str(configuration_file.resolve()),
         "--end",
         str(seconds),
         "--seed",
