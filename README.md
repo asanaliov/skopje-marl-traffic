@@ -216,7 +216,7 @@ checkpoints/     saved Q-tables and PPO networks
 
 ## More detail
 
-See the [scripts usage manual](scripts/README.md) for descriptions and example commands for every runnable script.
+See the [scripts usage manual](SCRIPT_USAGE.md) for descriptions and example commands for every runnable script.
 
 In Windows PowerShell, run `.\helpme.bat` from the repository root to list the available script commands.
 
