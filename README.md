@@ -218,7 +218,9 @@ checkpoints/     saved Q-tables and PPO networks
 
 See the [scripts usage manual](scripts/README.md) for descriptions and example commands for every runnable script.
 
-On Linux or macOS, run `./helpme` from the repository root to read the manual in the terminal.
+In Windows PowerShell, run `.\helpme.bat` from the repository root to read the manual in the terminal.
+
+On Linux or macOS, run `./helpme` from the repository root.
 
 Design notes live in `sumo/skopje/documentation/`:
 
