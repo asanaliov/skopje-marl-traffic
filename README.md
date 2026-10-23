@@ -90,12 +90,40 @@ Checkpoints refuse to load if the scenario, seed, agents, or settings don't matc
 ```powershell
 python scripts/summarize_experiments.py                       # table by controller, scenario, episode length
 python scripts/visualize_results.py                           # plots in results/plots/
+python scripts/generate_waiting_time_chart.py                  # refresh the README SVG from experiments.csv
 python scripts/experiment_matrix.py results/experiments.csv   # which runs are still missing
 python scripts/training_curve.py logs/<run>.log --csv out.csv # reward curve from a training log
 python scripts/merge_results.py other_machine.csv             # merge results from another machine
 ```
 
 Only compare runs with the same episode length. Baselines use 3600 seconds.
+
+### Current comparison
+
+Mean average waiting time in seconds across the recorded evaluations for every controller label in the results CSV.
+Lower is better.
+The results use synthetic demand and a limited set of seeds; the comparison is descriptive, not evidence of statistical significance.
+
+![Line chart comparing mean average waiting time across traffic scenarios](results/waiting-time-comparison.svg)
+
+| Controller | Low | Medium | High |
+| --- | ---: | ---: | ---: |
+| `static_fixed_time` | 7.65 | 10.33 | 15.17 |
+| `imported_actuated` | 4.31 | 6.01 | 10.44 |
+| `independent_rl` | 4.46 | 6.89 | 11.44 |
+| `multi_agent_independent_rl` | 5.53 | 9.63 | 13.60 |
+| `multi_agent_spatial_rl` | 5.84 | 7.24 | 14.01 |
+| `marl_neighbor_reward` | 5.27 | 10.69 | 17.25 |
+| `marl_global_reward` | 5.91 | 10.08 | 14.31 |
+| `marl_deep_ppo` | 5.28 | 7.42 | 12.68 |
+
+Values are calculated from `results/experiments.csv` by controller and scenario.
+Run `python scripts/generate_waiting_time_chart.py` to refresh the chart after adding experiment rows.
+Some controller/scenario groups contain repeated rows for seed 42, so the means above include those repeats rather than silently choosing one result.
+Use `python scripts/summarize_experiments.py` to inspect run counts and standard deviations.
+The imported actuated baseline has the lowest mean wait in all three scenarios in the current results table.
+The learned controllers do not consistently improve on that baseline, and their relative performance changes with demand level.
+These results do not establish a novel or generally superior controller.
 
 ## Deep RL wrappers
 
@@ -153,11 +181,11 @@ Checkpoints are saved as `checkpoints/deep_marl_<reward>_<scenario>_seed<seed>.p
 | high | `marl_deep_ppo` | 12.68 | 13.02 | 15.00 | 0.33 |
 | high | `multi_agent_independent_rl` | 13.60 | 21.11 | 36.33 | 7.33 |
 
-Beats its tabular counterpart everywhere, by a large margin in high traffic, where it is the
-best 8-junction controller. It does not beat `imported_actuated` or single-agent `independent_rl`.
+Across the three recorded seeds, deep PPO has lower mean waiting time than the tabular multi-agent controller in medium and high demand, while the tabular controller is slightly lower in low demand.
+The imported actuated and single-agent RL baselines have lower mean waiting time than deep PPO in every scenario.
 
 Caveats: high seed 43 leaves 41 vehicles in the network (vs 3 and 1 on seeds 42/44).
-Medium training reward peaked around episodes 200–225 and dropped ~8% by the end; the final
+Medium training reward peaked around episodes 200–225 and dropped about 8% by the end; the final
 checkpoint is the one evaluated, as for every tabular run.
 
 ## Tests
