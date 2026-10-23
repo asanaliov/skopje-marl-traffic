@@ -31,12 +31,12 @@ def read_adjacency(
     if not audit_file.is_file():
         raise FileNotFoundError(
             f"Traffic-light audit CSV is missing: {audit_file}\n"
-            "Run python scripts/inspection/audit_traffic_lights.py first."
+            "Run python scripts/network_inspection/audit_traffic_lights.py first."
         )
     if not neighbors_file.is_file():
         raise FileNotFoundError(
             f"Traffic-light neighbor CSV is missing: {neighbors_file}\n"
-            "Run python scripts/inspection/audit_traffic_lights.py first."
+            "Run python scripts/network_inspection/audit_traffic_lights.py first."
         )
 
     with audit_file.open(encoding="utf-8", newline="") as csv_file:

@@ -50,26 +50,52 @@ The chart and plotting scripts write visualizations under `results/` by default.
 
 Use `--help` for custom CSV and output paths where supported.
 
-## Inspection
+## SUMO GUI visualization
 
 | Script | What it does | Example |
 | --- | --- | --- |
-| [`audit_traffic_lights.py`](scripts/inspection/audit_traffic_lights.py) | Audits traffic-light definitions and writes the checked inventory used by the project. | `python scripts/inspection/audit_traffic_lights.py` |
-| [`check_gym_wrapper.py`](scripts/inspection/check_gym_wrapper.py) | Exercises the Gymnasium wrapper against a short SUMO episode. | `python scripts/inspection/check_gym_wrapper.py --scenario low --episode-seconds 60 --cycles 2` |
-| [`check_setup.py`](scripts/inspection/check_setup.py) | Checks the local Python and SUMO setup needed to run the project. | `python scripts/inspection/check_setup.py` |
-| [`generate_agent_labels.py`](scripts/inspection/generate_agent_labels.py) | Generates SUMO POI label files for the audited corridor candidates. | `python scripts/inspection/generate_agent_labels.py` |
-| [`generate_candidate_selections.py`](scripts/inspection/generate_candidate_selections.py) | Generates Netedit selection and review files for the candidate corridors. | `python scripts/inspection/generate_candidate_selections.py` |
-| [`inspect_multi_agent_environment.py`](scripts/inspection/inspect_multi_agent_environment.py) | Prints observations and environment details for selected agents during a simulation. | `python scripts/inspection/inspect_multi_agent_environment.py --scenario medium --agents A19,A26 --seconds 60` |
-| [`inspect_skopje_network.py`](scripts/inspection/inspect_skopje_network.py) | Prints network statistics and can refresh the checked network documentation. | `python scripts/inspection/inspect_skopje_network.py --write-documentation` |
-| [`inspect_traffic_agent.py`](scripts/inspection/inspect_traffic_agent.py) | Inspects one or all selected agents during a SUMO simulation. | `python scripts/inspection/inspect_traffic_agent.py --scenario medium --agent A19 --seconds 60` |
-| [`open_candidate_in_netedit.py`](scripts/inspection/open_candidate_in_netedit.py) | Opens a candidate corridor in SUMO Netedit for visual review. | `python scripts/inspection/open_candidate_in_netedit.py --candidate 1` |
-| [`run_candidate_review.py`](scripts/inspection/run_candidate_review.py) | Runs a candidate corridor simulation for visual or report-based review. | `python scripts/inspection/run_candidate_review.py --candidate 1 --seconds 600` |
-| [`show_agent_graph.py`](scripts/inspection/show_agent_graph.py) | Prints the audited adjacency graph of the selected traffic-light agents. | `python scripts/inspection/show_agent_graph.py` |
-| [`show_selected_corridor.py`](scripts/inspection/show_selected_corridor.py) | Prints the selected corridor's traffic-light IDs and connections. | `python scripts/inspection/show_selected_corridor.py` |
+| [`watch_trained_controller.py`](scripts/sumo_visualization/watch_trained_controller.py) | Replays a saved Q-learning or PPO controller in the SUMO traffic GUI without training or changing the results CSV. | `python scripts/sumo_visualization/watch_trained_controller.py --controller multi-agent --scenario medium --reward-mode local` |
+
+Choose `single-agent`, `multi-agent`, or `deep-marl` with `--controller`.
+
+The script picks the matching checkpoint under `checkpoints/` by default, or accepts a saved model path with `--checkpoint`.
+
+For example, replay the trained single-agent policy for A19 with `python scripts/sumo_visualization/watch_trained_controller.py --controller single-agent --scenario medium --agent-id A19`.
+
+Use `--help` to set the scenario, traffic seed, agents, model variant, and playback duration.
+
+Deep MARL checkpoints also store their training episode duration, so use the same `--episode-seconds` and `--cooldown-seconds` settings as training if the checkpoint rejects the defaults.
+
+## Network inspection
+
+| Script | What it does | Example |
+| --- | --- | --- |
+| [`audit_traffic_lights.py`](scripts/network_inspection/audit_traffic_lights.py) | Audits traffic-light definitions and writes the checked inventory used by the project. | `python scripts/network_inspection/audit_traffic_lights.py` |
+| [`generate_agent_labels.py`](scripts/network_inspection/generate_agent_labels.py) | Generates SUMO POI label files for the audited corridor candidates. | `python scripts/network_inspection/generate_agent_labels.py` |
+| [`generate_candidate_selections.py`](scripts/network_inspection/generate_candidate_selections.py) | Generates Netedit selection and review files for the candidate corridors. | `python scripts/network_inspection/generate_candidate_selections.py` |
+| [`inspect_skopje_network.py`](scripts/network_inspection/inspect_skopje_network.py) | Prints network statistics and can refresh the checked network documentation. | `python scripts/network_inspection/inspect_skopje_network.py --write-documentation` |
+| [`open_candidate_in_netedit.py`](scripts/network_inspection/open_candidate_in_netedit.py) | Opens a candidate corridor in SUMO Netedit for visual review. | `python scripts/network_inspection/open_candidate_in_netedit.py --candidate 1` |
+| [`run_candidate_review.py`](scripts/network_inspection/run_candidate_review.py) | Runs a candidate corridor simulation for visual or report-based review. | `python scripts/network_inspection/run_candidate_review.py --candidate 1 --seconds 600` |
+| [`show_agent_graph.py`](scripts/network_inspection/show_agent_graph.py) | Prints the audited adjacency graph of the selected traffic-light agents. | `python scripts/network_inspection/show_agent_graph.py` |
+| [`show_selected_corridor.py`](scripts/network_inspection/show_selected_corridor.py) | Prints the selected corridor's traffic-light IDs and connections. | `python scripts/network_inspection/show_selected_corridor.py` |
 
 `inspect_skopje_network.py --write-documentation` regenerates `traffic_lights.csv` and `network_summary.md`.
 
 The label and candidate-selection generators write files used for SUMO and Netedit review.
+
+## Environment inspection
+
+| Script | What it does | Example |
+| --- | --- | --- |
+| [`check_gym_wrapper.py`](scripts/environment_inspection/check_gym_wrapper.py) | Exercises the Gymnasium wrapper against a short SUMO episode. | `python scripts/environment_inspection/check_gym_wrapper.py --scenario low --episode-seconds 60 --cycles 2` |
+| [`inspect_multi_agent_environment.py`](scripts/environment_inspection/inspect_multi_agent_environment.py) | Prints observations and environment details for selected agents during a simulation. | `python scripts/environment_inspection/inspect_multi_agent_environment.py --scenario medium --agents A19,A26 --seconds 60` |
+| [`inspect_traffic_agent.py`](scripts/environment_inspection/inspect_traffic_agent.py) | Inspects one or all selected agents during a SUMO simulation. | `python scripts/environment_inspection/inspect_traffic_agent.py --scenario medium --agent A19 --seconds 60` |
+
+## Setup
+
+| Script | What it does | Example |
+| --- | --- | --- |
+| [`check_setup.py`](scripts/setup/check_setup.py) | Checks the local Python and SUMO setup needed to run the project. | `python scripts/setup/check_setup.py` |
 
 ## Finding command options
 

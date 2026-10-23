@@ -5,7 +5,7 @@ if /I "%~1"=="--full" (
 )
 
 echo Available script commands (run from the repository root):
-for %%G in (analysis demand experiments inspection) do (
+for %%G in (analysis demand environment_inspection experiments network_inspection setup sumo_visualization) do (
     echo.
     echo %%G:
     for %%F in ("%~dp0scripts\%%G\*.py") do (

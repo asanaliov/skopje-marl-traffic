@@ -175,7 +175,7 @@ def audited_space_specs(
             raise ValueError(
                 f"The traffic-light audit has no controlled lane count or phase "
                 f"count for {agent_id}, so its observation space cannot be sized. "
-                "Re-run scripts/inspection/audit_traffic_lights.py."
+                "Re-run scripts/network_inspection/audit_traffic_lights.py."
             )
         specs[agent_id] = AgentSpaceSpec(
             agent_id=agent_id,
@@ -197,7 +197,7 @@ def observation_vector(
             f"Agent {spec.agent_id} produced {len(features)} observation features "
             f"but its space declares {spec.feature_count}. The traffic-light audit "
             "no longer matches the running network; re-run "
-            "scripts/inspection/audit_traffic_lights.py."
+            "scripts/network_inspection/audit_traffic_lights.py."
         )
     return np.asarray(features, dtype=OBSERVATION_DTYPE)
 
@@ -322,7 +322,7 @@ class _CorridorRunner:
                     f"{live_lane_count} controlled lanes and {live_phase_count} "
                     f"phases, but its observation space was sized for "
                     f"{spec.lane_count} lanes and {spec.phase_count} phases. "
-                    "Re-run scripts/inspection/audit_traffic_lights.py, or pass matching "
+                    "Re-run scripts/network_inspection/audit_traffic_lights.py, or pass matching "
                     "space_specs."
                 )
             self._normalizations[agent_id] = signal.normalization_config(

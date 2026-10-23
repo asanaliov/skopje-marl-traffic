@@ -15,7 +15,7 @@ if [[ "${1:-}" == "--full" ]]; then
 fi
 
 printf 'Available script commands (run from the repository root):\n'
-for category in analysis demand experiments inspection; do
+for category in analysis demand environment_inspection experiments network_inspection setup sumo_visualization; do
     printf '\n%s:\n' "$category"
     for script in "$repo_root/scripts/$category"/*.py; do
         [[ "$(basename "$script")" == "__init__.py" ]] && continue

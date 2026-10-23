@@ -19,7 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.inspection.generate_agent_labels import agent_label_file_for  # noqa: E402
+from scripts.network_inspection.generate_agent_labels import agent_label_file_for  # noqa: E402
 from scripts.experiments.run_skopje_simulation import (  # noqa: E402
     nonnegative_integer,
     positive_integer,
@@ -354,7 +354,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             if not label_file.is_file():
                 raise FileNotFoundError(
                     f"Candidate label file is missing: {label_file}. "
-                    "Run python scripts/inspection/generate_agent_labels.py first."
+                    "Run python scripts/network_inspection/generate_agent_labels.py first."
                 )
             additional_files = (*configured_additional_files(), label_file)
             missing_additional_files = [

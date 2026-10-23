@@ -111,7 +111,7 @@ class DeepMarlConfig:
     decision_interval_seconds: float = 5.0
     reward_mode: RewardMode = "local"
     checkpoint_path: Path | None = None
-    results_path: Path = Path("results/experiments.csv")
+    results_path: Path | None = Path("results/experiments.csv")
     gui: bool = False
     hidden_size: int = 128
     learning_rate: float = 3e-4
@@ -380,7 +380,7 @@ class DeepMarlTrainer:
                 batch = self._stack(observations)
                 if terminated or truncated:
                     break
-            if collector is not None:
+            if collector is not None and self.config.results_path is not None:
                 metrics = collector.finalize(simulation_seconds=simulated_seconds)
                 metrics = replace(
                     metrics,

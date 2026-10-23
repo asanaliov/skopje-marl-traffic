@@ -181,7 +181,7 @@ def inspect_network(network_file: Path) -> NetworkStats:
     }
     boundary = tuple(float(value) for value in network.getBoundary())
 
-    from scripts.inspection.audit_traffic_lights import (
+    from scripts.network_inspection.audit_traffic_lights import (
         build_agent_adjacency,
         collect_controller_audits,
         connected_components,
