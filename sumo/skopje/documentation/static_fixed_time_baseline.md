@@ -84,7 +84,7 @@ medium, and high). The generated trips file spreads vehicle departures
 evenly across that exact window, so running with a different value would
 silently break that assumption; the runner fails fast with a clear error
 instead of accepting a mismatched value. To use a different demand window,
-regenerate demand with `scripts/generate_traffic_demand.py --duration`
+regenerate demand with `scripts/demand/generate_traffic_demand.py --duration`
 first.
 
 ## Metrics
@@ -118,7 +118,7 @@ width varies by controller.
 Single experiment:
 
 ```powershell
-python scripts/run_static_fixed_time_experiment.py --scenario medium --seed 42 --demand-seconds 3600 --cooldown-seconds 600
+python scripts/experiments/run_static_fixed_time_experiment.py --scenario medium --seed 42 --demand-seconds 3600 --cooldown-seconds 600
 ```
 
 Options: `--scenario {low,medium,high}`, `--seed`, `--fixed-green-seconds`,
@@ -128,13 +128,13 @@ Options: `--scenario {low,medium,high}`, `--seed`, `--fixed-green-seconds`,
 All three canonical scenarios in one command:
 
 ```powershell
-python scripts/run_static_fixed_time_suite.py --seeds 42
+python scripts/experiments/run_static_fixed_time_suite.py --seeds 42
 ```
 
 Then summarize:
 
 ```powershell
-python scripts/summarize_experiments.py
+python scripts/analysis/summarize_experiments.py
 ```
 
 ## Validation performed
@@ -149,10 +149,10 @@ python scripts/summarize_experiments.py
   original program duration, not `fixed_green_seconds`; and
   `final_phase_by_agent()` / `phase_change_counts` bookkeeping.
 - `ruff check .`
-- `python scripts/run_static_fixed_time_experiment.py --scenario low --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
-- `python scripts/run_static_fixed_time_experiment.py --scenario medium --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
-- `python scripts/run_static_fixed_time_experiment.py --scenario high --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
-- `python scripts/summarize_experiments.py`
+- `python scripts/experiments/run_static_fixed_time_experiment.py --scenario low --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
+- `python scripts/experiments/run_static_fixed_time_experiment.py --scenario medium --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
+- `python scripts/experiments/run_static_fixed_time_experiment.py --scenario high --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
+- `python scripts/analysis/summarize_experiments.py`
 
 During each real SUMO run, confirm from the console output that:
 

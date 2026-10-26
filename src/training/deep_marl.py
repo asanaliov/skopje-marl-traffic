@@ -557,7 +557,7 @@ class DeepMarlTrainer:
             self.completed_episodes = episode
             summaries.append(summary)
             # Same "Episode N:" shape as the tabular trainers so
-            # scripts/training_curve.py can parse the log.
+            # scripts/analysis/training_curve.py can parse the log.
             print(
                 f"Episode {episode}: agents={len(cfg.agent_ids)} "
                 f"steps={summary.decision_steps} "

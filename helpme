@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+manual="$repo_root/scripts.md"
+
+if [[ "${1:-}" == "--full" ]]; then
+    if command -v less >/dev/null 2>&1; then
+        less "$manual"
+    else
+        cat "$manual"
+    fi
+    exit 0
+fi
+
+printf 'Available script commands (run from the repository root):\n'
+for category in analysis demand experiments inspection; do
+    printf '\n%s:\n' "$category"
+    for script in "$repo_root/scripts/$category"/*.py; do
+        [[ "$(basename "$script")" == "__init__.py" ]] && continue
+        relative_path="${script#"$repo_root/"}"
+        printf '  python %s\n' "$relative_path"
+    done
+done

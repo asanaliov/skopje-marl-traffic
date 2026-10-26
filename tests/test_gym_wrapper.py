@@ -4,7 +4,7 @@ The wrappers are exercised against a fake `MultiAgentTrafficEnvironment`, so
 these tests never start SUMO. The two standard compliance suites -- PettingZoo's
 `parallel_api_test` and Gymnasium's `check_env` -- run here as well, because
 what they check is the wrapper's API contract, not the traffic simulation
-behind it. `scripts/check_gym_wrapper.py` runs the same two suites against real
+behind it. `scripts/inspection/check_gym_wrapper.py` runs the same two suites against real
 SUMO.
 """
 

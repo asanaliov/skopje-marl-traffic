@@ -13,10 +13,10 @@ from typing import Any
 
 import pytest
 
-import scripts.run_imported_actuated_experiment as run_imported_actuated_experiment
-import scripts.run_imported_actuated_suite as run_imported_actuated_suite
+import scripts.experiments.run_imported_actuated_experiment as run_imported_actuated_experiment
+import scripts.experiments.run_imported_actuated_suite as run_imported_actuated_suite
 import src.baselines.imported_actuated as imported_actuated_module
-from scripts.run_imported_actuated_experiment import (
+from scripts.experiments.run_imported_actuated_experiment import (
     parse_args as parse_experiment_args,
     run_experiment,
 )
