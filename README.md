@@ -31,17 +31,17 @@ keeps its original SUMO program.
 ```powershell
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt -r requirements-dev.txt
-python scripts/check_setup.py
+python scripts/inspection/check_setup.py
 ```
 
 ## Quick start
 
 ```powershell
 # Generate low / medium / high demand scenarios
-python scripts/generate_traffic_demand.py --all --seed 42
+python scripts/demand/generate_traffic_demand.py --all --seed 42
 
 # Watch the corridor with its original signal programs
-python scripts/run_traffic_scenario.py --scenario medium --seed 42 --gui
+python scripts/experiments/run_traffic_scenario.py --scenario medium --seed 42 --gui
 ```
 
 ## Running experiments
@@ -51,22 +51,22 @@ Every run that evaluates a controller appends one row to `results/experiments.cs
 **Baselines**
 
 ```powershell
-python scripts/run_static_fixed_time_suite.py --seeds 42
-python scripts/run_imported_actuated_suite.py --seed 42
+python scripts/experiments/run_static_fixed_time_suite.py --seeds 42
+python scripts/experiments/run_imported_actuated_suite.py --seed 42
 ```
 
 **Single-agent Q-learning**
 
 ```powershell
-python scripts/run_q_learning.py train    --agent-id A19 --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/a19_medium.json
-python scripts/run_q_learning.py evaluate --agent-id A19 --scenario medium --seed 42 --checkpoint checkpoints/a19_medium.json
+python scripts/experiments/run_q_learning.py train    --agent-id A19 --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/a19_medium.json
+python scripts/experiments/run_q_learning.py evaluate --agent-id A19 --scenario medium --seed 42 --checkpoint checkpoints/a19_medium.json
 ```
 
 **Multi-agent Q-learning**
 
 ```powershell
-python scripts/run_multi_agent_q_learning.py train    --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/marl_medium.json
-python scripts/run_multi_agent_q_learning.py evaluate --scenario medium --seed 42 --checkpoint checkpoints/marl_medium.json
+python scripts/experiments/run_multi_agent_q_learning.py train    --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/marl_medium.json
+python scripts/experiments/run_multi_agent_q_learning.py evaluate --scenario medium --seed 42 --checkpoint checkpoints/marl_medium.json
 ```
 
 Useful flags for both runners:
@@ -88,12 +88,12 @@ Checkpoints refuse to load if the scenario, seed, agents, or settings don't matc
 ## Looking at results
 
 ```powershell
-python scripts/summarize_experiments.py                       # table by controller, scenario, episode length
-python scripts/visualize_results.py                           # plots in results/plots/
-python scripts/generate_waiting_time_chart.py                  # refresh the README SVG from experiments.csv
-python scripts/experiment_matrix.py results/experiments.csv   # which runs are still missing
-python scripts/training_curve.py logs/<run>.log --csv out.csv # reward curve from a training log
-python scripts/merge_results.py other_machine.csv             # merge results from another machine
+python scripts/analysis/summarize_experiments.py                       # table by controller, scenario, episode length
+python scripts/analysis/visualize_results.py                           # plots in results/plots/
+python scripts/analysis/generate_waiting_time_chart.py                  # refresh the README SVG from experiments.csv
+python scripts/analysis/experiment_matrix.py results/experiments.csv   # which runs are still missing
+python scripts/analysis/training_curve.py logs/<run>.log --csv out.csv # reward curve from a training log
+python scripts/analysis/merge_results.py other_machine.csv             # merge results from another machine
 ```
 
 Only compare runs with the same episode length. Baselines use 3600 seconds.
@@ -118,9 +118,9 @@ The results use synthetic demand and a limited set of seeds; the comparison is d
 | `marl_deep_ppo` | 5.28 | 7.42 | 12.68 |
 
 Values are calculated from `results/experiments.csv` by controller and scenario.
-Run `python scripts/generate_waiting_time_chart.py` to refresh the chart after adding experiment rows.
+Run `python scripts/analysis/generate_waiting_time_chart.py` to refresh the chart after adding experiment rows.
 Some controller/scenario groups contain repeated rows for seed 42, so the means above include those repeats rather than silently choosing one result.
-Use `python scripts/summarize_experiments.py` to inspect run counts and standard deviations.
+Use `python scripts/analysis/summarize_experiments.py` to inspect run counts and standard deviations.
 The imported actuated baseline has the lowest mean wait in all three scenarios in the current results table.
 The learned controllers do not consistently improve on that baseline, and their relative performance changes with demand level.
 These results do not establish a novel or generally superior controller.
@@ -147,7 +147,7 @@ Actions are `0 = KEEP`, `1 = NEXT_GREEN`. A safety layer enforces minimum/maximu
 green and yellow transitions. A short PPO demo (`stable-baselines3` and `torch` are in `requirements-dev.txt`):
 
 ```powershell
-python scripts/run_deep_rl_demo.py --algorithm ppo --scenario medium --timesteps 128 --episode-seconds 600
+python scripts/experiments/run_deep_rl_demo.py --algorithm ppo --scenario medium --timesteps 128 --episode-seconds 600
 ```
 
 ## Deep MARL (shared-parameter PPO)
@@ -162,9 +162,9 @@ zero-padded to the widest junction and tagged with a one-hot agent ID.
 - Rewards are scaled by a running return std and clipped to ±10 (like SB3's `VecNormalize`).
 
 ```powershell
-python scripts/run_deep_marl.py train    --scenario medium --seed 42 *>&1 | Tee-Object logs/deep_marl_local_medium_seed42.log
-python scripts/run_deep_marl.py evaluate --scenario medium --seed 42
-python scripts/run_deep_marl.py evaluate --scenario medium --seed 43 --allow-cross-seed --checkpoint checkpoints/deep_marl_local_medium_seed42.pt
+python scripts/experiments/run_deep_marl.py train    --scenario medium --seed 42 *>&1 | Tee-Object logs/deep_marl_local_medium_seed42.log
+python scripts/experiments/run_deep_marl.py evaluate --scenario medium --seed 42
+python scripts/experiments/run_deep_marl.py evaluate --scenario medium --seed 43 --allow-cross-seed --checkpoint checkpoints/deep_marl_local_medium_seed42.pt
 ```
 
 Other reward modes are recorded as `marl_deep_ppo_neighbor` / `marl_deep_ppo_global`.
@@ -204,13 +204,25 @@ src/
   environment/   SUMO environment, signals, rewards, Gym/PettingZoo wrappers
   evaluation/    metrics collection and results CSV
   training/      tabular and deep MARL training loops
-scripts/         command-line entry points
+scripts/
+  analysis/      result summaries and charts
+  demand/        synthetic demand generation and validation
+  experiments/   SUMO runs and controller training/evaluation
+  inspection/    network audits, setup checks, and visual reviews
 sumo/skopje/     network, demand, configs, and documentation
 results/         experiments.csv, plots, training curves
 checkpoints/     saved Q-tables and PPO networks
 ```
 
 ## More detail
+
+See [scripts.md](scripts.md) for descriptions and example commands for every runnable script.
+
+In Windows PowerShell, run `.\helpme.bat` from the repository root to list the available script commands.
+
+On Linux or macOS, run `./helpme` from the repository root.
+
+Add `--full` to either command to open the detailed usage manual.
 
 Design notes live in `sumo/skopje/documentation/`:
 

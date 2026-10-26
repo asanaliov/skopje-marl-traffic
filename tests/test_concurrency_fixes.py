@@ -22,10 +22,10 @@ import threading
 from pathlib import Path
 
 
-from scripts.run_multi_agent_q_learning import (
+from scripts.experiments.run_multi_agent_q_learning import (
     default_checkpoint_path as marl_default_checkpoint_path,
 )
-from scripts.run_q_learning import (
+from scripts.experiments.run_q_learning import (
     default_checkpoint_path as single_default_checkpoint_path,
 )
 from src.evaluation.metrics import EpisodeMetrics

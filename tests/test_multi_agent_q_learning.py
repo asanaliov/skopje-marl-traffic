@@ -715,7 +715,7 @@ class _RecordingTrainer:
 @pytest.fixture
 def cli(monkeypatch):
     """Import the runner script and stub out its trainer."""
-    import scripts.run_multi_agent_q_learning as module
+    import scripts.experiments.run_multi_agent_q_learning as module
 
     _RecordingTrainer.instances = []
     monkeypatch.setattr(module, "MultiAgentQLearningTrainer", _RecordingTrainer)

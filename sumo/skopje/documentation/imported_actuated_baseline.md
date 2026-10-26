@@ -106,7 +106,7 @@ shared-metrics design.
 Single experiment:
 
 ```powershell
-python scripts/run_imported_actuated_experiment.py --scenario medium --seed 42 --demand-seconds 3600 --cooldown-seconds 600
+python scripts/experiments/run_imported_actuated_experiment.py --scenario medium --seed 42 --demand-seconds 3600 --cooldown-seconds 600
 ```
 
 Options: `--scenario {low,medium,high}`, `--seed`, `--demand-seconds`,
@@ -115,21 +115,21 @@ Options: `--scenario {low,medium,high}`, `--seed`, `--demand-seconds`,
 Canonical seed-42 suite (all three scenarios):
 
 ```powershell
-python scripts/run_imported_actuated_suite.py --seed 42
+python scripts/experiments/run_imported_actuated_suite.py --seed 42
 ```
 
 Direct reference runs:
 
 ```powershell
-python scripts/run_imported_actuated_experiment.py --scenario low --seed 42
-python scripts/run_imported_actuated_experiment.py --scenario medium --seed 42
-python scripts/run_imported_actuated_experiment.py --scenario high --seed 42
+python scripts/experiments/run_imported_actuated_experiment.py --scenario low --seed 42
+python scripts/experiments/run_imported_actuated_experiment.py --scenario medium --seed 42
+python scripts/experiments/run_imported_actuated_experiment.py --scenario high --seed 42
 ```
 
 Then summarize:
 
 ```powershell
-python scripts/summarize_experiments.py
+python scripts/analysis/summarize_experiments.py
 ```
 
 ## Validation performed
@@ -148,10 +148,10 @@ python scripts/summarize_experiments.py
   missing seed files are rejected before SUMO starts; and that no
   reinforcement-learning module is imported.
 - `ruff check .`
-- `python scripts/run_imported_actuated_experiment.py --scenario low --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
-- `python scripts/run_imported_actuated_experiment.py --scenario medium --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
-- `python scripts/run_imported_actuated_experiment.py --scenario high --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
-- `python scripts/summarize_experiments.py`
+- `python scripts/experiments/run_imported_actuated_experiment.py --scenario low --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
+- `python scripts/experiments/run_imported_actuated_experiment.py --scenario medium --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
+- `python scripts/experiments/run_imported_actuated_experiment.py --scenario high --seed 42 --demand-seconds 3600 --cooldown-seconds 600`
+- `python scripts/analysis/summarize_experiments.py`
 
 During each real SUMO run, confirm from the console output that:
 

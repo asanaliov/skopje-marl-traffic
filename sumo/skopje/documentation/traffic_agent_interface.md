@@ -202,31 +202,31 @@ They are not final experiment metrics and do not import or replace the teammate-
 Inspect A19 in the canonical medium scenario:
 
 ```powershell
-python scripts/inspect_traffic_agent.py --scenario medium --seed 42 --agent A19
+python scripts/inspection/inspect_traffic_agent.py --scenario medium --seed 42 --agent A19
 ```
 
 Inspect all selected agents:
 
 ```powershell
-python scripts/inspect_traffic_agent.py --scenario medium --seed 42 --all
+python scripts/inspection/inspect_traffic_agent.py --scenario medium --seed 42 --all
 ```
 
 Inspect all selected agents for 600 seconds under high demand:
 
 ```powershell
-python scripts/inspect_traffic_agent.py --scenario high --seed 42 --all --seconds 600
+python scripts/inspection/inspect_traffic_agent.py --scenario high --seed 42 --all --seconds 600
 ```
 
 Open the high-demand inspection in SUMO-GUI:
 
 ```powershell
-python scripts/inspect_traffic_agent.py --scenario high --seed 42 --all --gui
+python scripts/inspection/inspect_traffic_agent.py --scenario high --seed 42 --all --gui
 ```
 
 Run the deterministic action demonstration only after read-only inspection succeeds:
 
 ```powershell
-python scripts/inspect_traffic_agent.py --scenario low --seed 42 --agent A19 --seconds 120 --demo-actions
+python scripts/inspection/inspect_traffic_agent.py --scenario low --seed 42 --agent A19 --seconds 120 --demo-actions
 ```
 
 The script prints: `This is an agent-interface inspection run. No learning algorithm is active.`

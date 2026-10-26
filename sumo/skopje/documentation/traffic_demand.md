@@ -101,31 +101,31 @@ No scenario reported a route error, teleport, persistent deadlock, or catastroph
 Generate all canonical scenarios:
 
 ```powershell
-python scripts/generate_traffic_demand.py --all --seed 42
+python scripts/demand/generate_traffic_demand.py --all --seed 42
 ```
 
 Use `--overwrite` when intentionally regenerating existing canonical files:
 
 ```powershell
-python scripts/generate_traffic_demand.py --all --seed 42 --overwrite
+python scripts/demand/generate_traffic_demand.py --all --seed 42 --overwrite
 ```
 
 Validate all generated scenarios for 600 seconds:
 
 ```powershell
-python scripts/validate_traffic_demand.py --all --seed 42 --seconds 600
+python scripts/demand/validate_traffic_demand.py --all --seed 42 --seconds 600
 ```
 
 Review the medium scenario headlessly:
 
 ```powershell
-python scripts/run_traffic_scenario.py --scenario medium --seed 42
+python scripts/experiments/run_traffic_scenario.py --scenario medium --seed 42
 ```
 
 Review the medium scenario in SUMO-GUI:
 
 ```powershell
-python scripts/run_traffic_scenario.py --scenario medium --seed 42 --gui
+python scripts/experiments/run_traffic_scenario.py --scenario medium --seed 42 --gui
 ```
 
 ## Limitations

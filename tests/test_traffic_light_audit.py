@@ -6,7 +6,7 @@ import csv
 import re
 from pathlib import Path
 
-from scripts.audit_traffic_lights import (
+from scripts.inspection.audit_traffic_lights import (
     AUDIT_COLUMNS,
     NEIGHBOR_COLUMNS,
     agent_sort_key,
