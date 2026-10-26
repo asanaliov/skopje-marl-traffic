@@ -68,13 +68,13 @@ Candidate 3 has a conditional review status and is not automatically selected by
 Generate the candidate agent-label POIs:
 
 ```powershell
-python scripts/inspection/generate_agent_labels.py
+python scripts/network_inspection/generate_agent_labels.py
 ```
 
 Open the complete network with the candidate selection in Netedit:
 
 ```powershell
-python scripts/inspection/open_candidate_in_netedit.py --candidate 3
+python scripts/network_inspection/open_candidate_in_netedit.py --candidate 3
 ```
 
 After Netedit opens, press F9, open the POI visualization settings, enable Show ID, enable constant text size, and increase the text size if labels such as A9 and A18 are too small.
@@ -82,7 +82,7 @@ After Netedit opens, press F9, open the POI visualization settings, enable Show 
 Observe the original demand and signal programs in SUMO-GUI:
 
 ```powershell
-python scripts/inspection/run_candidate_review.py --candidate 3 --seconds 600 --gui
+python scripts/network_inspection/run_candidate_review.py --candidate 3 --seconds 600 --gui
 ```
 
 ## Review evidence

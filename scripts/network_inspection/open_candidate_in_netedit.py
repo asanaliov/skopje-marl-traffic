@@ -15,8 +15,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.inspection.generate_agent_labels import agent_label_file_for  # noqa: E402
-from scripts.inspection.generate_candidate_selections import selection_file_for  # noqa: E402
+from scripts.network_inspection.generate_agent_labels import agent_label_file_for  # noqa: E402
+from scripts.network_inspection.generate_candidate_selections import selection_file_for  # noqa: E402
 from src.config import SKOPJE_INITIAL_CONFIG  # noqa: E402
 from src.environment.corridor_candidates import (  # noqa: E402
     CANDIDATES_BY_ID,
@@ -96,13 +96,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         if not selection_file.is_file():
             raise FileNotFoundError(
                 f"Candidate selection is missing: {selection_file}. "
-                "Run python scripts/inspection/generate_candidate_selections.py first."
+                "Run python scripts/network_inspection/generate_candidate_selections.py first."
             )
         label_file = agent_label_file_for(candidate)
         if not label_file.is_file():
             raise FileNotFoundError(
                 f"Candidate label file is missing: {label_file}. "
-                "Run python scripts/inspection/generate_agent_labels.py first."
+                "Run python scripts/network_inspection/generate_agent_labels.py first."
             )
 
         executable = find_netedit_executable()
