@@ -114,7 +114,7 @@ Only compare runs with the same episode length. Baselines use 3600 seconds.
 
 ### Current comparison
 
-Mean average waiting time in seconds across the recorded evaluations for every controller label in the results CSV.
+Mean average waiting time in seconds across full 3600-second-demand evaluations for every controller label in the results CSV.
 Lower is better.
 The results use synthetic demand and a limited set of seeds; the comparison is descriptive, not evidence of statistical significance.
 
@@ -125,15 +125,15 @@ The results use synthetic demand and a limited set of seeds; the comparison is d
 | `static_fixed_time` | 7.65 | 10.33 | 15.17 |
 | `imported_actuated` | 4.31 | 6.01 | 10.44 |
 | `independent_rl` | 4.46 | 6.89 | 11.44 |
-| `multi_agent_independent_rl` | 5.53 | 9.63 | 13.60 |
+| `multi_agent_independent_rl` | 5.53 | 7.68 | 13.60 |
 | `multi_agent_spatial_rl` | 5.84 | 7.24 | 14.01 |
-| `marl_neighbor_reward` | 5.27 | 10.69 | 17.25 |
-| `marl_global_reward` | 5.91 | 10.08 | 14.31 |
+| `marl_neighbor_reward` | 5.27 | 8.00 | 17.25 |
+| `marl_global_reward` | 5.91 | 7.57 | 14.31 |
 | `marl_deep_ppo` | 5.28 | 7.42 | 12.68 |
 
-Values are calculated from `results/experiments.csv` by controller and scenario.
+Values are calculated from `results/experiments.csv` using only rows with 3600 seconds of demand, grouped by controller and scenario. Short trials are excluded.
 Run `python scripts/analysis/generate_waiting_time_chart.py` to refresh the chart after adding experiment rows.
-Some controller/scenario groups contain repeated rows for seed 42, so the means above include those repeats rather than silently choosing one result.
+If a controller/scenario has repeated full-length rows for a seed, the chart averages those rows rather than silently choosing one result.
 Use `python scripts/analysis/summarize_experiments.py` to inspect run counts and standard deviations.
 The imported actuated baseline has the lowest mean wait in all three scenarios in the current results table.
 The learned controllers do not consistently improve on that baseline, and their relative performance changes with demand level.

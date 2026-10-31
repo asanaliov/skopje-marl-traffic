@@ -14,6 +14,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_INPUT = PROJECT_ROOT / "results" / "experiments.csv"
 DEFAULT_OUTPUT = PROJECT_ROOT / "results" / "waiting-time-comparison.svg"
 SCENARIO_ORDER = ("low", "medium", "high")
+FULL_DEMAND_SECONDS = 3600.0
 COLORS = (
     "#667085",
     "#16856b",
@@ -29,19 +30,37 @@ COLORS = (
 
 
 def load_means(path: Path) -> tuple[list[str], list[str], dict[tuple[str, str], float], bool]:
-    """Return controller/scenario means and whether duplicate seed rows exist."""
+    """Return full-demand controller/scenario means and duplicate-seed status."""
     groups: dict[tuple[str, str], list[float]] = defaultdict(list)
     run_keys: set[tuple[str, str, str]] = set()
     duplicate_seed_rows = False
 
     with path.open(encoding="utf-8-sig", newline="") as csv_file:
         reader = csv.DictReader(csv_file)
-        required = {"controller", "scenario", "average_waiting_time"}
+        required = {
+            "controller",
+            "scenario",
+            "average_waiting_time",
+            "demand_seconds",
+        }
         missing = required.difference(reader.fieldnames or ())
         if missing:
             raise ValueError(f"Missing required CSV columns: {', '.join(sorted(missing))}")
 
         for line_number, row in enumerate(reader, start=2):
+            try:
+                demand_seconds = float(row["demand_seconds"])
+            except (TypeError, ValueError) as error:
+                raise ValueError(
+                    f"Invalid demand_seconds on CSV line {line_number}"
+                ) from error
+            if not math.isfinite(demand_seconds):
+                raise ValueError(
+                    f"Invalid demand_seconds on CSV line {line_number}"
+                )
+            if demand_seconds != FULL_DEMAND_SECONDS:
+                continue
+
             controller = (row.get("controller") or "").strip()
             scenario = (row.get("scenario") or "").strip()
             if not controller or not scenario:
@@ -61,7 +80,10 @@ def load_means(path: Path) -> tuple[list[str], list[str], dict[tuple[str, str], 
                 run_keys.add(run_key)
 
     if not groups:
-        raise ValueError(f"No experiment rows found in {path}")
+        raise ValueError(
+            f"No full-length experiment rows with demand_seconds="
+            f"{FULL_DEMAND_SECONDS:g} found in {path}"
+        )
 
     controllers = sorted({controller for controller, _ in groups})
     scenarios_found = {scenario for _, scenario in groups}
@@ -105,11 +127,11 @@ def create_svg(
 
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title description">',
-        '<title id="title">Mean average waiting time by traffic scenario for all controllers</title>',
-        '<desc id="description">Line chart comparing all controllers in the experiment results across traffic scenarios. Lower waiting time is better.</desc>',
+        '<title id="title">Mean average waiting time by traffic scenario for full-length runs</title>',
+        '<desc id="description">Line chart comparing all controllers using only 3600-second-demand experiment runs. Lower waiting time is better.</desc>',
         f'<rect width="{width}" height="{height}" fill="#ffffff"/>',
         f'<text x="500" y="32" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182230">Mean average waiting time by scenario</text>',
-        f'<text x="500" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#526174">Seconds, lower is better · all controllers in experiments.csv</text>',
+        f'<text x="500" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#526174">Seconds, lower is better · {FULL_DEMAND_SECONDS:g}s demand only</text>',
         '<g font-family="Arial, sans-serif" font-size="12" fill="#526174" text-anchor="end">',
     ]
 
@@ -165,9 +187,9 @@ def create_svg(
     parts.append('</g>')
 
     note = (
-        "Means include all recorded rows, including repeated controller/scenario/seed rows."
+        "Only 3600-second-demand rows are included; repeated full-length seed rows are averaged."
         if duplicate_seed_rows
-        else "Means include all recorded rows in the CSV."
+        else "Only rows with 3600 seconds of demand are included."
     )
     parts.append(
         f'<text x="500" y="{height - 20}" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#667085">{note}</text></svg>'

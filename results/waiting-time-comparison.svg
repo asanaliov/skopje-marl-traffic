@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="500" viewBox="0 0 1000 500" role="img" aria-labelledby="title description">
-<title id="title">Mean average waiting time by traffic scenario for all controllers</title>
-<desc id="description">Line chart comparing all controllers in the experiment results across traffic scenarios. Lower waiting time is better.</desc>
+<title id="title">Mean average waiting time by traffic scenario for full-length runs</title>
+<desc id="description">Line chart comparing all controllers using only 3600-second-demand experiment runs. Lower waiting time is better.</desc>
 <rect width="1000" height="500" fill="#ffffff"/>
 <text x="500" y="32" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182230">Mean average waiting time by scenario</text>
-<text x="500" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#526174">Seconds, lower is better · all controllers in experiments.csv</text>
+<text x="500" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#526174">Seconds, lower is better · 3600s demand only</text>
 <g font-family="Arial, sans-serif" font-size="12" fill="#526174" text-anchor="end">
 <text x="83" y="384.0">0</text>
 <text x="83" y="311.5">5</text>
@@ -26,9 +26,9 @@
 <polyline points="95.0,317.6 405.0,292.8 715.0,228.6" stroke="#667085"/>
 <polyline points="95.0,315.4 405.0,280.1 715.0,214.2" stroke="#16856b"/>
 <polyline points="95.0,303.4 405.0,272.5 715.0,196.1" stroke="#2878b5"/>
-<polyline points="95.0,294.4 405.0,233.9 715.0,172.5" stroke="#d17b18"/>
-<polyline points="95.0,303.6 405.0,225.0 715.0,129.9" stroke="#8b5fbf"/>
-<polyline points="95.0,299.9 405.0,240.4 715.0,182.8" stroke="#c43c55"/>
+<polyline points="95.0,294.4 405.0,270.3 715.0,172.5" stroke="#d17b18"/>
+<polyline points="95.0,303.6 405.0,264.0 715.0,129.9" stroke="#8b5fbf"/>
+<polyline points="95.0,299.9 405.0,268.6 715.0,182.8" stroke="#c43c55"/>
 <polyline points="95.0,295.4 405.0,275.0 715.0,176.8" stroke="#168aad"/>
 <polyline points="95.0,269.1 405.0,230.3 715.0,160.1" stroke="#7652a5"/>
 </g><g stroke="#ffffff" stroke-width="1.5">
@@ -42,13 +42,13 @@
 <circle cx="405.0" cy="272.5" r="4.5" fill="#2878b5"/>
 <circle cx="715.0" cy="196.1" r="4.5" fill="#2878b5"/>
 <circle cx="95.0" cy="294.4" r="4.5" fill="#d17b18"/>
-<circle cx="405.0" cy="233.9" r="4.5" fill="#d17b18"/>
+<circle cx="405.0" cy="270.3" r="4.5" fill="#d17b18"/>
 <circle cx="715.0" cy="172.5" r="4.5" fill="#d17b18"/>
 <circle cx="95.0" cy="303.6" r="4.5" fill="#8b5fbf"/>
-<circle cx="405.0" cy="225.0" r="4.5" fill="#8b5fbf"/>
+<circle cx="405.0" cy="264.0" r="4.5" fill="#8b5fbf"/>
 <circle cx="715.0" cy="129.9" r="4.5" fill="#8b5fbf"/>
 <circle cx="95.0" cy="299.9" r="4.5" fill="#c43c55"/>
-<circle cx="405.0" cy="240.4" r="4.5" fill="#c43c55"/>
+<circle cx="405.0" cy="268.6" r="4.5" fill="#c43c55"/>
 <circle cx="715.0" cy="182.8" r="4.5" fill="#c43c55"/>
 <circle cx="95.0" cy="295.4" r="4.5" fill="#168aad"/>
 <circle cx="405.0" cy="275.0" r="4.5" fill="#168aad"/>
@@ -66,4 +66,4 @@
 <line x1="750" y1="282" x2="778" y2="282" stroke="#168aad" stroke-width="3"/><text x="787" y="286">multi_agent_spatial_rl</text>
 <line x1="750" y1="312" x2="778" y2="312" stroke="#7652a5" stroke-width="3"/><text x="787" y="316">static_fixed_time</text>
 </g>
-<text x="500" y="480" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#667085">Means include all recorded rows, including repeated controller/scenario/seed rows.</text></svg>
+<text x="500" y="480" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#667085">Only rows with 3600 seconds of demand are included.</text></svg>
