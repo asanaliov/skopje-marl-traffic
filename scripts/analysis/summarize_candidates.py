@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.inspection.audit_traffic_lights import AUDIT_FILE, NEIGHBORS_FILE  # noqa: E402
+from scripts.network_inspection.audit_traffic_lights import AUDIT_FILE, NEIGHBORS_FILE  # noqa: E402
 from src.environment.corridor_candidates import (  # noqa: E402
     CORRIDOR_CANDIDATES,
     CorridorCandidate,

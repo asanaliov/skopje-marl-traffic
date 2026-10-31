@@ -51,7 +51,7 @@ class QLearningTrainingConfig:
     mode: TrainingMode = "train"
     resume: bool = False
     allow_cross_seed_evaluation: bool = False
-    results_path: Path = Path("results/experiments.csv")
+    results_path: Path | None = Path("results/experiments.csv")
 
     def __post_init__(self) -> None:
         """Validate runner settings before a SUMO process is started."""
@@ -357,7 +357,7 @@ class IndependentQLearningTrainer:
             # flood results/experiments.csv with dozens of rows that
             # aren't meaningful for the baseline comparison. Flip this
             # guard if you want every training episode logged too.
-            if not training:
+            if not training and self.config.results_path is not None:
                 episode_metrics = collector.finalize(
                     simulation_seconds=simulated_seconds
                 )

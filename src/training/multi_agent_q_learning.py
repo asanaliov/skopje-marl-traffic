@@ -92,7 +92,7 @@ class MultiAgentQLearningConfig:
     spatial_observations: bool = False
     spatial_neighbor_limit: int = DEFAULT_SPATIAL_NEIGHBOR_LIMIT
     reward_mode: RewardMode = "local"
-    results_path: Path = Path("results/experiments.csv")
+    results_path: Path | None = Path("results/experiments.csv")
 
     def __post_init__(self) -> None:
         """Validate runner settings before a SUMO process is started."""
@@ -773,7 +773,11 @@ class MultiAgentQLearningTrainer:
             # episodes are exploratory and would otherwise flood
             # results/experiments.csv with rows that mean nothing for the
             # baseline comparison.
-            if not training and self._collector is not None:
+            if (
+                not training
+                and self._collector is not None
+                and self.config.results_path is not None
+            ):
                 episode_metrics = self._collector.finalize(
                     simulation_seconds=self._simulated_seconds
                 )

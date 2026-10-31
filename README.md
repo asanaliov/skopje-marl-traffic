@@ -31,7 +31,7 @@ keeps its original SUMO program.
 ```powershell
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt -r requirements-dev.txt
-python scripts/inspection/check_setup.py
+python scripts/setup/check_setup.py
 ```
 
 ## Quick start
@@ -68,6 +68,20 @@ python scripts/experiments/run_q_learning.py evaluate --agent-id A19 --scenario 
 python scripts/experiments/run_multi_agent_q_learning.py train    --scenario medium --seed 42 --episodes 50 --checkpoint checkpoints/marl_medium.json
 python scripts/experiments/run_multi_agent_q_learning.py evaluate --scenario medium --seed 42 --checkpoint checkpoints/marl_medium.json
 ```
+
+### Watch a trained controller
+
+Replay a saved controller in the SUMO traffic GUI without starting another training run:
+
+```powershell
+python scripts/sumo_visualization/watch_trained_controller.py --controller single-agent --scenario medium --agent-id A19
+python scripts/sumo_visualization/watch_trained_controller.py --controller multi-agent --scenario medium --reward-mode local
+python scripts/sumo_visualization/watch_trained_controller.py --controller deep-marl --scenario medium
+```
+
+The script loads the matching checkpoint from `checkpoints/` by default and does not append a row to `results/experiments.csv`.
+
+Pass `--checkpoint` to replay another saved model, or `--help` to change the scenario, seed, agents, or playback duration.
 
 Useful flags for both runners:
 
@@ -208,7 +222,10 @@ scripts/
   analysis/      result summaries and charts
   demand/        synthetic demand generation and validation
   experiments/   SUMO runs and controller training/evaluation
-  inspection/    network audits, setup checks, and visual reviews
+  environment_inspection/ Gym wrapper and traffic-agent inspection
+  network_inspection/     traffic-light audits and corridor reviews
+  setup/                  local Python and SUMO checks
+  sumo_visualization/     replay trained controllers in SUMO GUI
 sumo/skopje/     network, demand, configs, and documentation
 results/         experiments.csv, plots, training curves
 checkpoints/     saved Q-tables and PPO networks

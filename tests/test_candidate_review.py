@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.inspection.generate_candidate_selections import (
+from scripts.network_inspection.generate_candidate_selections import (
     CandidateSelection,
     REVIEW_CRITERIA,
     render_selection,
@@ -18,17 +18,17 @@ from scripts.inspection.generate_candidate_selections import (
     selection_file_for,
     write_review_document,
 )
-from scripts.inspection.generate_agent_labels import (
+from scripts.network_inspection.generate_agent_labels import (
     agent_label_file_for,
     generate_agent_label_files,
     load_audited_coordinates,
     render_agent_labels,
 )
-from scripts.inspection.open_candidate_in_netedit import (
+from scripts.network_inspection.open_candidate_in_netedit import (
     build_netedit_command,
     parse_args as parse_netedit_args,
 )
-from scripts.inspection.run_candidate_review import (
+from scripts.network_inspection.run_candidate_review import (
     build_sumo_command,
     configured_additional_files,
     parse_args as parse_review_args,
@@ -254,7 +254,7 @@ def test_review_documents_include_all_required_criteria() -> None:
         )
         for criterion in REVIEW_CRITERIA:
             assert f"| {criterion} |" in document
-        assert "python scripts/inspection/generate_agent_labels.py" in document
+        assert "python scripts/network_inspection/generate_agent_labels.py" in document
         assert "press F9" in document
         assert "enable Show ID" in document
 

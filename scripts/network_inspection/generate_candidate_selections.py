@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.inspection.audit_traffic_lights import (  # noqa: E402
+from scripts.network_inspection.audit_traffic_lights import (  # noqa: E402
     ControllerAudit,
     NeighborRelationship,
     WIZARD_WARNING_FILE,
@@ -321,13 +321,13 @@ def render_review_document(
             "Generate the candidate agent-label POIs:",
             "",
             "```powershell",
-            "python scripts/inspection/generate_agent_labels.py",
+            "python scripts/network_inspection/generate_agent_labels.py",
             "```",
             "",
             "Open the complete network with the candidate selection in Netedit:",
             "",
             "```powershell",
-            "python scripts/inspection/open_candidate_in_netedit.py "
+            "python scripts/network_inspection/open_candidate_in_netedit.py "
             f"--candidate {candidate.candidate_id}",
             "```",
             "",
@@ -336,7 +336,7 @@ def render_review_document(
             "Observe the original demand and signal programs in SUMO-GUI:",
             "",
             "```powershell",
-            "python scripts/inspection/run_candidate_review.py "
+            "python scripts/network_inspection/run_candidate_review.py "
             f"--candidate {candidate.candidate_id} --seconds 600 --gui",
             "```",
             "",
