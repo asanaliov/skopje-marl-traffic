@@ -44,6 +44,7 @@ appended to ``results/experiments.csv`` under its own controller label.
 
 from __future__ import annotations
 
+import os
 import time
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, replace
@@ -93,9 +94,9 @@ _HYPERPARAMETERS = (
 _REWARD_SUFFIX = {"local": "", "neighbor_aware": "_neighbor", "global": "_global"}
 
 
-def controller_label(reward_mode: str) -> str:
+def controller_label(reward_mode: str, controller: str = CONTROLLER_NAME) -> str:
     """Return the results-CSV label; never shared with a tabular controller."""
-    return CONTROLLER_NAME + _REWARD_SUFFIX[reward_mode]
+    return controller + _REWARD_SUFFIX[reward_mode]
 
 
 @dataclass(frozen=True, slots=True)
@@ -255,6 +256,11 @@ class DeepEpisodeSummary:
 class DeepMarlTrainer:
     """Trains and evaluates the shared PPO policy on the corridor wrapper."""
 
+    controller_name = CONTROLLER_NAME
+    hyperparameters = _HYPERPARAMETERS
+    evaluation_hyperparameters = ("hidden_size",)
+    """Settings that change what a checkpoint's weights mean."""
+
     def __init__(
         self,
         config: DeepMarlConfig,
@@ -271,12 +277,15 @@ class DeepMarlTrainer:
         self.input_size = self.max_feature_count + len(config.agent_ids)
         torch.manual_seed(config.torch_seed)
         self.rng = np.random.default_rng(config.torch_seed)
-        self.network = SharedActorCritic(self.input_size, config.hidden_size)
+        self.network = self._build_network()
         self.optimizer = torch.optim.Adam(
             self.network.parameters(), lr=config.learning_rate, eps=1e-5
         )
         self.reward_scaler = RunningReturnScaler(config.gamma, config.reward_clip)
         self.completed_episodes = 0
+
+    def _build_network(self) -> nn.Module:
+        return SharedActorCritic(self.input_size, self.config.hidden_size)
 
     # ------------------------------------------------------------------ obs
     def _stack(self, observations: Mapping[str, np.ndarray]) -> np.ndarray:
@@ -418,6 +427,14 @@ class DeepMarlTrainer:
         return summary, rollout
 
     # ---------------------------------------------------------------- update
+    def _samples(self, array: np.ndarray) -> torch.Tensor:
+        """Turn a (steps, agents, ...) array into independently shuffled samples."""
+        return torch.from_numpy(array.reshape(-1, *array.shape[2:]))
+
+    def _minibatch_length(self) -> int:
+        """Return how many samples from ``_samples`` form one minibatch."""
+        return self.config.minibatch_size
+
     def _update(self, rollout: dict[str, np.ndarray]) -> tuple[float, float, float]:
         cfg = self.config
         with torch.no_grad():
@@ -430,21 +447,20 @@ class DeepMarlTrainer:
             cfg.gamma,
             cfg.gae_lambda,
         )
-        flat = lambda a: torch.from_numpy(a.reshape(-1, *a.shape[2:]))  # noqa: E731
-        obs = flat(rollout["obs"])
-        actions = flat(rollout["actions"]).long()
-        old_logp = flat(rollout["logp"])
-        adv = flat(advantages)
+        obs = self._samples(rollout["obs"])
+        actions = self._samples(rollout["actions"]).long()
+        old_logp = self._samples(rollout["logp"])
+        adv = self._samples(advantages)
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-        ret = flat(returns)
+        ret = self._samples(returns)
 
         count = obs.shape[0]
         policy_loss = value_loss = entropy = 0.0
         batches = 0
         for _ in range(cfg.update_epochs):
             order = torch.from_numpy(self.rng.permutation(count))
-            for start in range(0, count, cfg.minibatch_size):
-                index = order[start : start + cfg.minibatch_size]
+            for start in range(0, count, self._minibatch_length()):
+                index = order[start : start + self._minibatch_length()]
                 logits, values = self.network(obs[index])
                 dist = torch.distributions.Categorical(logits=logits)
                 ratio = torch.exp(dist.log_prob(actions[index]) - old_logp[index])
@@ -474,6 +490,8 @@ class DeepMarlTrainer:
             raise ValueError("A checkpoint path is required.")
         target.parent.mkdir(parents=True, exist_ok=True)
         cfg = self.config
+        # a disconnect during the write must not destroy the previous checkpoint.
+        partial = target.with_name(target.name + ".tmp")
         torch.save(
             {
                 "schema_version": CHECKPOINT_SCHEMA_VERSION,
@@ -485,11 +503,16 @@ class DeepMarlTrainer:
                 "seed": cfg.seed,
                 "reward_mode": cfg.reward_mode,
                 "input_size": self.input_size,
-                "hyperparameters": {k: getattr(cfg, k) for k in _HYPERPARAMETERS},
+                "hyperparameters": {k: getattr(cfg, k) for k in self.hyperparameters},
                 "reward_scaler": self.reward_scaler.state(),
+                "rng": {
+                    "torch": torch.get_rng_state(),
+                    "numpy": self.rng.bit_generator.state,
+                },
             },
-            target,
+            partial,
         )
+        os.replace(partial, target)
         return target
 
     def load_checkpoint(self, path: Path | None = None, *, for_training: bool) -> Path:
@@ -517,7 +540,7 @@ class DeepMarlTrainer:
         # Evaluation only needs a network of the same shape; resuming training
         # with different hyperparameters would silently splice two runs.
         stored = payload["hyperparameters"]
-        checked = _HYPERPARAMETERS if for_training else ("hidden_size",)
+        checked = self.hyperparameters if for_training else self.evaluation_hyperparameters
         for key in checked:
             if stored.get(key) != getattr(cfg, key):
                 raise ValueError(
@@ -528,6 +551,10 @@ class DeepMarlTrainer:
         if for_training:
             self.optimizer.load_state_dict(payload["optimizer"])
             self.reward_scaler.load(payload["reward_scaler"])
+            # checkpoints from before resume support have no rng state.
+            if "rng" in payload:
+                torch.set_rng_state(payload["rng"]["torch"])
+                self.rng.bit_generator.state = payload["rng"]["numpy"]
         self.completed_episodes = int(payload["completed_episodes"])
         return source
 
@@ -575,7 +602,7 @@ class DeepMarlTrainer:
     def evaluate(self) -> DeepEpisodeSummary:
         cfg = self.config
         self.load_checkpoint(for_training=False)
-        label = controller_label(cfg.reward_mode)
+        label = controller_label(cfg.reward_mode, self.controller_name)
 
         def make_collector(environment: Any) -> MetricsCollector:
             lanes = sorted(

@@ -22,6 +22,7 @@ keeps its original SUMO program.
 | `marl_neighbor_reward` | Reward = 70% own + 30% neighbors' average |
 | `marl_global_reward` | Every agent gets the corridor-wide average reward |
 | `marl_deep_ppo` | One shared PPO network for all 8 agents, local reward |
+| `marl_attention_ppo` | Same, plus self-attention across junctions (no results yet) |
 
 ## Setup (Windows)
 
@@ -195,12 +196,35 @@ Checkpoints are saved as `checkpoints/deep_marl_<reward>_<scenario>_seed<seed>.p
 | high | `marl_deep_ppo` | 12.68 | 13.02 | 15.00 | 0.33 |
 | high | `multi_agent_independent_rl` | 13.60 | 21.11 | 36.33 | 7.33 |
 
-Across the three recorded seeds, deep PPO has lower mean waiting time than the tabular multi-agent controller in medium and high demand, while the tabular controller is slightly lower in low demand.
+Across the three recorded seeds, deep PPO has lower mean waiting time than the tabular multi-agent controller in all three scenarios. In low and medium demand the gap is comparable to the seed-to-seed spread.
 The imported actuated and single-agent RL baselines have lower mean waiting time than deep PPO in every scenario.
 
 Caveats: high seed 43 leaves 41 vehicles in the network (vs 3 and 1 on seeds 42/44).
 Medium training reward peaked around episodes 200–225 and dropped about 8% by the end; the final
 checkpoint is the one evaluated, as for every tabular run.
+
+## Self-attention PPO
+
+`src/training/deep_marl_attention.py` is a separate controller that adds one self-attention layer to the shared PPO network, so
+each junction can use the state of the other seven. Everything else matches `marl_deep_ppo`:
+observations, local reward, PPO settings, gradient steps per episode and the 300-episode budget.
+
+Attention needs all 8 observations at execution time and also makes the critic centralized, so the
+comparison measures shared information as a whole, and the controller is not decentralized.
+
+```powershell
+python scripts/experiments/run_attention_ppo.py train    --scenario medium --seed 42 *>&1 | Tee-Object logs/deep_marl_attention_local_medium_seed42.log
+python scripts/experiments/run_attention_ppo.py evaluate --scenario medium --seed 42
+python scripts/experiments/run_attention_ppo.py evaluate --scenario medium --seed 43 --allow-cross-seed --checkpoint checkpoints/deep_marl_attention_local_medium_seed42.pt
+```
+
+Checkpoints are saved as `checkpoints/deep_marl_attention_<reward>_<scenario>_seed<seed>.pt`.
+
+Limit PyTorch to one thread before training. On medium demand, 2 episodes with updates took 55 s instead of 162 s at the default 14 threads, with identical logged rewards and losses. Plain PPO and parallel runs have not been timed with this setting.
+
+```powershell
+$env:OMP_NUM_THREADS=1; $env:MKL_NUM_THREADS=1
+```
 
 ## Tests
 

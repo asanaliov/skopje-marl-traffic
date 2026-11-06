@@ -18,6 +18,7 @@ Use `--help` to see options for selecting scenarios, duration, output directory,
 | Script | What it does | Example |
 | --- | --- | --- |
 | [`run_deep_marl.py`](scripts/experiments/run_deep_marl.py) | Trains or evaluates a shared-parameter PPO controller for the selected corridor. | `python scripts/experiments/run_deep_marl.py train --scenario medium --seed 42 --episodes 300` |
+| [`run_attention_ppo.py`](scripts/experiments/run_attention_ppo.py) | Trains or evaluates the self-attention PPO controller for the selected corridor. | `python scripts/experiments/run_attention_ppo.py train --scenario medium --seed 42` |
 | [`run_deep_rl_demo.py`](scripts/experiments/run_deep_rl_demo.py) | Runs a short Gymnasium/SUMO-RL compatibility demo; it is not a benchmark evaluation. | `python scripts/experiments/run_deep_rl_demo.py --algorithm ppo --scenario medium --timesteps 128 --episode-seconds 600` |
 | [`run_imported_actuated_experiment.py`](scripts/experiments/run_imported_actuated_experiment.py) | Evaluates the imported SUMO actuated signal programs for one demand scenario. | `python scripts/experiments/run_imported_actuated_experiment.py --scenario medium --seed 42` |
 | [`run_imported_actuated_suite.py`](scripts/experiments/run_imported_actuated_suite.py) | Evaluates the imported actuated controller across demand scenarios. | `python scripts/experiments/run_imported_actuated_suite.py --seed 42` |
