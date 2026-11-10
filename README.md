@@ -280,3 +280,7 @@ neighbor-aware, global), deep MARL (shared PPO), metrics and plots, Gym/PettingZ
 
 Not done: calibrated real-world demand,
 junction geometry cleanup in netedit.
+
+## Real-signals network
+
+The Candidate 1 signals can be recoded to real Skopje behaviour in a separate network variant. Set `SKOPJE_NETWORK=real_signals` to use it; its results, checkpoints and audit are kept apart from the original ones. See [`sumo/skopje/documentation/real_signals_network.md`](sumo/skopje/documentation/real_signals_network.md).

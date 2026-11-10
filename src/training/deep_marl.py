@@ -55,6 +55,7 @@ import numpy as np
 import torch
 from torch import nn
 
+from src.config import RESULTS_FILE
 from src.environment.gym_wrapper import (
     CorridorParallelEnv,
     audited_space_specs,
@@ -112,7 +113,7 @@ class DeepMarlConfig:
     decision_interval_seconds: float = 5.0
     reward_mode: RewardMode = "local"
     checkpoint_path: Path | None = None
-    results_path: Path | None = Path("results/experiments.csv")
+    results_path: Path | None = RESULTS_FILE
     gui: bool = False
     hidden_size: int = 128
     learning_rate: float = 3e-4

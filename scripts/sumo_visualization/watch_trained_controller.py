@@ -12,6 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config import CHECKPOINT_DIR  # noqa: E402
 from src.environment.selected_corridor import SELECTED_CORRIDOR
 
 CONTROLLERS = ("single-agent", "multi-agent", "deep-marl")
@@ -56,7 +57,7 @@ def default_checkpoint(args: argparse.Namespace) -> Path:
     if args.controller == "single-agent":
         return (
             PROJECT_ROOT
-            / "checkpoints"
+            / CHECKPOINT_DIR
             / "final_models"
             / f"{args.agent_id.lower()}_{args.scenario}.json"
         )
@@ -64,14 +65,14 @@ def default_checkpoint(args: argparse.Namespace) -> Path:
         spatial_tag = "_spatial" if args.spatial_observations else ""
         return (
             PROJECT_ROOT
-            / "checkpoints"
+            / CHECKPOINT_DIR
             / "final_models"
             / "marl"
             / f"marl_{args.reward_mode}_{args.scenario}_seed{args.seed}{spatial_tag}.json"
         )
     return (
         PROJECT_ROOT
-        / "checkpoints"
+        / CHECKPOINT_DIR
         / f"deep_marl_{args.reward_mode}_{args.scenario}_seed{args.seed}.pt"
     )
 

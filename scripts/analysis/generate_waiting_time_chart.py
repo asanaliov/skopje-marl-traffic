@@ -7,12 +7,19 @@ import argparse
 import csv
 import html
 import math
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_INPUT = PROJECT_ROOT / "results" / "experiments.csv"
-DEFAULT_OUTPUT = PROJECT_ROOT / "results" / "waiting-time-comparison.svg"
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.config import RESULTS_FILE  # noqa: E402
+
+# Follows SKOPJE_NETWORK: real_signals results never overwrite the original chart.
+DEFAULT_INPUT = PROJECT_ROOT / RESULTS_FILE
+DEFAULT_OUTPUT = PROJECT_ROOT / RESULTS_FILE.parent / "waiting-time-comparison.svg"
 SCENARIO_ORDER = ("low", "medium", "high")
 FULL_DEMAND_SECONDS = 3600.0
 COLORS = (

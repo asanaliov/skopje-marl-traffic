@@ -37,6 +37,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Literal
 
+from src.config import RESULTS_FILE
 from src.agents.q_learning_agent import QLearningAgent, QLearningConfig
 from src.agents.state_encoder import DiscreteTrafficState, TrafficStateEncoder
 from src.environment.actions import TrafficAction
@@ -92,7 +93,7 @@ class MultiAgentQLearningConfig:
     spatial_observations: bool = False
     spatial_neighbor_limit: int = DEFAULT_SPATIAL_NEIGHBOR_LIMIT
     reward_mode: RewardMode = "local"
-    results_path: Path | None = Path("results/experiments.csv")
+    results_path: Path | None = RESULTS_FILE
 
     def __post_init__(self) -> None:
         """Validate runner settings before a SUMO process is started."""

@@ -28,6 +28,7 @@ from scripts.experiments.run_multi_agent_q_learning import (
 from scripts.experiments.run_q_learning import (
     default_checkpoint_path as single_default_checkpoint_path,
 )
+from src.config import CHECKPOINT_DIR
 from src.evaluation.metrics import EpisodeMetrics
 from src.evaluation.results_writer import append_result
 
@@ -66,7 +67,7 @@ class TestSingleAgentDefaultCheckpointPath:
 
     def test_encodes_agent_id_scenario_and_seed(self):
         path = single_default_checkpoint_path("A19", "medium", 42)
-        assert path == Path("checkpoints/A19_medium_seed42.json")
+        assert path == CHECKPOINT_DIR / "A19_medium_seed42.json"
 
     def test_different_agent_id_yields_different_path(self):
         p1 = single_default_checkpoint_path("A19", "medium", 42)
@@ -91,7 +92,7 @@ class TestSingleAgentDefaultCheckpointPath:
 
     def test_returns_path_inside_checkpoints_dir(self):
         path = single_default_checkpoint_path("A19", "medium", 42)
-        assert path.parent == Path("checkpoints")
+        assert path.parent == CHECKPOINT_DIR
 
     def test_deterministic_for_same_args(self):
         p1 = single_default_checkpoint_path("A19", "medium", 42)
@@ -109,7 +110,7 @@ class TestMarlDefaultCheckpointPath:
 
     def test_encodes_reward_mode_scenario_and_seed(self):
         path = marl_default_checkpoint_path("medium", 42, reward_mode="local")
-        assert path == Path("checkpoints/marl_local_medium_seed42.json")
+        assert path == CHECKPOINT_DIR / "marl_local_medium_seed42.json"
 
     def test_different_reward_mode_yields_different_path(self):
         p1 = marl_default_checkpoint_path("medium", 42, reward_mode="local")
@@ -151,7 +152,7 @@ class TestMarlDefaultCheckpointPath:
 
     def test_returns_path_inside_checkpoints_dir(self):
         path = marl_default_checkpoint_path("medium", 42)
-        assert path.parent == Path("checkpoints")
+        assert path.parent == CHECKPOINT_DIR
 
     def test_deterministic_for_same_args(self):
         p1 = marl_default_checkpoint_path("medium", 42, reward_mode="global")

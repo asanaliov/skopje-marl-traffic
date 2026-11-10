@@ -23,6 +23,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config import CHECKPOINT_DIR  # noqa: E402
 from scripts.experiments.run_deep_marl import (  # noqa: E402
     DEFAULT_TRAINING_EPISODES,
     _common,
@@ -34,7 +35,7 @@ from scripts.experiments.run_deep_marl import (  # noqa: E402
 def default_checkpoint_path(scenario: str, seed: int, reward_mode: str) -> Path:
     """Deterministic checkpoint path from run arguments."""
     return (
-        Path("checkpoints")
+        CHECKPOINT_DIR
         / f"deep_marl_attention_{reward_mode}_{scenario}_seed{seed}.pt"
     )
 

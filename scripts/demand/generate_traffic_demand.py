@@ -25,6 +25,7 @@ from scripts.experiments.run_skopje_simulation import (  # noqa: E402
 )
 from src.config import (  # noqa: E402
     SKOPJE_CONFIG_DIR,
+    SKOPJE_SCENARIO_CONFIG_DIR,
     SKOPJE_DEMAND_DIR,
     SKOPJE_DIR,
     resolve_sumo_xml_file,
@@ -54,7 +55,7 @@ from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
 
 
 CANONICAL_DEMAND_ROOT = SKOPJE_DEMAND_DIR / "scenarios"
-CANONICAL_CONFIG_ROOT = SKOPJE_CONFIG_DIR / "scenarios"
+CANONICAL_CONFIG_ROOT = SKOPJE_SCENARIO_CONFIG_DIR
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,5 +1,6 @@
 """Project paths and shared simulation settings."""
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -12,6 +13,20 @@ SKOPJE_NETWORK_DIR = (SKOPJE_DIR / "network").resolve()
 SKOPJE_DEMAND_DIR = (SKOPJE_DIR / "demand").resolve()
 SKOPJE_CONFIG_DIR = (SKOPJE_DIR / "config").resolve()
 RESULTS_DIR = (PROJECT_ROOT / "results").resolve()
+CHECKPOINTS_DIR = (PROJECT_ROOT / "checkpoints").resolve()
+
+# The Skopje network exists in two variants that must never share results,
+# checkpoints or audits (observation sizes depend on each light's phase count):
+#   original      -- OSM-generated signal programs (default, all earlier results)
+#   real_signals  -- signals recoded to real Skopje behaviour (issue #65)
+# Select with the SKOPJE_NETWORK environment variable.
+NETWORK_VARIANTS = ("original", "real_signals")
+NETWORK_VARIANT = os.environ.get("SKOPJE_NETWORK", "original").strip() or "original"
+if NETWORK_VARIANT not in NETWORK_VARIANTS:
+    raise ValueError(
+        f"SKOPJE_NETWORK must be one of {NETWORK_VARIANTS}, got {NETWORK_VARIANT!r}."
+    )
+_VARIANT_SUFFIX = "" if NETWORK_VARIANT == "original" else f"_{NETWORK_VARIANT}"
 
 
 def resolve_sumo_xml_file(directory: Path, uncompressed_name: str) -> Path:
@@ -56,14 +71,38 @@ class SimulationConfig:
 
 SKOPJE_INITIAL_NETWORK_FILE = resolve_sumo_xml_file(
     SKOPJE_NETWORK_DIR,
-    "skopje_initial.net.xml",
+    "skopje_initial.net.xml"
+    if NETWORK_VARIANT == "original"
+    else f"skopje_{NETWORK_VARIANT}.net.xml",
 )
 SKOPJE_INITIAL_ROUTE_FILE = (
     SKOPJE_DEMAND_DIR / "skopje_initial.trips.xml"
 ).resolve()
 SKOPJE_INITIAL_SUMO_CONFIG_FILE = (
-    SKOPJE_CONFIG_DIR / "skopje_initial.sumocfg"
+    SKOPJE_CONFIG_DIR / f"skopje_initial{_VARIANT_SUFFIX}.sumocfg"
 ).resolve()
+# Per-scenario SUMO configs live beside the original ones, one folder per variant.
+SKOPJE_SCENARIO_CONFIG_DIR = (
+    SKOPJE_CONFIG_DIR
+    / ("scenarios" if NETWORK_VARIANT == "original" else f"scenarios{_VARIANT_SUFFIX}")
+).resolve()
+# Traffic-light audit (carries each light's phase count -> observation size).
+SKOPJE_AUDIT_FILE = (
+    SKOPJE_DIR / "documentation" / f"traffic_light_audit{_VARIANT_SUFFIX}.csv"
+).resolve()
+# Results and checkpoints. Relative to the working directory (the repository
+# root, as in every documented command); the original variant keeps today's
+# exact locations.
+RESULTS_FILE = (
+    Path("results") / "experiments.csv"
+    if NETWORK_VARIANT == "original"
+    else Path("results") / NETWORK_VARIANT / "experiments.csv"
+)
+CHECKPOINT_DIR = (
+    Path("checkpoints")
+    if NETWORK_VARIANT == "original"
+    else Path("checkpoints") / NETWORK_VARIANT
+)
 SKOPJE_INITIAL_VIEW_FILE = (
     SKOPJE_CONFIG_DIR / "skopje_initial.view.xml"
 ).resolve()

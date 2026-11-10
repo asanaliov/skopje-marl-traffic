@@ -13,7 +13,11 @@ from functools import lru_cache
 from pathlib import Path
 from types import MappingProxyType
 
-from src.config import SKOPJE_DIR, SKOPJE_INITIAL_SUMO_CONFIG_FILE
+from src.config import (
+    SKOPJE_AUDIT_FILE,
+    SKOPJE_DIR,
+    SKOPJE_INITIAL_SUMO_CONFIG_FILE,
+)
 from src.environment.corridor_candidates import (
     get_candidate,
     load_agent_traffic_light_mapping,
@@ -22,7 +26,7 @@ from src.environment.corridor_candidates import (
 
 _EXPECTED_CANDIDATE_ID = "1"
 _EXPECTED_AGENT_IDS = ("A9", "A18", "A19", "A20", "A24", "A25", "A26", "A29")
-_AUDIT_FILE = SKOPJE_DIR / "documentation" / "traffic_light_audit.csv"
+_AUDIT_FILE = SKOPJE_AUDIT_FILE
 _NEIGHBORS_FILE = SKOPJE_DIR / "documentation" / "traffic_light_neighbors.csv"
 
 

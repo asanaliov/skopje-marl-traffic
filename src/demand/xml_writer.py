@@ -16,6 +16,7 @@ from random import Random
 from src.config import (
     PROJECT_ROOT,
     SKOPJE_CONFIG_DIR,
+    SKOPJE_SCENARIO_CONFIG_DIR,
     SKOPJE_DEMAND_DIR,
     SKOPJE_INITIAL_VIEW_FILE,
 )
@@ -65,7 +66,7 @@ def scenario_output_files(
     scenario_name: str,
     seed: int,
     demand_root: Path = SKOPJE_DEMAND_DIR / "scenarios",
-    config_root: Path = SKOPJE_CONFIG_DIR / "scenarios",
+    config_root: Path = SKOPJE_SCENARIO_CONFIG_DIR,
 ) -> ScenarioOutputFiles:
     """Return stable scenario paths without creating any files."""
     scenario_directory = demand_root / scenario_name

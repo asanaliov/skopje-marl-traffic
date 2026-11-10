@@ -23,6 +23,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config import CHECKPOINT_DIR, RESULTS_FILE
 from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
 
 DEFAULT_TRAINING_EPISODES = 300  # kept in sync with src/training/deep_marl.py
@@ -51,7 +52,7 @@ def _non_negative_float(value: str) -> float:
 
 def default_checkpoint_path(scenario: str, seed: int, reward_mode: str) -> Path:
     """Deterministic checkpoint path from run arguments."""
-    return Path("checkpoints") / f"deep_marl_{reward_mode}_{scenario}_seed{seed}.pt"
+    return CHECKPOINT_DIR / f"deep_marl_{reward_mode}_{scenario}_seed{seed}.pt"
 
 
 def _common(parser: argparse.ArgumentParser) -> None:
@@ -70,7 +71,7 @@ def _common(parser: argparse.ArgumentParser) -> None:
         ),
     )
     parser.add_argument("--checkpoint", type=Path, default=None)
-    parser.add_argument("--results-path", type=Path, default=Path("results/experiments.csv"))
+    parser.add_argument("--results-path", type=Path, default=RESULTS_FILE)
     parser.add_argument("--agents", nargs="+", default=list(SELECTED_CORRIDOR.agent_ids))
     parser.add_argument("--gui", action="store_true")
 
