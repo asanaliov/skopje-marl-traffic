@@ -1,3 +1,4 @@
+
 """Observe one candidate while the complete Skopje scenario runs unchanged."""
 
 from __future__ import annotations
