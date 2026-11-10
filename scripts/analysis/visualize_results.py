@@ -13,7 +13,7 @@ CONTROLLER_LABELS = {
     "coordinated rl": "Coordinated RL",
 }
 
-SCENARIO_ORDER = ["low", "medium", "high"]
+SCENARIO_ORDER = ["low", "medium", "high", "peak"]
 
 RUN_LENGTH_COLUMN = "demand_seconds"
 SERIES_COLUMN = "series"
@@ -69,7 +69,7 @@ def format_controller_name(controller):
 
 
 def get_scenario_order(df):
-    """low -> medium -> high"""
+    """low -> medium -> high -> peak"""
     return [
         scenario for scenario in SCENARIO_ORDER
         if scenario in df["scenario"].unique()
