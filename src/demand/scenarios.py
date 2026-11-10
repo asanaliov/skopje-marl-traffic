@@ -16,6 +16,10 @@ class TrafficDemandScenario:
 
     Vehicle counts are initial experimental calibration values.
     They are not official or measured Skopje traffic counts.
+
+    ``departure_profile`` splits the duration into equal intervals and gives
+    each interval a relative departure weight. The default single weight
+    spreads departures evenly across the whole duration.
     """
 
     name: str
@@ -26,6 +30,7 @@ class TrafficDemandScenario:
     minimum_route_length_m: float
     seed: int
     vehicle_type: str
+    departure_profile: tuple[float, ...] = (1.0,)
 
     def __post_init__(self) -> None:
         """Reject invalid scenario values when a definition is constructed."""
@@ -58,6 +63,10 @@ def validate_scenario(scenario: TrafficDemandScenario) -> None:
         raise ValueError("Scenario minimum_route_length_m must be greater than zero.")
     if scenario.seed < 0:
         raise ValueError("Scenario seed must be zero or greater.")
+    if not scenario.departure_profile:
+        raise ValueError("Scenario departure_profile must contain at least one weight.")
+    if any(weight <= 0 for weight in scenario.departure_profile):
+        raise ValueError("Scenario departure_profile weights must be greater than zero.")
     if scenario.vehicle_type != "passenger":
         raise ValueError(
             "Traffic-demand scenarios currently support only vehicle_type='passenger'."
@@ -97,6 +106,22 @@ HIGH = TrafficDemandScenario(
     vehicle_type="passenger",
 )
 
+# Weekday rush hour on the central boulevards. The four weights are the
+# quarter-hour shares of the hour's departures (22/27/30/21 %), which gives a
+# peak hour factor of 1 / (4 * 0.30) ~= 0.83, a sharper peak than the HCM
+# urban default of 0.92. See traffic_demand.md for the rationale and sources.
+PEAK = TrafficDemandScenario(
+    name="peak",
+    duration_seconds=3600,
+    total_vehicle_count=3300,
+    corridor_trip_share=0.88,
+    minimum_selected_agents_crossed=2,
+    minimum_route_length_m=300.0,
+    seed=42,
+    vehicle_type="passenger",
+    departure_profile=(0.22, 0.27, 0.30, 0.21),
+)
+
 
 SCENARIOS = MappingProxyType(
     {
@@ -105,6 +130,7 @@ SCENARIOS = MappingProxyType(
             LOW,
             MEDIUM,
             HIGH,
+            PEAK,
         )
     }
 )
@@ -126,6 +152,7 @@ __all__ = [
     "HIGH",
     "LOW",
     "MEDIUM",
+    "PEAK",
     "SCENARIOS",
     "TrafficDemandScenario",
     "get_scenario",

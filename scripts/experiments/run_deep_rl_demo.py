@@ -31,6 +31,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.demand.scenarios import SCENARIOS  # noqa: E402
 from src.environment.gym_wrapper import (  # noqa: E402
     DEFAULT_GYM_AGENT_ID,
     SingleAgentTrafficEnv,
@@ -89,7 +90,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
             f"{', '.join(SELECTED_CORRIDOR.agent_ids)}."
         ),
     )
-    parser.add_argument("--scenario", choices=("low", "medium", "high"), default="low")
+    parser.add_argument("--scenario", choices=tuple(SCENARIOS), default="low")
     parser.add_argument("--seed", type=positive_integer, default=42)
     parser.add_argument(
         "--timesteps",

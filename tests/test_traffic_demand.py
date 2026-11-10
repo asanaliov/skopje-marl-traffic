@@ -27,6 +27,7 @@ from src.demand.scenarios import (
     HIGH,
     LOW,
     MEDIUM,
+    PEAK,
     SCENARIOS,
     TrafficDemandScenario,
     get_scenario,
@@ -34,6 +35,7 @@ from src.demand.scenarios import (
 from src.demand.xml_writer import (
     SYNTHETIC_DEMAND_STATEMENT,
     build_generation_metadata,
+    profile_departure_time,
     scenario_output_files,
     schedule_trips,
     write_generation_metadata,
@@ -160,7 +162,7 @@ def _file_hashes(paths: tuple[Path, ...]) -> dict[Path, str]:
 
 
 def test_canonical_scenario_names_values_and_order() -> None:
-    assert tuple(SCENARIOS) == ("low", "medium", "high")
+    assert tuple(SCENARIOS) == ("low", "medium", "high", "peak")
     assert get_scenario("LOW") is LOW
     assert LOW.total_vehicle_count == 900
     assert LOW.corridor_trip_share == 0.70
@@ -171,6 +173,12 @@ def test_canonical_scenario_names_values_and_order() -> None:
     assert HIGH.total_vehicle_count == 3000
     assert HIGH.corridor_trip_share == 0.85
     assert HIGH.minimum_selected_agents_crossed == 2
+    assert PEAK.total_vehicle_count == 3300
+    assert PEAK.corridor_trip_share == 0.88
+    assert PEAK.minimum_selected_agents_crossed == 2
+    assert PEAK.departure_profile == (0.22, 0.27, 0.30, 0.21)
+    for scenario in (LOW, MEDIUM, HIGH):
+        assert scenario.departure_profile == (1.0,)
     for scenario in SCENARIOS.values():
         assert scenario.duration_seconds == 3600
         assert scenario.minimum_route_length_m == 300.0
@@ -190,6 +198,8 @@ def test_canonical_scenario_names_values_and_order() -> None:
         ("minimum_route_length_m", 0.0, "minimum_route_length_m"),
         ("seed", -1, "seed"),
         ("vehicle_type", "bus", "passenger"),
+        ("departure_profile", (), "departure_profile"),
+        ("departure_profile", (1.0, 0.0), "departure_profile"),
     ),
 )
 def test_invalid_scenario_values_are_rejected(
@@ -203,8 +213,41 @@ def test_invalid_scenario_values_are_rejected(
 
 def test_low_medium_high_vehicle_counts_increase() -> None:
     assert (
-        LOW.total_vehicle_count < MEDIUM.total_vehicle_count < HIGH.total_vehicle_count
+        LOW.total_vehicle_count
+        < MEDIUM.total_vehicle_count
+        < HIGH.total_vehicle_count
+        < PEAK.total_vehicle_count
     )
+
+
+def test_profile_departure_time_follows_cumulative_share() -> None:
+    profile = (1.0, 3.0)
+    assert profile_departure_time(0.0, profile, 100) == 0.0
+    assert profile_departure_time(0.25, profile, 100) == pytest.approx(50.0)
+    assert profile_departure_time(0.625, profile, 100) == pytest.approx(75.0)
+    assert profile_departure_time(0.999999, profile, 100) == pytest.approx(100.0)
+
+
+def test_peak_profile_puts_most_departures_in_the_busiest_quarter() -> None:
+    scenario = replace(PEAK, total_vehicle_count=2000, duration_seconds=3600)
+    assignments = tuple(_assignments()[index % 3] for index in range(2000))
+    trips = schedule_trips(scenario, assignments, random.Random(42))
+    per_quarter = [0, 0, 0, 0]
+    for trip in trips:
+        per_quarter[min(int(trip.departure_time // 900), 3)] += 1
+    assert per_quarter == [440, 540, 600, 420]
+    times = [trip.departure_time for trip in trips]
+    assert times == sorted(times)
+    assert 0.0 <= times[0] and times[-1] <= 3600.0
+
+
+def test_uniform_profile_keeps_original_even_schedule() -> None:
+    scenario = _scenario(total_vehicle_count=3)
+    rng = random.Random(7)
+    trips = schedule_trips(scenario, _assignments(), random.Random(7))
+    rng.shuffle(list(_assignments()))
+    expected = [(index + rng.random()) * 60 / 3 for index in range(3)]
+    assert [trip.departure_time for trip in trips] == expected
 
 
 def test_corridor_background_split_calculation() -> None:
