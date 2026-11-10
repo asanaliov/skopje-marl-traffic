@@ -15,9 +15,10 @@ from pathlib import Path
 
 from filelock import FileLock
 
+from src.config import RESULTS_FILE
 from src.evaluation.metrics import EpisodeMetrics
 
-DEFAULT_RESULTS_PATH = Path("results/experiments.csv")
+DEFAULT_RESULTS_PATH = RESULTS_FILE
 
 # Fixed column order. Do not reorder existing columns -- if new fields are
 # ever added, append them at the end so old CSVs stay readable with

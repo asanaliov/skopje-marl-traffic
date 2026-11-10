@@ -10,6 +10,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config import CHECKPOINT_DIR, RESULTS_FILE
 from src.training.independent_q_learning import ( # noqa: E402
     IndependentQLearningTrainer,
     QLearningTrainingConfig,
@@ -32,7 +33,7 @@ def _positive_float(value: str) -> float:
 
 def default_checkpoint_path(agent_id: str, scenario: str, seed: int) -> Path:
     """Generate a deterministic checkpoint path from run arguments."""
-    return Path("checkpoints") / f"{agent_id}_{scenario}_seed{seed}.json"
+    return CHECKPOINT_DIR / f"{agent_id}_{scenario}_seed{seed}.json"
 
 
 def _common_arguments(parser: argparse.ArgumentParser) -> None:
@@ -59,7 +60,7 @@ def _common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--results-path",
         type=Path,
-        default=Path("results/experiments.csv"),
+        default=RESULTS_FILE,
         help="Path to results CSV (default: results/experiments.csv).",
     )
     parser.add_argument("--gui", action="store_true")

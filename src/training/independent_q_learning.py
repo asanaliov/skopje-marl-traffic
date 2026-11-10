@@ -13,6 +13,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Literal
 
+from src.config import RESULTS_FILE
 from src.agents.q_learning_agent import QLearningAgent, QLearningConfig
 from src.agents.state_encoder import TrafficStateEncoder
 from src.environment.actions import TrafficAction
@@ -51,7 +52,7 @@ class QLearningTrainingConfig:
     mode: TrainingMode = "train"
     resume: bool = False
     allow_cross_seed_evaluation: bool = False
-    results_path: Path | None = Path("results/experiments.csv")
+    results_path: Path | None = RESULTS_FILE
 
     def __post_init__(self) -> None:
         """Validate runner settings before a SUMO process is started."""

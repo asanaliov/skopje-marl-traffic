@@ -38,10 +38,12 @@ sumo/skopje/demand/scenarios/**/seed_*.trips.xml
 sumo/skopje/demand/scenarios/**/seed_*.rou.xml
 sumo/skopje/demand/scenarios/**/seed_*.metadata.json
 sumo/skopje/config/scenarios/*_seed_*.sumocfg
+sumo/skopje/config/scenarios_real_signals/*_seed_*.sumocfg
 !sumo/skopje/demand/scenarios/**/seed_42.trips.xml
 !sumo/skopje/demand/scenarios/**/seed_42.rou.xml
 !sumo/skopje/demand/scenarios/**/seed_42.metadata.json
 !sumo/skopje/config/scenarios/*_seed_42.sumocfg
+!sumo/skopje/config/scenarios_real_signals/*_seed_42.sumocfg
 
 # Raw timestamped wizard exports copied into sumo/skopje/source
 /20??-??-??-??-??-??/

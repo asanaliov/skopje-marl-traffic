@@ -20,10 +20,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.config import SKOPJE_DIR, SKOPJE_INITIAL_CONFIG  # noqa: E402
+from src.config import (  # noqa: E402
+    NETWORK_VARIANT,
+    SKOPJE_AUDIT_FILE,
+    SKOPJE_DIR,
+    SKOPJE_INITIAL_CONFIG,
+)
 
 
-AUDIT_FILE = SKOPJE_DIR / "documentation" / "traffic_light_audit.csv"
+AUDIT_FILE = SKOPJE_AUDIT_FILE
 NEIGHBORS_FILE = SKOPJE_DIR / "documentation" / "traffic_light_neighbors.csv"
 CANDIDATES_FILE = SKOPJE_DIR / "documentation" / "corridor_candidates.md"
 WIZARD_WARNING_FILE = (
@@ -722,6 +727,20 @@ def _format_number(value: float) -> str:
     return f"{value:.2f}".rstrip("0").rstrip(".")
 
 
+# Real-signalling audit verdicts (issue #65): "fixed" means the SUMO program was
+# recoded to the real Skopje behaviour; green/yellow timings are placeholders.
+REAL_SIGNAL_VERDICTS = {
+    **{
+        agent: "Real-signal audit: fixed (one approach per phase, all lanes G, "
+        "no permissive g; 20s green / 3s yellow placeholder timing). "
+        for agent in ("A9", "A18", "A19", "A20", "A24", "A25", "A26")
+    },
+    "A29": "Real-signal audit: fixed (pedestrian-crossing light; side-road right "
+    "turn yields g, boulevard right turn G, U-turn r; timing placeholder; only "
+    "the carriageway toward A19 is modelled). ",
+}
+
+
 def _controller_notes(audit: ControllerAudit) -> str:
     """Serialize phase states and controlled-edge properties into audit notes."""
     lane_counts = "; ".join(
@@ -732,6 +751,7 @@ def _controller_notes(audit: ControllerAudit) -> str:
     )
     phase_states = " | ".join(audit.phase_states)
     return (
+        f"{REAL_SIGNAL_VERDICTS.get(audit.agent_id, '') if NETWORK_VARIANT == 'real_signals' else ''}"
         f"Program {audit.program_id or '(none)'} ({audit.program_type or 'unknown'}). "
         f"Phase states: {phase_states or '(none)'}. "
         f"Controlled-edge lane counts: {lane_counts or '(none)'}. "
@@ -1157,12 +1177,16 @@ def main() -> int:
         candidates = select_candidate_groups(audits, relationships)
 
         write_audit_csv(AUDIT_FILE, audits, relationships)
-        write_neighbors_csv(NEIGHBORS_FILE, relationships)
-        write_candidate_report(CANDIDATES_FILE, audits, relationships, candidates)
+        if NETWORK_VARIANT == "original":
+            # Neighbors and candidates depend only on the road graph, which is
+            # identical in every variant; only the original variant owns them.
+            write_neighbors_csv(NEIGHBORS_FILE, relationships)
+            write_candidate_report(CANDIDATES_FILE, audits, relationships, candidates)
         print_audit_summary(audits, relationships, candidates)
         print(f"Audit CSV: {AUDIT_FILE.relative_to(PROJECT_ROOT)}")
-        print(f"Neighbor CSV: {NEIGHBORS_FILE.relative_to(PROJECT_ROOT)}")
-        print(f"Candidate report: {CANDIDATES_FILE.relative_to(PROJECT_ROOT)}")
+        if NETWORK_VARIANT == "original":
+            print(f"Neighbor CSV: {NEIGHBORS_FILE.relative_to(PROJECT_ROOT)}")
+            print(f"Candidate report: {CANDIDATES_FILE.relative_to(PROJECT_ROOT)}")
         return 0
     except Exception as error:
         print(

@@ -23,6 +23,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config import CHECKPOINT_DIR, RESULTS_FILE
 from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
 from src.training.multi_agent_q_learning import (  # noqa: E402
     DEFAULT_SPATIAL_NEIGHBOR_LIMIT,
@@ -54,7 +55,7 @@ def default_checkpoint_path(
     """Generate a deterministic checkpoint path from run arguments."""
     spatial_tag = "_spatial" if spatial_observations else ""
     return (
-        Path("checkpoints")
+        CHECKPOINT_DIR
         / f"marl_{reward_mode}_{scenario}_seed{seed}{spatial_tag}.json"
     )
 
@@ -77,7 +78,7 @@ def _common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--results-path",
         type=Path,
-        default=Path("results/experiments.csv"),
+        default=RESULTS_FILE,
         help="Path to results CSV (default: results/experiments.csv).",
     )
     parser.add_argument("--gui", action="store_true")
