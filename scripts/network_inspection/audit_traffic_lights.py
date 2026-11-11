@@ -735,9 +735,12 @@ REAL_SIGNAL_VERDICTS = {
         "no permissive g; 20s green / 3s yellow placeholder timing). "
         for agent in ("A9", "A18", "A19", "A20", "A24", "A25", "A26")
     },
-    "A29": "Real-signal audit: fixed (pedestrian-crossing light; side-road right "
-    "turn yields g, boulevard right turn G, U-turn r; timing placeholder; only "
-    "the carriageway toward A19 is modelled). ",
+    "A21": "Real-signal audit: fixed (one approach per phase, lanes and turns checked "
+    "on site; the Ilinden-eastbound right-turn arrow also runs in the "
+    "Ilinden-westbound phase; 20s green / 3s yellow placeholder timing). ",
+    "A29": "Real-signal audit: fixed (pedestrian-crossing light, not an agent; all "
+    "turns uncontrolled, only the boulevard through lanes stop for the crossing; "
+    "timing placeholder). ",
 }
 
 

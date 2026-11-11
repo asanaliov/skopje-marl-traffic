@@ -14,6 +14,7 @@ from pathlib import Path
 from types import MappingProxyType
 
 from src.config import (
+    NETWORK_VARIANT,
     SKOPJE_AUDIT_FILE,
     SKOPJE_DIR,
     SKOPJE_INITIAL_SUMO_CONFIG_FILE,
@@ -25,7 +26,19 @@ from src.environment.corridor_candidates import (
 
 
 _EXPECTED_CANDIDATE_ID = "1"
-_EXPECTED_AGENT_IDS = ("A9", "A18", "A19", "A20", "A24", "A25", "A26", "A29")
+_CANDIDATE_AGENT_IDS = ("A9", "A18", "A19", "A20", "A24", "A25", "A26", "A29")
+# real_signals: a29 is a pedestrian light (no pedestrians are simulated, so an agent
+# would only learn to skip the crossing) and a21, kliment ohridski x ilinden, feeds a19
+_EXCLUDED_AGENT_IDS = ("A29",) if NETWORK_VARIANT == "real_signals" else ()
+_ADDED_AGENT_IDS = ("A21",) if NETWORK_VARIANT == "real_signals" else ()
+
+
+def _variant_agent_ids(candidate_agent_ids: Iterable[str]) -> tuple[str, ...]:
+    kept = {a for a in candidate_agent_ids if a not in _EXCLUDED_AGENT_IDS} | set(_ADDED_AGENT_IDS)
+    return tuple(sorted(kept, key=lambda agent_id: int(agent_id[1:])))
+
+
+_EXPECTED_AGENT_IDS = _variant_agent_ids(_CANDIDATE_AGENT_IDS)
 # local names for plots, gui labels and the report; ids stay the keys everywhere
 AGENT_DISPLAY_NAMES = MappingProxyType(
     {
@@ -438,9 +451,10 @@ def _validate_structure(corridor: SelectedCorridor) -> None:
             "The selected corridor must represent Candidate 1 "
             f"(candidate_id='1'), got {corridor.candidate_id!r}."
         )
-    if len(corridor.agent_ids) != 8:
+    if len(corridor.agent_ids) != len(_EXPECTED_AGENT_IDS):
         raise ValueError(
-            f"Candidate 1 must contain exactly eight agents, got {len(corridor.agent_ids)}."
+            f"Candidate 1 must contain exactly {len(_EXPECTED_AGENT_IDS)} agents on the "
+            f"{NETWORK_VARIANT} network, got {len(corridor.agent_ids)}."
         )
     if len(set(corridor.agent_ids)) != len(corridor.agent_ids):
         raise ValueError("Candidate 1 contains duplicate agent IDs.")
@@ -652,9 +666,10 @@ def validate_selected_corridor(corridor: SelectedCorridor) -> None:
 def _build_selected_corridor() -> SelectedCorridor:
     """Construct Candidate 1 entirely from existing project data."""
     candidate = get_candidate(_EXPECTED_CANDIDATE_ID)
+    agent_ids = _variant_agent_ids(candidate.agent_ids)
     records = _load_audit_records()
     missing_agents = [
-        agent_id for agent_id in candidate.agent_ids if agent_id not in records
+        agent_id for agent_id in agent_ids if agent_id not in records
     ]
     if missing_agents:
         raise ValueError(
@@ -662,14 +677,14 @@ def _build_selected_corridor() -> SelectedCorridor:
             f"{', '.join(missing_agents)}."
         )
     agent_mapping = {
-        agent_id: records[agent_id].traffic_light_id for agent_id in candidate.agent_ids
+        agent_id: records[agent_id].traffic_light_id for agent_id in agent_ids
     }
     reverse_mapping = {
         traffic_light_id: agent_id
         for agent_id, traffic_light_id in agent_mapping.items()
     }
     neighbor_map, neighbor_distances = _load_selected_neighbors(
-        candidate.agent_ids,
+        agent_ids,
         agent_mapping,
     )
     configuration_file = SKOPJE_INITIAL_SUMO_CONFIG_FILE
@@ -683,22 +698,22 @@ def _build_selected_corridor() -> SelectedCorridor:
         name="Selected Central Skopje Corridor",
         candidate_id=candidate.candidate_id,
         description=candidate.description,
-        agent_ids=candidate.agent_ids,
+        agent_ids=agent_ids,
         traffic_light_ids=tuple(
-            agent_mapping[agent_id] for agent_id in candidate.agent_ids
+            agent_mapping[agent_id] for agent_id in agent_ids
         ),
         junction_node_ids=tuple(
             junction_id
-            for agent_id in candidate.agent_ids
+            for agent_id in agent_ids
             for junction_id in records[agent_id].junction_node_ids
         ),
         agent_to_traffic_light=MappingProxyType(agent_mapping),
         traffic_light_to_agent=MappingProxyType(reverse_mapping),
         road_names_by_agent=MappingProxyType(
-            {agent_id: records[agent_id].road_names for agent_id in candidate.agent_ids}
+            {agent_id: records[agent_id].road_names for agent_id in agent_ids}
         ),
         warnings_by_agent=MappingProxyType(
-            {agent_id: records[agent_id].warnings for agent_id in candidate.agent_ids}
+            {agent_id: records[agent_id].warnings for agent_id in agent_ids}
         ),
         neighbor_map=neighbor_map,
         neighbor_distances_m=neighbor_distances,

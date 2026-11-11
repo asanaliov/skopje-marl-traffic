@@ -2,7 +2,7 @@
 <sumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
     <input>
         <net-file value="../../network/skopje_real_signals.net.xml.gz" />
-        <route-files value="../../demand/scenarios/high/seed_42.rou.xml" />
+        <route-files value="../../demand/scenarios_real_signals/high/seed_42.rou.xml" />
         <additional-files value="../../polygons/skopje_initial.poly.xml.gz" />
     </input>
     <time>
