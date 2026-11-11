@@ -32,6 +32,7 @@ AGENT_DISPLAY_NAMES = MappingProxyType(
         "A9": "d cupovski",
         "A18": "hram-posta",
         "A19": "soboren",
+        "A20": "european university",
         "A24": "finki-makpetrol",
         "A25": "ruzvelt",
         "A26": "kuzman",

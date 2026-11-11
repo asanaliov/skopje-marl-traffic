@@ -259,4 +259,5 @@ def test_display_names_use_known_agents_and_fall_back_to_id() -> None:
 
     assert set(AGENT_DISPLAY_NAMES) <= set(EXPECTED_AGENT_IDS)
     assert display_name("A19") == "A19 soboren"
-    assert display_name("A20") == "A20"
+    assert display_name("A20") == "A20 european university"
+    assert display_name("A29") == "A29"
