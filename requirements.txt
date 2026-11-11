@@ -1,6 +1,9 @@
 sumo-rl
-sumolib
-traci
+# keep the sumo python packages on the installed sumo version
+sumolib==1.27.1
+traci==1.27.1
+libsumo==1.27.1
+sumo-data==1.27.1
 pettingzoo>=1.24
 gymnasium>=1.0
 numpy

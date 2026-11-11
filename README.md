@@ -226,6 +226,16 @@ Limit PyTorch to one thread before training. On medium demand, 2 episodes with u
 $env:OMP_NUM_THREADS=1; $env:MKL_NUM_THREADS=1
 ```
 
+### Faster runs with libsumo
+
+`SKOPJE_LIBSUMO=1` runs SUMO inside the Python process through libsumo instead of over a TraCI socket. Results are identical: the `high` deep MARL evaluation row and two attention-PPO training episodes on medium matched TraCI value for value. It took 21 s instead of 55 s for those two episodes and 26 s instead of 63 s for the evaluation. libsumo has no GUI, so `--gui` refuses it.
+
+```powershell
+$env:SKOPJE_LIBSUMO=1; $env:OMP_NUM_THREADS=1; $env:MKL_NUM_THREADS=1
+```
+
+It applies to everything built on `MultiAgentTrafficEnvironment` (deep MARL, attention PPO, the imported actuated baseline); the static fixed-time runner keeps TraCI. The SUMO Python packages are pinned to the installed SUMO version (1.27.1) in `requirements.txt`. On Windows libsumo bundles a newer `sqlite3.dll` than Python, so `src/__init__.py` imports it first when the switch is on.
+
 ## Tests
 
 ```powershell

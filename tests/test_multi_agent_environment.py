@@ -687,3 +687,19 @@ def test_constructing_environment_does_not_start_sumo() -> None:
 
     assert traci.start_commands == []
     assert environment.is_running is False
+
+
+def test_libsumo_switch_selects_the_module(monkeypatch: pytest.MonkeyPatch) -> None:
+    loaded: list[str] = []
+    monkeypatch.setattr(environment_module.importlib, "import_module", lambda name: loaded.append(name) or name)
+    monkeypatch.setenv("SKOPJE_LIBSUMO", "1")
+    assert environment_module._load_traci() == "libsumo"
+    monkeypatch.delenv("SKOPJE_LIBSUMO")
+    assert environment_module._load_traci() == "traci"
+    assert loaded == ["libsumo", "traci"]
+
+
+def test_libsumo_switch_refuses_the_gui(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SKOPJE_LIBSUMO", "1")
+    with pytest.raises(RuntimeError, match="no GUI"):
+        environment_module._load_traci(use_gui=True)
