@@ -82,6 +82,14 @@ been blocked for 300 s, which removes it from the queue and slightly flatters
 waiting time and queue length. Teleport count and vehicles left must therefore
 be reported next to every peak result.
 
+Most teleports happen outside the selected agents. With seed 42, only 4 of 58
+(static fixed-time) and 4 of 45 (imported actuated) are on an agent's incoming
+lanes. Most of the rest are jams on Bulevar Vodnjanska, heading away from A20
+toward Vodno, and peak between 2400 s and 3000 s. That matches the real
+morning congestion that CUKS reports toward Vodnjanska, but no corridor
+controller can remove it. Compare controllers on the agents' approaches as
+well as network-wide.
+
 The profile is stored as `departure_profile` on the scenario and recorded in
 the generated metadata. Scenarios without a profile keep the original even
 schedule, and their generated files are byte-identical to before.
