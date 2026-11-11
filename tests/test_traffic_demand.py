@@ -30,6 +30,7 @@ from src.demand.scenarios import (
     MEDIUM,
     PEAK,
     SCENARIOS,
+    STRESS,
     TrafficDemandScenario,
     get_scenario,
 )
@@ -163,7 +164,7 @@ def _file_hashes(paths: tuple[Path, ...]) -> dict[Path, str]:
 
 
 def test_canonical_scenario_names_values_and_order() -> None:
-    assert tuple(SCENARIOS) == ("low", "medium", "high", "peak")
+    assert tuple(SCENARIOS) == ("low", "medium", "high", "peak", "stress")
     assert get_scenario("LOW") is LOW
     assert LOW.total_vehicle_count == 900
     assert LOW.corridor_trip_share == 0.70
@@ -174,12 +175,14 @@ def test_canonical_scenario_names_values_and_order() -> None:
     assert HIGH.total_vehicle_count == 3000
     assert HIGH.corridor_trip_share == 0.85
     assert HIGH.minimum_selected_agents_crossed == 2
-    assert PEAK.total_vehicle_count == 4000
+    assert PEAK.total_vehicle_count == 4600
+    assert PEAK.rerouting_probability == 0.5
     assert PEAK.corridor_trip_share == 0.88
     assert PEAK.minimum_selected_agents_crossed == 2
     assert PEAK.departure_profile == (0.22, 0.27, 0.30, 0.21)
     assert dict(PEAK.street_weights) == {
         "Булевар Партизански одреди": 8.0,
+        "Илинден": 8.0,
         "Булевар Водњанска": 0.05,
     }
     for scenario in (LOW, MEDIUM, HIGH):
@@ -205,6 +208,7 @@ def test_canonical_scenario_names_values_and_order() -> None:
         ("vehicle_type", "bus", "passenger"),
         ("departure_profile", (), "departure_profile"),
         ("street_weights", (("main", 0.0),), "street_weights"),
+        ("rerouting_probability", 1.5, "rerouting_probability"),
         ("departure_profile", (1.0, 0.0), "departure_profile"),
     ),
 )
@@ -223,7 +227,9 @@ def test_low_medium_high_vehicle_counts_increase() -> None:
         < MEDIUM.total_vehicle_count
         < HIGH.total_vehicle_count
         < PEAK.total_vehicle_count
+        < STRESS.total_vehicle_count
     )
+    assert STRESS == replace(PEAK, name="stress", total_vehicle_count=5400)
 
 
 def test_profile_departure_time_follows_cumulative_share() -> None:
@@ -280,6 +286,18 @@ def test_street_acceptance_favours_and_avoids_streets() -> None:
     assert accept("x", "x") == 0.25
     assert accept("v", "x") == 0.125
     assert accept("p", "v") == 0.5
+
+
+def test_street_acceptance_counts_one_favoured_street() -> None:
+    network = _NamedNetwork({"p": "main", "i": "second", "x": "other"})
+    weights = (("main", 8.0), ("second", 8.0))
+
+    def accept(*edge_ids: str) -> float:
+        route = RouteCandidate(edge_ids[0], edge_ids[-1], edge_ids, 1.0, ())
+        return street_acceptance(network, route, weights)
+
+    assert accept("p", "x") == accept("i", "x") == accept("p", "i") == 1.0
+    assert accept("x", "x") == 0.125
 
 
 def test_corridor_background_split_calculation() -> None:
@@ -383,6 +401,21 @@ def test_different_seeds_produce_different_trip_xml(tmp_path: Path) -> None:
     )
 
     assert first_file.read_bytes() != second_file.read_bytes()
+
+
+def test_rerouting_probability_is_written_only_when_set(tmp_path: Path) -> None:
+    network = tmp_path / "net.xml"
+    routes = tmp_path / "routes.rou.xml"
+    network.write_text("<net/>", encoding="utf-8")
+    routes.write_text("<routes/>", encoding="utf-8")
+    for probability in (0.0, 0.5):
+        config = tmp_path / f"p{probability}.sumocfg"
+        write_scenario_configuration(
+            config, replace(_scenario(), rerouting_probability=probability), network, routes,
+            view_file=None,
+        )
+        option = ET.parse(config).getroot().find("routing/device.rerouting.probability")
+        assert (option is None) if probability == 0.0 else (option.get("value") == "0.5")
 
 
 def test_generated_configuration_uses_relative_valid_paths(tmp_path: Path) -> None:

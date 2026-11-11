@@ -26,7 +26,7 @@ CONTROLLERS = [
     "marl_neighbor_reward",
     "marl_global_reward",
 ]
-SCENARIOS = ["low", "medium", "high", "peak"]
+SCENARIOS = ["low", "medium", "high", "peak", "stress"]
 SEEDS = ["42", "43", "44"]
 FULL_LENGTH_THRESHOLD = 4000  # seconds; ~3600s demand + 600s cooldown = "full" run
 

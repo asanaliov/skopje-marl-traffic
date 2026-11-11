@@ -163,7 +163,9 @@ def _validate_route_file(
     edges_by_id = {
         str(edge.getID()): edge for edge in passenger_compatible_edges(network)
     }
-    edge_to_agents = build_edge_to_agents(load_selected_incoming_edges())
+    edge_to_agents = build_edge_to_agents(
+        load_selected_incoming_edges(extra_agent_ids=scenario.extra_corridor_agents)
+    )
     corridor_count = 0
     route_lengths: list[float] = []
     crossing_distribution: Counter[int] = Counter()
@@ -524,6 +526,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 vehicle_type=canonical.vehicle_type,
                 departure_profile=canonical.departure_profile,
                 street_weights=canonical.street_weights,
+                rerouting_probability=canonical.rerouting_probability,
+                extra_corridor_agents=canonical.extra_corridor_agents,
             )
             outputs = scenario_output_files(name, args.seed)
             static_result = validate_static_scenario(scenario, outputs, network)

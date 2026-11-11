@@ -284,6 +284,12 @@ def write_scenario_configuration(
     routing = ET.SubElement(root, "routing")
     ET.SubElement(routing, "device.rerouting.adaptation-steps", {"value": "18"})
     ET.SubElement(routing, "device.rerouting.adaptation-interval", {"value": "10"})
+    if scenario.rerouting_probability:
+        ET.SubElement(
+            routing,
+            "device.rerouting.probability",
+            {"value": _format_decimal(scenario.rerouting_probability)},
+        )
 
     report = ET.SubElement(root, "report")
     ET.SubElement(report, "verbose", {"value": "true"})
@@ -370,6 +376,10 @@ def build_generation_metadata(
         metadata["departure_profile"] = list(scenario.departure_profile)
     if scenario.street_weights:
         metadata["street_weights"] = dict(scenario.street_weights)
+    if scenario.rerouting_probability:
+        metadata["rerouting_probability"] = scenario.rerouting_probability
+    if scenario.extra_corridor_agents:
+        metadata["extra_corridor_agents"] = list(scenario.extra_corridor_agents)
     return metadata
 
 

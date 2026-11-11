@@ -15,6 +15,7 @@
     <routing>
         <device.rerouting.adaptation-steps value="18" />
         <device.rerouting.adaptation-interval value="10" />
+        <device.rerouting.probability value="0.5" />
     </routing>
     <report>
         <verbose value="true" />

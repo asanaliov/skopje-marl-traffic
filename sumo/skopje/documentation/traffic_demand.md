@@ -4,7 +4,7 @@
 
 The project uses synthetic passenger demand so fixed-program and future learning controllers can eventually be compared under repeatable load levels.
 No official, measured, or calibrated Skopje traffic-count dataset is claimed or included.
-The scenario names low, medium, and high describe experimental load levels only.
+The scenario names low, medium, high, peak, and stress describe experimental load levels only.
 They are not measured real-world Skopje traffic categories.
 
 Every scenario uses the complete unchanged Skopje network and its original SUMO traffic-light programs.
@@ -13,97 +13,153 @@ Most generated trips traverse this corridor, while background trips preserve act
 
 ## Canonical scenarios
 
-| Scenario | Duration | Vehicles | Corridor share | Minimum selected agents crossed |
-| --- | ---: | ---: | ---: | ---: |
-| Low | 3600 s | 900 | 70% | 1 |
-| Medium | 3600 s | 1800 | 80% | 2 |
-| High | 3600 s | 3000 | 85% | 2 |
-| Peak | 3600 s | 3300 | 88% | 2 |
+| Scenario | Duration | Vehicles | Corridor share | Minimum selected agents crossed | Departures | Rerouting |
+| --- | ---: | ---: | ---: | ---: | --- | ---: |
+| Low | 3600 s | 900 | 70% | 1 | even | 0 |
+| Medium | 3600 s | 1800 | 80% | 2 | even | 0 |
+| High | 3600 s | 3000 | 85% | 2 | even | 0 |
+| Peak | 3600 s | 4600 | 88% | 2 | rush-hour profile | 50% |
+| Stress | 3600 s | 5400 | 88% | 2 | rush-hour profile | 50% |
 
 All canonical scenarios use passenger vehicles, a minimum planned route length of 300 m, and seed 42.
-The requested values proved usable in real duarouter and SUMO validation, so no vehicle count or share was adjusted.
 
 The exact planned splits are:
 
 - Low: 630 corridor trips and 270 background trips.
 - Medium: 1,440 corridor trips and 360 background trips.
 - High: 2,550 corridor trips and 450 background trips.
-- Peak: 2,904 corridor trips and 396 background trips.
+- Peak: 4,048 corridor trips and 552 background trips.
+- Stress: 4,752 corridor trips and 648 background trips.
 
-Low, medium, and high spread departures evenly across the hour.
-Peak uses a rush-hour departure profile instead; see the next section.
+Low, medium and high spread departures evenly across the hour and keep every
+vehicle on its pre-computed route. Peak and stress are described below.
 
 ## Peak scenario: weekday rush hour
 
-The peak scenario represents a weekday morning or afternoon rush hour on the
-corridor (Partizanski Odredi, Sv. Kliment Ohridski, 8-mi Septemvri, Vasil
-Glavinov). It is still synthetic: it is shaped by published facts about Skopje
-peak traffic, not calibrated to measured counts on these intersections.
+Peak represents a weekday morning or afternoon rush hour on the corridor. It is
+synthetic: shaped by published facts about Skopje peak traffic and by on-site
+knowledge of the corridor, not calibrated to measured counts. It was tuned on
+the `real_signals` network, the one the deep MARL controllers are trained on.
 
-What it changes compared with high:
+Compared with high:
 
-- **Volume:** 3,300 vehicles in the hour, 1.1 times high.
-- **Corridor focus:** 88% of trips cross at least two selected agents, because
-  rush-hour commuting concentrates on the central boulevards.
-- **Time profile:** departures are not uniform. The hour is split into four
-  quarter-hours that receive 22%, 27%, 30%, and 21% of departures. The busiest
-  quarter therefore runs at the equivalent of 3,960 vehicles per hour, 1.32
-  times the uniform high rate. The peak hour factor is 1 / (4 × 0.30) ≈ 0.83,
-  a sharper peak than the HCM default of 0.92 for urban streets, which suits a
-  corridor that is congested every working day.
+- **Volume:** 4,600 vehicles in the hour, 1.5 times high.
+- **Corridor focus:** 88% of trips cross at least two selected agents. A21,
+  an agent only on `real_signals`, also counts (`extra_corridor_agents`), so
+  demand loads it on both networks.
+- **Time profile:** the hour is split into quarter-hours that receive 22%, 27%,
+  30% and 21% of departures (`departure_profile`). The busiest quarter runs at
+  the equivalent of 5,520 vehicles per hour. The peak hour factor is
+  1 / (4 × 0.30) ≈ 0.83, sharper than the HCM urban default of 0.92.
+- **Street weights:** corridor routes are steered onto Bulevar Partizanski
+  odredi (mostly 3 lanes per direction) and Ilinden (which loads A21), weight 8
+  each, and away from Bulevar Vodnjanska (mostly 2), weight 0.05
+  (`street_weights`). A route is favoured if it uses any favoured street; each
+  avoided street multiplies in. In the planned routes 77% of trips use
+  Partizanski, 16% Ilinden and 5% Vodnjanska.
+- **Rerouting:** half of the vehicles pick the fastest route under current
+  traffic when they depart (`rerouting_probability`, written into the SUMO
+  config as `device.rerouting.probability`). Commuters in a daily rush hour
+  adapt their routes to congestion through experience and navigation apps;
+  fixed shortest-path routes overload single streets. 50% worked better than
+  100%, where every driver switches to the same alternative at once.
 
 ### Choosing the volume
 
-The volume was chosen by testing the two baselines over the full hour plus the
-600-second cooldown, not by matching real counts:
+Imported actuated control on `real_signals`, seeds 42–44, full hour plus the
+600 s cooldown; teleports and vehicles still running at the end, averaged.
+First sweep, with Partizanski and Vodnjanska weighted only:
 
-| Vehicles | Static fixed-time (seed 42) | Imported actuated (seed 42) |
+| Vehicles | No rerouting | 50% rerouting |
 | ---: | --- | --- |
-| 4,200 | 321 teleports, 1,735 vehicles left | 421 teleports, 1,710 vehicles left |
-| 3,600 | 130 teleports, 952 vehicles left | 131 teleports, 441 vehicles left |
-| 3,300 | 58 teleports, 203 vehicles left | 45 teleports, 142 vehicles left |
+| 3,400 | 2 / 5 (0.1%) | 1 / 2 (0.1%) |
+| 3,800 | 31 / 99 (2.6%) | 5 / 3 (0.1%) |
+| 4,200 | 148 / 791 (19%) | 13 / 53 (1.3%) |
+| 4,600 | 195 / 1,108 (24%) | 16 / 78 (1.7%) |
+| 5,000 | 499 / 1,922 (38%) | 53 / 338 (6.8%) |
+| 5,400 | 672 / 2,342 (43%) | 122 / 762 (14%) |
 
-At 4,200 every controller gridlocks, so the scenario stops measuring control
-quality. At 3,300 the network is oversaturated during the busiest quarter but
-recovers, and the two baselines separate clearly:
+Without rerouting the network gridlocks just above 3,800. Adding Ilinden and
+A21 to the route mix sends more traffic into A19 from the north and lowers the
+limit slightly (50% rerouting):
 
-| Controller | Seed | Avg. waiting (s) | Avg. queue | Max queue | Throughput | Teleports | Left |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Static fixed-time | 42 | 16.72 | 44.48 | 112 | 3,097 | 58 | 203 |
-| Static fixed-time | 43 | 17.01 | 44.86 | 104 | 3,118 | 42 | 182 |
-| Static fixed-time | 44 | 17.64 | 44.49 | 110 | 3,082 | 55 | 218 |
-| Imported actuated | 42 | 11.50 | 17.37 | 74 | 3,158 | 45 | 142 |
-| Imported actuated | 43 | 10.79 | 14.89 | 62 | 3,256 | 38 | 44 |
-| Imported actuated | 44 | 10.49 | 16.03 | 57 | 3,284 | 31 | 16 |
+| Vehicles | Teleports / left | Per seed |
+| ---: | --- | --- |
+| **4,600** | **8 / 20 (0.4%)** | 8/14, 6/24, 10/22 |
+| 4,800 | 36 / 191 (4.0%) | 74/394, 21/91, 14/88 |
+| 5,000 | 23 / 171 (3.4%) | 31/293, 21/109, 16/111 |
 
-Unlike low, medium, and high, peak is not teleport-free: about 1–2% of vehicles
-are teleported even under actuated control. SUMO teleports a vehicle that has
-been blocked for 300 s, which removes it from the queue and slightly flatters
-waiting time and queue length. Teleport count and vehicles left must therefore
-be reported next to every peak result.
+4,600 is the highest volume at which every seed clears. At 4,800 and above a
+run can tip into gridlock by chance (seed 42), which would make controller
+comparisons depend on the seed rather than on control. Corridor share 95%, a
+flatter departure profile, mid-trip rerouting and milder street weights were
+also tried and did not raise the limit.
 
-Most teleports happen outside the selected agents. With seed 42, only 4 of 58
-(static fixed-time) and 4 of 45 (imported actuated) are on an agent's incoming
-lanes. Most of the rest are jams on Bulevar Vodnjanska, heading away from A20
-toward Vodno, and peak between 2400 s and 3000 s. That matches the real
-morning congestion that CUKS reports toward Vodnjanska, but no corridor
-controller can remove it. Compare controllers on the agents' approaches as
-well as network-wide.
+Baselines at 4,600 on `real_signals`:
 
-The profile is stored as `departure_profile` on the scenario and recorded in
-the generated metadata. Scenarios without a profile keep the original even
-schedule, and their generated files are byte-identical to before.
+| Controller | Seed | Avg. waiting (s) | Avg. queue | Throughput | Teleports | Left |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Static fixed-time | 42 | 20.58 | 63.71 | 4,349 | 35 | 249 |
+| Static fixed-time | 43 | 22.03 | 64.32 | 4,318 | 49 | 273 |
+| Static fixed-time | 44 | 25.66 | 63.16 | 4,199 | 98 | 394 |
+| Imported actuated | 42 | 11.57 | 30.12 | 4,586 | 8 | 14 |
+| Imported actuated | 43 | 11.96 | 29.99 | 4,576 | 6 | 24 |
+| Imported actuated | 44 | 11.99 | 29.48 | 4,578 | 10 | 22 |
+
+Actuated clears on every seed; static fixed-time is at its limit (5–9% of
+vehicles still running at the end).
+
+Peak is not teleport-free: SUMO teleports a vehicle blocked for 300 s, which
+slightly flatters waiting time, so teleports and vehicles left must be reported
+next to every peak result.
+
+### Caveats
+
+- **Vodnjanska is under-loaded on purpose.** CUKS morning reports regularly
+  list Kliment Ohridski and Kiril i Metodij as congested toward Vodnjanska, so
+  the real street is busy at peak. Cutting its share moves load onto
+  Partizanski, which the agents control, and lifts the network's capacity.
+  This is a modelling choice, not a measurement.
+- **Rerouting is an assumption about driver behaviour**, not measured; 50% is
+  the share that gave the highest clean volume.
+- **Agent load is uneven.** Planned vehicles per agent on `real_signals`: A19
+  2,372, A26 1,936, A18 1,923, A25 1,361, A9 744, A24 687, A21 392, A20 335.
+  A21 and A20 stay light: through traffic on Ilinden crosses only A21 and does
+  not qualify as a corridor trip, and Vodnjanska (A20) is avoided on purpose.
+- The peak-hour bus lane on Partizanski is not modelled; on site, cars use it.
+
+## Stress scenario: past capacity
+
+Stress is peak with 5,400 vehicles, past what the network clears in the
+cooldown. It tests how controllers degrade, not which one is best: at this
+volume about 70% of teleports happen on streets no agent controls, while
+soboren (A19) itself starts to gridlock. Report teleports at the agents
+separately from the rest.
+
+Baselines on `real_signals`:
+
+| Controller | Seed | Avg. waiting (s) | Avg. queue | Throughput | Teleports | Left |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Static fixed-time | 42 | 26.08 | 73.84 | 4,815 | 87 | 582 |
+| Static fixed-time | 43 | 26.15 | 74.93 | 4,781 | 85 | 612 |
+| Static fixed-time | 44 | 33.47 | 82.92 | 4,340 | 182 | 1032 |
+| Imported actuated | 42 | 15.48 | 49.82 | 5,111 | 25 | 287 |
+| Imported actuated | 43 | 23.67 | 51.23 | 4,580 | 148 | 812 |
+| Imported actuated | 44 | 14.11 | 43.17 | 5,302 | 14 | 98 |
+
+Seed-to-seed spread is large here (actuated: 98 to 812 vehicles left), as
+expected past capacity; use more seeds before drawing conclusions from stress.
 
 ### Evidence used
 
 - Measured peak flows at central Skopje intersections are far above what this
   simulated network can carry. Loop-detector counts from the city's Traffic
-  Management Control Centre for 2017, on seven signalised intersections around
-  Kuzman Josifovski Pitu boulevard (the east entry to the centre, beside the
-  railway and bus station), give 1,477 to 5,110 vehicles per hour in the
-  07:20–08:20 morning peak, 3,175 on average. The peak scenario puts about 960
-  vehicles per hour through each selected agent on average and about 2,200
-  through the busiest (A26). That corridor is not in this network, so the
+  Management Control Centre for 2017, on seven signalised intersections on a
+  congested corridor in the wider centre (the paper does not name the
+  streets), give 1,477 to 5,110 vehicles per hour in the 07:20–08:20 morning
+  peak, 3,175 on average. The peak scenario plans about 1,220 vehicles per hour
+  through each selected agent on average and about 2,370 through the busiest
+  (A19). Those intersections are not these agents, so the
   counts are a scale reference, not a calibration target. They do show that
   the synthetic scenarios are conservative and that the imported network
   saturates at a fraction of real capacity, most likely because of imported

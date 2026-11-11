@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import MappingProxyType
 
 
@@ -21,10 +21,18 @@ class TrafficDemandScenario:
     each interval a relative departure weight. The default single weight
     spreads departures evenly across the whole duration.
 
-    ``street_weights`` biases corridor routes by street name. A route's weight
-    is the product of the weights of the listed streets it uses; it is kept
-    with probability weight / (product of all weights above 1), so streets
-    above 1 are favoured and streets below 1 are avoided.
+    ``street_weights`` biases corridor routes by street name. A route is kept
+    with probability (highest weight above 1 among its streets, or 1) times
+    (product of its weights below 1), divided by the highest weight listed: it is
+    favoured if it uses any favoured street and avoided per avoided street.
+
+    ``rerouting_probability`` is the share of vehicles that pick the fastest
+    route under current traffic when they depart, written into the scenario's
+    SUMO config. 0 keeps every vehicle on its pre-computed route.
+
+    ``extra_corridor_agents`` are traffic lights that count as selected agents
+    when deciding which trips are corridor trips, e.g. A21, an agent only on the
+    real_signals network, so demand also loads it.
     """
 
     name: str
@@ -37,6 +45,8 @@ class TrafficDemandScenario:
     vehicle_type: str
     departure_profile: tuple[float, ...] = (1.0,)
     street_weights: tuple[tuple[str, float], ...] = ()
+    rerouting_probability: float = 0.0
+    extra_corridor_agents: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         """Reject invalid scenario values when a definition is constructed."""
@@ -75,6 +85,10 @@ def validate_scenario(scenario: TrafficDemandScenario) -> None:
         raise ValueError("Scenario departure_profile weights must be greater than zero.")
     if any(weight <= 0 for _, weight in scenario.street_weights):
         raise ValueError("Scenario street_weights must be greater than zero.")
+    if not 0.0 <= scenario.rerouting_probability <= 1.0:
+        raise ValueError("Scenario rerouting_probability must be between 0 and 1.")
+    if any(not re.fullmatch(r"A\d+", agent_id) for agent_id in scenario.extra_corridor_agents):
+        raise ValueError("Scenario extra_corridor_agents must be agent ids like 'A21'.")
     if scenario.vehicle_type != "passenger":
         raise ValueError(
             "Traffic-demand scenarios currently support only vehicle_type='passenger'."
@@ -118,13 +132,15 @@ HIGH = TrafficDemandScenario(
 # quarter-hour shares of the hour's departures (22/27/30/21 %), which gives a
 # peak hour factor of 1 / (4 * 0.30) ~= 0.83, a sharper peak than the HCM
 # urban default of 0.92. Corridor routes are steered onto Partizanski odredi
-# (3 lanes per direction) and away from Vodnjanska (mostly 2), which lifts the
-# volume the network carries before gridlock from 3,300 to 4,000. See
-# traffic_demand.md for the rationale, the tuning runs and the caveats.
+# (3 lanes per direction) and Ilinden (loads A21) and away from Vodnjanska
+# (mostly 2), A21 counts toward the corridor rule, and half of the drivers
+# reroute around congestion when they depart. 4,600 is the highest volume at
+# which every seed clears on the real_signals network. See traffic_demand.md
+# for the rationale, the tuning runs and the caveats.
 PEAK = TrafficDemandScenario(
     name="peak",
     duration_seconds=3600,
-    total_vehicle_count=4000,
+    total_vehicle_count=4600,
     corridor_trip_share=0.88,
     minimum_selected_agents_crossed=2,
     minimum_route_length_m=300.0,
@@ -133,9 +149,18 @@ PEAK = TrafficDemandScenario(
     departure_profile=(0.22, 0.27, 0.30, 0.21),
     street_weights=(
         ("Булевар Партизански одреди", 8.0),
+        ("Илинден", 8.0),
         ("Булевар Водњанска", 0.05),
     ),
+    rerouting_probability=0.5,
+    extra_corridor_agents=("A21",),
 )
+
+# Peak pushed past what the network clears in the cooldown (5,000+ on the
+# real_signals network): soboren itself gridlocks, but most breakdowns are on
+# streets no agent controls. A robustness test, not the main benchmark; report
+# teleports at the agents separately from the rest.
+STRESS = replace(PEAK, name="stress", total_vehicle_count=5400)
 
 
 SCENARIOS = MappingProxyType(
@@ -146,6 +171,7 @@ SCENARIOS = MappingProxyType(
             MEDIUM,
             HIGH,
             PEAK,
+            STRESS,
         )
     }
 )
@@ -168,6 +194,7 @@ __all__ = [
     "LOW",
     "MEDIUM",
     "PEAK",
+    "STRESS",
     "SCENARIOS",
     "TrafficDemandScenario",
     "get_scenario",
