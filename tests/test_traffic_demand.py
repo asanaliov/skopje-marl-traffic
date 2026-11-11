@@ -245,7 +245,7 @@ def test_uniform_profile_keeps_original_even_schedule() -> None:
     scenario = _scenario(total_vehicle_count=3)
     rng = random.Random(7)
     trips = schedule_trips(scenario, _assignments(), random.Random(7))
-    rng.shuffle(list(_assignments()))
+    rng.shuffle(list(_assignments()))  # replay the shuffle schedule_trips does first
     expected = [(index + rng.random()) * 60 / 3 for index in range(3)]
     assert [trip.departure_time for trip in trips] == expected
 
