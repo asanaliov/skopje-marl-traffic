@@ -334,6 +334,23 @@ def _crossing_occurs_inside_route(
     )
 
 
+def street_acceptance(
+    network: Any,
+    route: RouteCandidate,
+    street_weights: Sequence[tuple[str, float]],
+) -> float:
+    """Probability of keeping a route under the scenario's street weights."""
+    streets = {network.getEdge(edge_id).getName() for edge_id in route.edge_ids}
+    weight = 1.0
+    maximum = 1.0
+    for street, street_weight in street_weights:
+        if street in streets:
+            weight *= street_weight
+        if street_weight > 1.0:
+            maximum *= street_weight
+    return weight / maximum
+
+
 def _generate_corridor_assignments(
     network: Any,
     scenario: TrafficDemandScenario,
@@ -378,6 +395,12 @@ def _generate_corridor_assignments(
             rejected_attempts += 1
             continue
         if not _crossing_occurs_inside_route(route, edge_to_agents):
+            rejected_attempts += 1
+            continue
+        # only draw when weighted, so unweighted scenarios keep their rng stream
+        if scenario.street_weights and rng.random() > street_acceptance(
+            network, route, scenario.street_weights
+        ):
             rejected_attempts += 1
             continue
         used_pairs.add(pair)
@@ -525,4 +548,5 @@ __all__ = [
     "load_sumo_network",
     "passenger_compatible_edges",
     "selected_agents_crossed",
+    "street_acceptance",
 ]

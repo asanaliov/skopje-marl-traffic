@@ -20,6 +20,11 @@ class TrafficDemandScenario:
     ``departure_profile`` splits the duration into equal intervals and gives
     each interval a relative departure weight. The default single weight
     spreads departures evenly across the whole duration.
+
+    ``street_weights`` biases corridor routes by street name. A route's weight
+    is the product of the weights of the listed streets it uses; it is kept
+    with probability weight / (product of all weights above 1), so streets
+    above 1 are favoured and streets below 1 are avoided.
     """
 
     name: str
@@ -31,6 +36,7 @@ class TrafficDemandScenario:
     seed: int
     vehicle_type: str
     departure_profile: tuple[float, ...] = (1.0,)
+    street_weights: tuple[tuple[str, float], ...] = ()
 
     def __post_init__(self) -> None:
         """Reject invalid scenario values when a definition is constructed."""
@@ -67,6 +73,8 @@ def validate_scenario(scenario: TrafficDemandScenario) -> None:
         raise ValueError("Scenario departure_profile must contain at least one weight.")
     if any(weight <= 0 for weight in scenario.departure_profile):
         raise ValueError("Scenario departure_profile weights must be greater than zero.")
+    if any(weight <= 0 for _, weight in scenario.street_weights):
+        raise ValueError("Scenario street_weights must be greater than zero.")
     if scenario.vehicle_type != "passenger":
         raise ValueError(
             "Traffic-demand scenarios currently support only vehicle_type='passenger'."
@@ -109,17 +117,24 @@ HIGH = TrafficDemandScenario(
 # Weekday rush hour on the central boulevards. The four weights are the
 # quarter-hour shares of the hour's departures (22/27/30/21 %), which gives a
 # peak hour factor of 1 / (4 * 0.30) ~= 0.83, a sharper peak than the HCM
-# urban default of 0.92. See traffic_demand.md for the rationale and sources.
+# urban default of 0.92. Corridor routes are steered onto Partizanski odredi
+# (3 lanes per direction) and away from Vodnjanska (mostly 2), which lifts the
+# volume the network carries before gridlock from 3,300 to 4,000. See
+# traffic_demand.md for the rationale, the tuning runs and the caveats.
 PEAK = TrafficDemandScenario(
     name="peak",
     duration_seconds=3600,
-    total_vehicle_count=3300,
+    total_vehicle_count=4000,
     corridor_trip_share=0.88,
     minimum_selected_agents_crossed=2,
     minimum_route_length_m=300.0,
     seed=42,
     vehicle_type="passenger",
     departure_profile=(0.22, 0.27, 0.30, 0.21),
+    street_weights=(
+        ("Булевар Партизански одреди", 8.0),
+        ("Булевар Водњанска", 0.05),
+    ),
 )
 
 

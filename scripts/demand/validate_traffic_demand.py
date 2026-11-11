@@ -523,6 +523,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 seed=args.seed,
                 vehicle_type=canonical.vehicle_type,
                 departure_profile=canonical.departure_profile,
+                street_weights=canonical.street_weights,
             )
             outputs = scenario_output_files(name, args.seed)
             static_result = validate_static_scenario(scenario, outputs, network)

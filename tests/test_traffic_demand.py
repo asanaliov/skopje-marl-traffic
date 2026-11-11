@@ -22,6 +22,7 @@ from src.demand.network_routes import (
     find_valid_shortest_route,
     passenger_compatible_edges,
     selected_agents_crossed,
+    street_acceptance,
 )
 from src.demand.scenarios import (
     HIGH,
@@ -173,10 +174,14 @@ def test_canonical_scenario_names_values_and_order() -> None:
     assert HIGH.total_vehicle_count == 3000
     assert HIGH.corridor_trip_share == 0.85
     assert HIGH.minimum_selected_agents_crossed == 2
-    assert PEAK.total_vehicle_count == 3300
+    assert PEAK.total_vehicle_count == 4000
     assert PEAK.corridor_trip_share == 0.88
     assert PEAK.minimum_selected_agents_crossed == 2
     assert PEAK.departure_profile == (0.22, 0.27, 0.30, 0.21)
+    assert dict(PEAK.street_weights) == {
+        "Булевар Партизански одреди": 8.0,
+        "Булевар Водњанска": 0.05,
+    }
     for scenario in (LOW, MEDIUM, HIGH):
         assert scenario.departure_profile == (1.0,)
     for scenario in SCENARIOS.values():
@@ -199,6 +204,7 @@ def test_canonical_scenario_names_values_and_order() -> None:
         ("seed", -1, "seed"),
         ("vehicle_type", "bus", "passenger"),
         ("departure_profile", (), "departure_profile"),
+        ("street_weights", (("main", 0.0),), "street_weights"),
         ("departure_profile", (1.0, 0.0), "departure_profile"),
     ),
 )
@@ -248,6 +254,32 @@ def test_uniform_profile_keeps_original_even_schedule() -> None:
     rng.shuffle(list(_assignments()))  # replay the shuffle schedule_trips does first
     expected = [(index + rng.random()) * 60 / 3 for index in range(3)]
     assert [trip.departure_time for trip in trips] == expected
+
+
+class _NamedNetwork:
+    def __init__(self, names: dict[str, str]) -> None:
+        self.names = names
+
+    def getEdge(self, edge_id: str) -> "_NamedNetwork":
+        self.current = self.names[edge_id]
+        return self
+
+    def getName(self) -> str:
+        return self.current
+
+
+def test_street_acceptance_favours_and_avoids_streets() -> None:
+    network = _NamedNetwork({"p": "main", "v": "narrow", "x": "other"})
+    weights = (("main", 4.0), ("narrow", 0.5))
+
+    def accept(*edge_ids: str) -> float:
+        route = RouteCandidate(edge_ids[0], edge_ids[-1], edge_ids, 1.0, ())
+        return street_acceptance(network, route, weights)
+
+    assert accept("p", "x") == 1.0
+    assert accept("x", "x") == 0.25
+    assert accept("v", "x") == 0.125
+    assert accept("p", "v") == 0.5
 
 
 def test_corridor_background_split_calculation() -> None:

@@ -368,6 +368,8 @@ def build_generation_metadata(
     }
     if len(scenario.departure_profile) > 1:
         metadata["departure_profile"] = list(scenario.departure_profile)
+    if scenario.street_weights:
+        metadata["street_weights"] = dict(scenario.street_weights)
     return metadata
 
 
