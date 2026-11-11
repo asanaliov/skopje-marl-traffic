@@ -25,6 +25,7 @@ Every other traffic light retains its original SUMO traffic-light program.
 
 These mappings come from `traffic_light_audit.csv` and are validated against the complete SUMO network.
 Local names are display-only (`AGENT_DISPLAY_NAMES` in `src/environment/selected_corridor.py`); the agent ids stay the keys in checkpoints, results and audits.
+A21 (vlada-centar, Kliment Ohridski x Ilinden) is an agent only on the real_signals network.
 
 ## Neighbor adjacency
 
