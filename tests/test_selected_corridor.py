@@ -252,3 +252,14 @@ def test_nearest_neighbor_ids_rejects_invalid_arguments() -> None:
         nearest_neighbor_ids(SELECTED_CORRIDOR, "NOPE")
     with pytest.raises(ValueError, match="limit must be"):
         nearest_neighbor_ids(SELECTED_CORRIDOR, "A19", limit=-1)
+
+
+def test_display_names_use_known_agents_and_fall_back_to_id() -> None:
+    from src.environment.selected_corridor import AGENT_DISPLAY_NAMES, display_name
+
+    # a21 is an agent only on the real_signals network
+    assert set(AGENT_DISPLAY_NAMES) <= set(EXPECTED_AGENT_IDS) | {"A21"}
+    assert display_name("A21") == "A21 vlada-centar"
+    assert display_name("A19") == "A19 soboren"
+    assert display_name("A20") == "A20 european university"
+    assert display_name("A29") == "A29"

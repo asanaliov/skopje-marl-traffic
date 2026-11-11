@@ -26,6 +26,19 @@ from src.environment.corridor_candidates import (
 
 _EXPECTED_CANDIDATE_ID = "1"
 _EXPECTED_AGENT_IDS = ("A9", "A18", "A19", "A20", "A24", "A25", "A26", "A29")
+# local names for plots, gui labels and the report; ids stay the keys everywhere
+AGENT_DISPLAY_NAMES = MappingProxyType(
+    {
+        "A9": "d cupovski",
+        "A18": "hram-posta",
+        "A19": "soboren",
+        "A20": "european university",
+        "A21": "vlada-centar",
+        "A24": "finki-makpetrol",
+        "A25": "ruzvelt",
+        "A26": "kuzman",
+    }
+)
 _AUDIT_FILE = SKOPJE_AUDIT_FILE
 _NEIGHBORS_FILE = SKOPJE_DIR / "documentation" / "traffic_light_neighbors.csv"
 
@@ -700,10 +713,18 @@ def _build_selected_corridor() -> SelectedCorridor:
 SELECTED_CORRIDOR = _build_selected_corridor()
 
 
+def display_name(agent_id: str) -> str:
+    """Agent id with its local name, e.g. 'A19 soboren'; the bare id if unnamed."""
+    name = AGENT_DISPLAY_NAMES.get(agent_id)
+    return f"{agent_id} {name}" if name else agent_id
+
+
 __all__ = [
+    "AGENT_DISPLAY_NAMES",
     "SELECTED_CORRIDOR",
     "SelectedCorridor",
     "controlled_lane_counts_by_agent",
+    "display_name",
     "is_connected",
     "junction_node_ids_by_agent",
     "nearest_neighbor_ids",
