@@ -114,13 +114,17 @@ def passenger_compatible_edges(network: Any) -> tuple[Any, ...]:
 def load_selected_incoming_edges(
     corridor: SelectedCorridor = SELECTED_CORRIDOR,
     audit_file: Path = TRAFFIC_LIGHT_AUDIT_FILE,
+    extra_agent_ids: Sequence[str] = (),
 ) -> Mapping[str, tuple[str, ...]]:
-    """Load selected controlled incoming edges from the existing audit CSV."""
+    """Load controlled incoming edges of the corridor agents plus any extra agents."""
     required_columns = {"agent_id", "incoming_edges"}
     if not audit_file.is_file():
         raise FileNotFoundError(f"Traffic-light audit CSV is missing: {audit_file}")
 
-    selected_agents = set(corridor.agent_ids)
+    agent_ids = tuple(corridor.agent_ids) + tuple(
+        agent_id for agent_id in extra_agent_ids if agent_id not in corridor.agent_ids
+    )
+    selected_agents = set(agent_ids)
     incoming_edges: dict[str, tuple[str, ...]] = {}
     with audit_file.open(encoding="utf-8", newline="") as csv_file:
         reader = csv.DictReader(csv_file)
@@ -143,16 +147,14 @@ def load_selected_incoming_edges(
                 )
             incoming_edges[agent_id] = edge_ids
 
-    missing_agents = [
-        agent_id for agent_id in corridor.agent_ids if agent_id not in incoming_edges
-    ]
+    missing_agents = [agent_id for agent_id in agent_ids if agent_id not in incoming_edges]
     if missing_agents:
         raise ValueError(
             "Selected agents are missing incoming-edge audit data: "
             f"{', '.join(missing_agents)}."
         )
     return MappingProxyType(
-        {agent_id: incoming_edges[agent_id] for agent_id in corridor.agent_ids}
+        {agent_id: incoming_edges[agent_id] for agent_id in agent_ids}
     )
 
 
@@ -334,6 +336,27 @@ def _crossing_occurs_inside_route(
     )
 
 
+def street_acceptance(
+    network: Any,
+    route: RouteCandidate,
+    street_weights: Sequence[tuple[str, float]],
+) -> float:
+    """Probability of keeping a route under the scenario's street weights.
+
+    The highest weight above 1 among the streets used counts once (a route is
+    favoured if it uses any favoured street); weights below 1 multiply in.
+    """
+    streets = {network.getEdge(edge_id).getName() for edge_id in route.edge_ids}
+    used = [w for street, w in street_weights if street in streets]
+    favoured = max((w for w in used if w > 1.0), default=1.0)
+    avoided = 1.0
+    for w in used:
+        if w < 1.0:
+            avoided *= w
+    maximum = max((w for _, w in street_weights if w > 1.0), default=1.0)
+    return favoured * avoided / maximum
+
+
 def _generate_corridor_assignments(
     network: Any,
     scenario: TrafficDemandScenario,
@@ -378,6 +401,12 @@ def _generate_corridor_assignments(
             rejected_attempts += 1
             continue
         if not _crossing_occurs_inside_route(route, edge_to_agents):
+            rejected_attempts += 1
+            continue
+        # only draw when weighted, so unweighted scenarios keep their rng stream
+        if scenario.street_weights and rng.random() > street_acceptance(
+            network, route, scenario.street_weights
+        ):
             rejected_attempts += 1
             continue
         used_pairs.add(pair)
@@ -455,7 +484,9 @@ def generate_route_assignments(
             "The SUMO network contains no non-internal passenger-compatible edges."
         )
 
-    incoming_edges = incoming_edges_by_agent or load_selected_incoming_edges()
+    incoming_edges = incoming_edges_by_agent or load_selected_incoming_edges(
+        extra_agent_ids=scenario.extra_corridor_agents
+    )
     edge_to_agents = build_edge_to_agents(incoming_edges)
     network_edge_ids = {str(edge.getID()) for edge in passenger_edges}
     unknown_controlled_edges = sorted(set(edge_to_agents) - network_edge_ids)
@@ -525,4 +556,5 @@ __all__ = [
     "load_sumo_network",
     "passenger_compatible_edges",
     "selected_agents_crossed",
+    "street_acceptance",
 ]

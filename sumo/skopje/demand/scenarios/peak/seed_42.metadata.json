@@ -1,0 +1,52 @@
+{
+  "background_trip_count": 552,
+  "corridor_trip_count": 4048,
+  "departure_profile": [
+    0.22,
+    0.27,
+    0.3,
+    0.21
+  ],
+  "duration_seconds": 3600,
+  "extra_corridor_agents": [
+    "A21"
+  ],
+  "generated_at_utc": "2026-11-11T21:23:50.351904+00:00",
+  "generated_vehicle_count": 4600,
+  "generator_version": "1.0",
+  "network_file": "sumo/skopje/network/skopje_initial.net.xml.gz",
+  "requested_vehicle_count": 4600,
+  "rerouting_probability": 0.5,
+  "route_length_m": {
+    "maximum": 5798.64,
+    "mean": 2670.16,
+    "minimum": 302.22
+  },
+  "scenario": "peak",
+  "seed": 42,
+  "selected_agent_crossing_distribution": {
+    "0": 250,
+    "1": 302,
+    "2": 2590,
+    "3": 1000,
+    "4": 336,
+    "5": 122
+  },
+  "selected_agent_ids": [
+    "A9",
+    "A18",
+    "A19",
+    "A20",
+    "A24",
+    "A25",
+    "A26",
+    "A29"
+  ],
+  "source_network_sha256": "2e6d7ae95c8a086ff49249de83ac09017ecf18b33858d8524ba769c91905997e",
+  "street_weights": {
+    "Булевар Водњанска": 0.05,
+    "Булевар Партизански одреди": 8.0,
+    "Илинден": 8.0
+  },
+  "synthetic_demand_notice": "Synthetic experimental demand; not official or measured Skopje traffic data."
+}

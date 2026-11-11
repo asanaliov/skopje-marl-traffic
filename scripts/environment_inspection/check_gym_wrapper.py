@@ -25,6 +25,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from gymnasium.utils.env_checker import check_env  # noqa: E402
 from pettingzoo.test import parallel_api_test  # noqa: E402
 
+from src.demand.scenarios import SCENARIOS  # noqa: E402
 from src.environment.gym_wrapper import (  # noqa: E402
     DEFAULT_GYM_AGENT_ID,
     CorridorParallelEnv,
@@ -65,7 +66,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
             "SUMO simulation."
         )
     )
-    parser.add_argument("--scenario", choices=("low", "medium", "high"), default="low")
+    parser.add_argument("--scenario", choices=tuple(SCENARIOS), default="low")
     parser.add_argument("--seed", type=positive_integer, default=42)
     parser.add_argument(
         "--episode-seconds",

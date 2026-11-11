@@ -78,6 +78,29 @@ def scenario_output_files(
     )
 
 
+def profile_departure_time(
+    fraction: float,
+    profile: Sequence[float],
+    duration_seconds: int,
+) -> float:
+    """Map an evenly spaced fraction of the fleet onto a piecewise departure rate.
+
+    The duration is split into ``len(profile)`` equal intervals and interval
+    ``i`` receives ``profile[i] / sum(profile)`` of all departures, spread
+    evenly inside it. This is the inverse of the profile's cumulative share.
+    """
+    total_weight = sum(profile)
+    interval_seconds = duration_seconds / len(profile)
+    cumulative = 0.0
+    for interval_index, weight in enumerate(profile):
+        share = weight / total_weight
+        if fraction < cumulative + share or interval_index == len(profile) - 1:
+            within = min(max((fraction - cumulative) / share, 0.0), 1.0)
+            return (interval_index + within) * interval_seconds
+        cumulative += share
+    raise AssertionError("unreachable: the last interval always returns")
+
+
 def schedule_trips(
     scenario: TrafficDemandScenario,
     assignments: Sequence[RouteAssignment],
@@ -94,11 +117,18 @@ def schedule_trips(
     rng.shuffle(shuffled_assignments)
     scheduled: list[ScheduledTrip] = []
     for index, assignment in enumerate(shuffled_assignments):
-        departure_time = (
-            (index + rng.random())
-            * scenario.duration_seconds
-            / scenario.total_vehicle_count
-        )
+        if len(scenario.departure_profile) == 1:
+            departure_time = (
+                (index + rng.random())
+                * scenario.duration_seconds
+                / scenario.total_vehicle_count
+            )
+        else:
+            departure_time = profile_departure_time(
+                (index + rng.random()) / scenario.total_vehicle_count,
+                scenario.departure_profile,
+                scenario.duration_seconds,
+            )
         scheduled.append(
             ScheduledTrip(
                 vehicle_id=f"{scenario.name}_{index:06d}",
@@ -254,6 +284,12 @@ def write_scenario_configuration(
     routing = ET.SubElement(root, "routing")
     ET.SubElement(routing, "device.rerouting.adaptation-steps", {"value": "18"})
     ET.SubElement(routing, "device.rerouting.adaptation-interval", {"value": "10"})
+    if scenario.rerouting_probability:
+        ET.SubElement(
+            routing,
+            "device.rerouting.probability",
+            {"value": _format_decimal(scenario.rerouting_probability)},
+        )
 
     report = ET.SubElement(root, "report")
     ET.SubElement(report, "verbose", {"value": "true"})
@@ -313,7 +349,7 @@ def build_generation_metadata(
     except ValueError:
         network_reference = network_file.resolve().as_posix()
 
-    return {
+    metadata: dict[str, Any] = {
         "background_trip_count": background_trip_count,
         "corridor_trip_count": corridor_trip_count,
         "duration_seconds": scenario.duration_seconds,
@@ -336,6 +372,15 @@ def build_generation_metadata(
         "source_network_sha256": sha256_file(network_file),
         "synthetic_demand_notice": SYNTHETIC_DEMAND_STATEMENT,
     }
+    if len(scenario.departure_profile) > 1:
+        metadata["departure_profile"] = list(scenario.departure_profile)
+    if scenario.street_weights:
+        metadata["street_weights"] = dict(scenario.street_weights)
+    if scenario.rerouting_probability:
+        metadata["rerouting_probability"] = scenario.rerouting_probability
+    if scenario.extra_corridor_agents:
+        metadata["extra_corridor_agents"] = list(scenario.extra_corridor_agents)
+    return metadata
 
 
 def write_generation_metadata(output_file: Path, metadata: Mapping[str, Any]) -> None:
