@@ -23,7 +23,9 @@ def convert(source: Path, target: Path) -> None:
     if ORIGINAL_NET not in text:
         raise ValueError(f"{source} does not reference {ORIGINAL_NET}.")
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(text.replace(ORIGINAL_NET, VARIANT_NET), encoding="utf-8")
+    target.write_text(
+        text.replace(ORIGINAL_NET, VARIANT_NET), encoding="utf-8", newline="\n"
+    )
 
 
 def main() -> int:
