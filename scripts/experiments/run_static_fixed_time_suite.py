@@ -1,4 +1,4 @@
-"""Run the static fixed-time baseline across low, medium, and high scenarios.
+"""Run the static fixed-time baseline across every demand scenario.
 
 Calls the same in-process run_experiment() as
 scripts/experiments/run_static_fixed_time_experiment.py for each requested scenario and
@@ -43,7 +43,7 @@ from src.demand.xml_writer import scenario_output_files  # noqa: E402
 from src.evaluation.results_writer import DEFAULT_RESULTS_PATH  # noqa: E402
 
 
-DEFAULT_SCENARIO_NAMES = ("low", "medium", "high")
+DEFAULT_SCENARIO_NAMES = tuple(SCENARIOS)
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

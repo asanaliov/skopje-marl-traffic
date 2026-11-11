@@ -1,4 +1,4 @@
-"""Run the imported actuated baseline across low, medium, and high scenarios.
+"""Run the imported actuated baseline across every demand scenario.
 
 Calls the same in-process ``run_experiment()`` as
 ``scripts/experiments/run_imported_actuated_experiment.py`` for each requested
@@ -42,7 +42,7 @@ from src.environment.multi_agent_environment import MultiAgentTrafficEnvironment
 from src.evaluation.results_writer import DEFAULT_RESULTS_PATH  # noqa: E402
 
 
-DEFAULT_SCENARIO_NAMES = ("low", "medium", "high")
+DEFAULT_SCENARIO_NAMES = tuple(SCENARIOS)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
