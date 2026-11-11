@@ -1,0 +1,42 @@
+<edges>
+    <!-- phantom ramp lanes from netconvert ramps.guess -->
+    <edge id="174095136#0-AddedOnRampEdge" numLanes="3"/>
+    <edge id="174095136#0-AddedOffRampEdge" numLanes="4"/>
+    <edge id="256856538#0-AddedOnRampEdge" numLanes="3"/>
+    <edge id="233082416#0-AddedOnRampEdge" numLanes="3"/>
+    <edge id="233032128#4-AddedOnRampEdge" numLanes="3"/>
+    <edge id="190303101#0-AddedOnRampEdge" numLanes="3"/>
+    <edge id="42875018#2-AddedOffRampEdge" numLanes="3"/>
+    <edge id="316865357#0-AddedOnRampEdge" numLanes="3"/>
+    <edge id="316864137#2-AddedOnRampEdge" numLanes="3"/>
+    <edge id="316864139#2-AddedOnRampEdge" numLanes="2"/>
+    <edge id="16661485#2-AddedOnRampEdge" numLanes="3"/>
+    <!-- lane counts checked on site -->
+    <edge id="190217749#0" numLanes="3"/>
+    <edge id="413968840#0" numLanes="3"/>
+    <edge id="233032128#7" numLanes="4"/>
+    <edge id="464947893#0" numLanes="4"/>
+    <edge id="671715324" numLanes="4"/>
+    <edge id="229982239" numLanes="3"/>
+    <edge id="670277946" numLanes="4"/>
+    <!-- a19 from a18: 4 lanes to the stop line, right turn at the light -->
+    <edge id="349499735#0" numLanes="4"/>
+    <!-- a24 from the south: 2 lanes, 4 only for the last stretch -->
+    <edge id="671385288#0" numLanes="2"/>
+    <edge id="671385288#1" numLanes="4"/>
+    <!-- a25 from a19: 4 lanes to the stop line -->
+    <edge id="233032141#0" numLanes="4"/>
+    <!-- a21 kliment ohridski x ilinden approaches -->
+    <edge id="671643167#0" numLanes="4"/>
+    <edge id="16538360#0" numLanes="3"/>
+    <!-- dame gruev south of a9: 4 lanes, 3 from ~50 m, 2 from ~120 m -->
+    <edge id="1339232074#0" numLanes="4">
+        <split pos="43" lanes="0 1 2" idBefore="1339232074#0" idAfter="1339232074#0.43"/>
+        <split pos="113" lanes="0 1" idAfter="1339232074#0.113"/>
+    </edge>
+    <!-- slip roads that are not there: right turns happen at the light -->
+    <delete id="173142133#0"/>
+    <delete id="173074761#0"/>
+    <delete id="189939446"/>
+    <delete id="1109113537"/>
+</edges>

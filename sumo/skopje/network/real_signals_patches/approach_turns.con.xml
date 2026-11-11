@@ -1,0 +1,44 @@
+<connections>
+    <!-- lane 0 is the rightmost lane. turns as checked on site 2026-11-11 -->
+
+    <!-- dame gruev lane drops after the split: the left lane merges into its neighbour -->
+    <connection from="1339232074#0" to="1339232074#0.43" fromLane="0" toLane="0"/>
+    <connection from="1339232074#0" to="1339232074#0.43" fromLane="1" toLane="1"/>
+    <connection from="1339232074#0" to="1339232074#0.43" fromLane="2" toLane="2"/>
+    <connection from="1339232074#0" to="1339232074#0.43" fromLane="3" toLane="2"/>
+    <connection from="1339232074#0.43" to="1339232074#0.113" fromLane="0" toLane="0"/>
+    <connection from="1339232074#0.43" to="1339232074#0.113" fromLane="1" toLane="1"/>
+    <connection from="1339232074#0.43" to="1339232074#0.113" fromLane="2" toLane="1"/>
+
+    <!-- a24 finki-makpetrol, 8-mi septemvri from the south: right | straight | straight | left -->
+    <connection from="671385288#1" to="413673141#0" fromLane="0" toLane="0"/>
+    <connection from="671385288#1" to="316864135#0" fromLane="1" toLane="0"/>
+    <connection from="671385288#1" to="316864135#0" fromLane="2" toLane="1"/>
+    <connection from="671385288#1" to="316864137#0" fromLane="3" toLane="2"/>
+    <connection from="671385288#1" to="316864139#0" fromLane="3" toLane="1"/>
+
+    <!-- a25 ruzvelt, partizanski from a19: straight+right | straight | straight+left | left -->
+    <connection from="233032141#0" to="253457567#0" fromLane="0" toLane="0"/>
+    <connection from="233032141#0" to="253457566#0" fromLane="0" toLane="0"/>
+    <connection from="233032141#0" to="253457567#0" fromLane="1" toLane="1"/>
+    <connection from="233032141#0" to="253457567#0" fromLane="2" toLane="2"/>
+    <connection from="233032141#0" to="-233032130#1" fromLane="2" toLane="0"/>
+    <connection from="233032141#0" to="-233032130#1" fromLane="3" toLane="1"/>
+    <connection from="233032141#0" to="233082420#0" fromLane="3" toLane="2"/>
+
+    <!-- a21, kliment ohridski northbound: straight | straight+left | left (right turn uses the slip road before).
+         ilinden westbound keeps its imported turns: its right lane is the slip road to kliment ohridski -->
+    <connection from="229982235#0" to="177630106#0" fromLane="0" toLane="0"/>
+    <connection from="229982235#0" to="177630106#0" fromLane="1" toLane="1"/>
+    <connection from="229982235#0" to="-172295365#1" fromLane="1" toLane="0"/>
+    <connection from="229982235#0" to="-172295365#1" fromLane="2" toLane="1"/>
+    <connection from="229982235#0" to="42875018#0" fromLane="2" toLane="2"/>
+
+    <!-- a21, kliment ohridski southbound: straight+right | straight | straight+left -->
+    <connection from="16538360#0" to="-172295365#1" fromLane="0" toLane="0"/>
+    <connection from="16538360#0" to="42875018#0" fromLane="0" toLane="0"/>
+    <connection from="16538360#0" to="42875018#0" fromLane="1" toLane="1"/>
+    <connection from="16538360#0" to="42875018#0" fromLane="2" toLane="2"/>
+    <connection from="16538360#0" to="177629075#0" fromLane="2" toLane="1"/>
+    <connection from="16538360#0" to="177630106#0" fromLane="2" toLane="1"/>
+</connections>

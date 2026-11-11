@@ -1,0 +1,16 @@
+<connections>
+    <!-- a29 -->
+    <connection from="32819555#5" to="233082416#9" fromLane="0" toLane="0" uncontrolled="true"/>
+    <connection from="32819555#5" to="-32819555#5" fromLane="0" toLane="0" uncontrolled="true"/>
+    <connection from="233082416#3" to="-32819555#5" fromLane="0" toLane="0" uncontrolled="true"/>
+    <!-- leninova, opposite a29 -->
+    <connection from="-174750221" to="316865358#4" fromLane="0" toLane="0" uncontrolled="true"/>
+    <connection from="-174750221" to="174750221" fromLane="0" toLane="0" uncontrolled="true"/>
+    <connection from="316865358#0" to="174750221" fromLane="0" toLane="0" uncontrolled="true"/>
+    <!-- silbo, kosturski heroi -->
+    <connection from="-26251540#1" to="26251539" fromLane="0" toLane="0" uncontrolled="true"/>
+    <connection from="-26251540#1" to="316865358#10" fromLane="0" toLane="0" uncontrolled="true"/>
+    <connection from="-26251540#1" to="26251540#0" fromLane="0" toLane="0" uncontrolled="true"/>
+    <connection from="316865358#4" to="26251540#0" fromLane="0" toLane="0" uncontrolled="true"/>
+    <connection from="316865358#4" to="26251539" fromLane="0" toLane="0" uncontrolled="true"/>
+</connections>

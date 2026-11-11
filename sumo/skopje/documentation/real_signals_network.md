@@ -49,5 +49,75 @@ replaced with real ones).
 | A26 | 9 | 8 | 4 approaches |
 | A29 | 4 | 3 | pedestrian crossing: side-road right turn yields (`g`), boulevard right turn `G`, U-turn `r`; only the carriageway toward A19 is modelled |
 
+The real_signals corridor has 8 agents: A9, A18, A19, A20, **A21**, A24, A25,
+A26. A29 keeps a program but is **not an agent**: it is a pedestrian light and
+no pedestrians are simulated, so an RL agent there would only learn to skip
+the crossing. A21 (Sv. Kliment Ohridski x Ilinden) replaces it: a full
+signalised junction about 230 m north of A19 that feeds it directly. The
+original network keeps its 8 agents (with A29) and all earlier results.
+
 Phase strings: `phases_simple_real_signals.txt`. Per-light verdicts are in the
 `notes` column of the real-signals audit.
+
+## Road corrections (checked on site, 2026-11-11)
+
+The network is rebuilt from the #72 recode (`real_signals_patches/base.net.xml.gz`)
+by one script; the result is only written if all its checks pass:
+
+    python scripts/setup/build_real_signals_network.py
+    python scripts/setup/make_real_signals_configs.py
+
+| File | What it changes |
+| --- | --- |
+| `lanes.edg.xml` | lane counts, the Dame Gruev lane drops, two slip roads removed |
+| `approach_turns.con.xml` | lane-by-lane turns checked on site (A24 from the south, three A21 approaches, Dame Gruev) |
+| `pedestrian_turns.con.xml` | every turn at A29, Leninova (A30) and Silbo (A32) taken off the signal |
+
+The build re-guesses the connections of every edge whose lanes change and of
+the edges feeding it (an edge patch alone keeps the old lane connections and
+leaves dead lanes). It then regenerates the programs of the lights whose links
+changed: agents get the #72 rule (one approach per phase, all its links `G`,
+20 s green / 3 s yellow placeholder), pedestrian lights stop only the boulevard
+through lanes (`GGG` 5–50 s, `yyy` 3 s, `rrr` 5–15 s). It fails if the rule does
+not reproduce the existing #72 programs, if any other light changes, if a new
+dead lane appears, or if a program does not cover its links.
+
+Most wrong lanes were edges named `*-AddedOnRampEdge` / `*-AddedOffRampEdge`:
+netconvert's `--ramps.guess` treated the boulevards as motorways and added a
+lane for about 94 m. The rest came from on-site checks, with OpenStreetMap
+lane tags (`lanes`, `turn:lanes`; SUMO edge ids are OSM way ids) as a second
+source where nobody had been on site. Where the two disagreed, the site check
+won (A26 → A20, the A19, A24 and A25 approaches, Vasil Glavinov).
+
+Junction changes:
+
+- **A19 from A18**: 4 lanes to the stop line, right lane straight + right. The
+  right-turn slip road before the light does not exist and is removed.
+- **A24 from the south (8-mi Septemvri)**: 2 lanes, widening to 4 for the last
+  ~35 m (right / straight / straight / left). The slip road is removed.
+- **A25 from A19 (Partizanski)**: 4 lanes to the stop line (straight + right /
+  straight / straight + left / left). The right-turn slip road before the light
+  (`189939446`, `1109113537`) does not exist and is removed.
+- **A21**: approaches set as checked on site (Kliment Ohridski northbound
+  straight / straight + left / left with a right slip road before the light;
+  Ilinden westbound straight / straight / left at the light, its right lane
+  being a separate right-only road onto Kliment Ohridski northbound (checked on site); Kliment Ohridski
+  southbound straight + right / straight / straight + left; Ilinden eastbound 4
+  lanes). One approach per phase; the Ilinden-eastbound right-turn arrow also
+  runs in the Ilinden-westbound phase, the one phase where SUMO's conflict
+  matrix shows it crosses nothing.
+- **Dame Gruev** south of A9: 4 lanes, 3 from ~50 m, 2 from ~120 m.
+
+Removing the slip roads and splitting Dame Gruev breaks 3–5% of the routes in
+the shared demand files. `make_real_signals_configs.py` repairs them for this
+network only (removed edges, and edges only reachable through them, dropped; gaps
+filled with the shortest connecting path; departures and origins unchanged) into
+`demand/scenarios_real_signals/`, and only the real_signals configs point there.
+
+Effect on `high` (seeds 42–44, imported actuated): mean trip waiting 84 s → 84 s,
+teleports 1.3 → 2.0, vehicles left at the end 1.3 → 0.7, so the corrected
+layout carries `high` about as well as the #72 network. Demand limits found on
+the original network still need re-checking here.
+
+Not modelled: the peak-hour bus lane on Partizanski (cars use it in practice);
+Bel Kamen, which OSM now shows as one-way.

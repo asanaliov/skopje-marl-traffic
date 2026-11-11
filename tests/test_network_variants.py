@@ -22,6 +22,10 @@ AGENTS = ("A9", "A18", "A19", "A20", "A24", "A25", "A26", "A29")
 REAL_SIGNAL_AGENTS = {
     "A9": 6, "A18": 6, "A19": 8, "A20": 8, "A24": 8, "A25": 8, "A26": 8, "A29": 3,
 }
+# real_signals corridor: a29 (pedestrian light) dropped, a21 (kliment ohridski x ilinden) added
+REAL_SIGNAL_CORRIDOR = {
+    "A9": 6, "A18": 6, "A19": 8, "A20": 8, "A21": 8, "A24": 8, "A25": 8, "A26": 8,
+}
 ORIGINAL_AGENTS = {
     "A9": 4, "A18": 4, "A19": 9, "A20": 8, "A24": 8, "A25": 4, "A26": 9, "A29": 4,
 }
@@ -115,12 +119,27 @@ def test_real_signal_programs_use_one_approach_per_phase() -> None:
         assert all("g" not in state for state in states)
 
 
-def test_real_signals_configs_only_differ_in_the_network() -> None:
+def test_real_signals_configs_only_differ_in_network_and_repaired_routes() -> None:
     for original in sorted((SKOPJE / "config" / "scenarios").glob("*_seed_42.sumocfg")):
         variant = SKOPJE / "config" / "scenarios_real_signals" / original.name
-        assert variant.read_text(encoding="utf-8") == original.read_text(
-            encoding="utf-8"
-        ).replace("skopje_initial.net.xml.gz", "skopje_real_signals.net.xml.gz")
+        expected = original.read_text(encoding="utf-8").replace(
+            "skopje_initial.net.xml.gz", "skopje_real_signals.net.xml.gz"
+        )
+        text = variant.read_text(encoding="utf-8")
+        assert text in (expected, expected.replace("demand/scenarios/", "demand/scenarios_real_signals/"))
+
+
+def test_real_signals_routes_are_connected() -> None:
+    net = gzip.open(SKOPJE / "network" / "skopje_real_signals.net.xml.gz", "rt", encoding="utf-8").read()
+    edges = set(re.findall(r'<edge id="([^":][^"]*)"', net))
+    pairs = set(re.findall(r'<connection from="([^"]+)" to="([^"]+)"', net))
+    for config in sorted((SKOPJE / "config" / "scenarios_real_signals").glob("*_seed_42.sumocfg")):
+        routes_file = re.search(r'<route-files value="([^"]+)"', config.read_text(encoding="utf-8")).group(1)
+        routes = (config.parent / routes_file).read_text(encoding="utf-8")
+        for route in re.findall(r'<route edges="([^"]+)"', routes):
+            route_edges = route.split()
+            assert set(route_edges) <= edges, config.name
+            assert all(pair in pairs for pair in zip(route_edges, route_edges[1:])), config.name
 
 
 @pytest.mark.parametrize("variant", ("original", "real_signals"))
@@ -135,5 +154,22 @@ def test_corridor_loads_in_each_variant(variant: str) -> None:
         capture_output=True, text=True, check=True,
         env={**os.environ, "SKOPJE_NETWORK": variant},
     ).stdout
-    expected = REAL_SIGNAL_AGENTS if variant == "real_signals" else ORIGINAL_AGENTS
+    expected = REAL_SIGNAL_CORRIDOR if variant == "real_signals" else ORIGINAL_AGENTS
     assert str(expected) in output
+
+
+def test_real_signals_corridor_swaps_a29_for_a21() -> None:
+    code = (
+        f"import sys;sys.path.insert(0,r'{PROJECT_ROOT}');"
+        "from src.environment.selected_corridor import SELECTED_CORRIDOR as c;"
+        "print(','.join(c.agent_ids))"
+    )
+    agents = {}
+    for variant in ("original", "real_signals"):
+        agents[variant] = subprocess.run(
+            [sys.executable, "-I", "-c", code],
+            capture_output=True, text=True, check=True,
+            env={**os.environ, "SKOPJE_NETWORK": variant},
+        ).stdout.strip()
+    assert agents["original"] == ",".join(AGENTS)
+    assert agents["real_signals"] == ",".join(REAL_SIGNAL_CORRIDOR)
