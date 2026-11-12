@@ -40,7 +40,8 @@ PEDESTRIAN_LIGHTS = {
 }
 # right-turn arrow that also runs in a non-conflicting phase: (light, from edge, to edge)
 OVERLAPS = [("GS_cluster_170712177_1848310997", "671643167#0", "42875018#0")]
-GREEN = '<phase duration="20" state="{}" minDur="5" maxDur="50"/>'
+# same 7 s minimum and 60 s maximum green as the rl agents
+GREEN = '<phase duration="20" state="{}" minDur="7" maxDur="60"/>'
 YELLOW = '<phase duration="3" state="{}"/>'
 
 
@@ -196,6 +197,10 @@ def main() -> int:
                 if overlap_light == light:
                     phases = add_overlap(p3, p3_links[light], phases, frm, to)
             tll += tll_entry(light, phases, p3_links[light])
+        # the other recoded agents keep their phases, only the green bounds change
+        for light in sorted(RECODED - AGENT_LIGHTS):
+            states = [p.state for p in base.getTLS(light).getPrograms()["0"].getPhases()]
+            tll += tll_entry(light, states, p3_links[light])
         for light in sorted(PEDESTRIAN_LIGHTS):
             tll += tll_entry(light, pedestrian_phases(p3_links[light]), p3_links[light], PEDESTRIAN_BOUNDS)
         tll.append("</tlLogics>")
