@@ -100,6 +100,7 @@ def main(argv=None) -> int:
         episode_seconds=args.episode_seconds,
         cooldown_seconds=args.cooldown_seconds,
         decision_interval_seconds=args.decision_interval,
+        approach_range_m=args.approach_range,
         reward_mode=args.reward_mode,
         checkpoint_path=checkpoint,
         results_path=args.results_path,

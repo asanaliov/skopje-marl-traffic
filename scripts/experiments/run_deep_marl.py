@@ -62,6 +62,12 @@ def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--cooldown-seconds", type=_non_negative_float, default=600.0)
     parser.add_argument("--decision-interval", type=_positive_float, default=5.0)
     parser.add_argument(
+        "--approach-range",
+        type=_non_negative_float,
+        default=0.0,
+        help="Observe each controlled lane this many metres upstream (default: 0).",
+    )
+    parser.add_argument(
         "--reward-mode",
         choices=("local", "neighbor_aware", "global"),
         default="local",
@@ -123,6 +129,7 @@ def main(argv=None) -> int:
         episode_seconds=args.episode_seconds,
         cooldown_seconds=args.cooldown_seconds,
         decision_interval_seconds=args.decision_interval,
+        approach_range_m=args.approach_range,
         reward_mode=args.reward_mode,
         checkpoint_path=checkpoint,
         results_path=args.results_path,

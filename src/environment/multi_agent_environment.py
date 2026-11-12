@@ -13,8 +13,10 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Literal
 
+from src.config import SKOPJE_INITIAL_NETWORK_FILE
 from src.demand.scenarios import get_scenario
 from src.demand.xml_writer import scenario_output_files
+from src.environment.approach_lanes import build_approach_lanes
 from src.environment.actions import (
     ActionPolicyConfig,
     ActionResult,
@@ -70,9 +72,13 @@ class MultiAgentEnvironmentConfig:
     require_complete_action_mappings: bool = True
     neighbor_local_weight: float = 0.7
     neighbor_reward_weight: float = 0.3
+    approach_range_m: float = 0.0
+    """Observe each controlled lane this far upstream (0: the lane only)."""
 
     def __post_init__(self) -> None:
         """Validate values and normalize configured agents to corridor order."""
+        if not math.isfinite(self.approach_range_m) or self.approach_range_m < 0:
+            raise ValueError("approach_range_m must be a finite non-negative value.")
         scenario = get_scenario(str(self.scenario)).name
         if (
             not isinstance(self.seed, int)
@@ -417,6 +423,19 @@ class MultiAgentTrafficEnvironment:
                     raise ValueError(
                         "TrafficSignal creation returned the wrong traffic-light "
                         f"mapping for {agent_id}."
+                    )
+                if self.config.approach_range_m > 0:
+                    signal.set_approach_lanes(
+                        build_approach_lanes(
+                            SKOPJE_INITIAL_NETWORK_FILE,
+                            signal.incoming_lane_ids,
+                            self.config.approach_range_m,
+                            stop_traffic_light_ids=[
+                                tls_id
+                                for tls_id in SELECTED_CORRIDOR.agent_to_traffic_light.values()
+                                if tls_id != traffic_light_id
+                            ],
+                        )
                     )
                 self._traffic_signals[agent_id] = signal
 

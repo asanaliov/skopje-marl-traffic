@@ -89,12 +89,13 @@ _HYPERPARAMETERS = (
     "minibatch_size",
     "reward_clip",
     "decision_interval_seconds",
+    "approach_range_m",
     "episode_seconds",
     "cooldown_seconds",
 )
 """Settings a resumed run must share with its checkpoint."""
 
-_ADDED_HYPERPARAMETER_DEFAULTS = {"learning_rate_decay": False}
+_ADDED_HYPERPARAMETER_DEFAULTS = {"learning_rate_decay": False, "approach_range_m": 0.0}
 """Values for settings added after older checkpoints were written."""
 _REWARD_SUFFIX = {"local": "", "neighbor_aware": "_neighbor", "global": "_global"}
 
@@ -115,6 +116,7 @@ class DeepMarlConfig:
     episode_seconds: float = 3600.0
     cooldown_seconds: float = 600.0
     decision_interval_seconds: float = 5.0
+    approach_range_m: float = 0.0
     reward_mode: RewardMode = "local"
     checkpoint_path: Path | None = None
     results_path: Path | None = RESULTS_FILE
@@ -264,7 +266,7 @@ class DeepMarlTrainer:
 
     controller_name = CONTROLLER_NAME
     hyperparameters = _HYPERPARAMETERS
-    evaluation_hyperparameters = ("hidden_size",)
+    evaluation_hyperparameters = ("hidden_size", "approach_range_m")
     """Settings that change what a checkpoint's weights mean."""
 
     def __init__(
@@ -314,6 +316,7 @@ class DeepMarlTrainer:
             demand_seconds=cfg.episode_seconds,
             cooldown_seconds=cfg.cooldown_seconds,
             decision_interval_seconds=cfg.decision_interval_seconds,
+            approach_range_m=cfg.approach_range_m,
             gui=cfg.gui,
             reward_mode=cfg.reward_mode,
         )
