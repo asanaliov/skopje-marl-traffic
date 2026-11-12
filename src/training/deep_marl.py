@@ -78,6 +78,7 @@ DEFAULT_TRAINING_EPISODES = 300
 _HYPERPARAMETERS = (
     "hidden_size",
     "learning_rate",
+    "learning_rate_decay",
     "gamma",
     "gae_lambda",
     "clip_range",
@@ -92,6 +93,9 @@ _HYPERPARAMETERS = (
     "cooldown_seconds",
 )
 """Settings a resumed run must share with its checkpoint."""
+
+_ADDED_HYPERPARAMETER_DEFAULTS = {"learning_rate_decay": False}
+"""Values for settings added after older checkpoints were written."""
 _REWARD_SUFFIX = {"local": "", "neighbor_aware": "_neighbor", "global": "_global"}
 
 
@@ -117,6 +121,7 @@ class DeepMarlConfig:
     gui: bool = False
     hidden_size: int = 128
     learning_rate: float = 3e-4
+    learning_rate_decay: bool = False
     gamma: float = 0.99
     gae_lambda: float = 0.95
     clip_range: float = 0.2
@@ -543,9 +548,10 @@ class DeepMarlTrainer:
         stored = payload["hyperparameters"]
         checked = self.hyperparameters if for_training else self.evaluation_hyperparameters
         for key in checked:
-            if stored.get(key) != getattr(cfg, key):
+            value = stored.get(key, _ADDED_HYPERPARAMETER_DEFAULTS.get(key))
+            if value != getattr(cfg, key):
                 raise ValueError(
-                    f"Checkpoint {key}={stored.get(key)!r} does not match this "
+                    f"Checkpoint {key}={value!r} does not match this "
                     f"run ({getattr(cfg, key)!r})."
                 )
         self.network.load_state_dict(payload["network"])
@@ -575,6 +581,10 @@ class DeepMarlTrainer:
             summary, rollout = self._run_episode(
                 episode, training=True, sumo_seed=cfg.seed + episode
             )
+            if cfg.learning_rate_decay:
+                # linear to zero, from the episode number so a resume matches
+                for group in self.optimizer.param_groups:
+                    group["lr"] = cfg.learning_rate * (1 - (episode - 1) / cfg.episodes)
             p_loss, v_loss, entropy = self._update(rollout)
             summary = replace(
                 summary,

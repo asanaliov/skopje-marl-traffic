@@ -64,6 +64,13 @@ def parse_args(argv=None) -> argparse.Namespace:
     )
     train.add_argument("--resume", action="store_true")
     train.add_argument("--learning-rate", type=_positive_float, default=3e-4)
+    train.add_argument(
+        "--lr-decay",
+        action="store_true",
+        help="Decay the learning rate linearly to zero over --episodes.",
+    )
+    train.add_argument("--update-epochs", type=_positive_int, default=4)
+    train.add_argument("--entropy-coefficient", type=_positive_float, default=0.01)
     train.add_argument("--torch-seed", type=int, default=0)
     evaluate = sub.add_parser("evaluate")
     _common(evaluate)
@@ -109,6 +116,9 @@ def main(argv=None) -> int:
             **common,
             episodes=args.episodes,
             learning_rate=args.learning_rate,
+            learning_rate_decay=args.lr_decay,
+            update_epochs=args.update_epochs,
+            entropy_coefficient=args.entropy_coefficient,
             torch_seed=args.torch_seed,
         )
         AttentionPpoTrainer(config).train(resume=args.resume)
