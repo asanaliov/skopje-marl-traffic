@@ -68,6 +68,12 @@ def _common(parser: argparse.ArgumentParser) -> None:
         help="Observe each controlled lane this many metres upstream (default: 0).",
     )
     parser.add_argument(
+        "--min-green",
+        type=_positive_float,
+        default=10.0,
+        help="Shortest green an agent can end (default: 10).",
+    )
+    parser.add_argument(
         "--reward-mode",
         choices=("local", "neighbor_aware", "global"),
         default="local",
@@ -130,6 +136,7 @@ def main(argv=None) -> int:
         cooldown_seconds=args.cooldown_seconds,
         decision_interval_seconds=args.decision_interval,
         approach_range_m=args.approach_range,
+        minimum_green_seconds=args.min_green,
         reward_mode=args.reward_mode,
         checkpoint_path=checkpoint,
         results_path=args.results_path,

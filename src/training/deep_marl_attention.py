@@ -94,7 +94,12 @@ class AttentionPpoTrainer(DeepMarlTrainer):
     controller_name = CONTROLLER_NAME
     hyperparameters = (*DeepMarlTrainer.hyperparameters, "attention_heads")
     # weights have the same shape for any head count, so loading alone can't catch it.
-    evaluation_hyperparameters = ("hidden_size", "attention_heads", "approach_range_m")
+    evaluation_hyperparameters = (
+        "hidden_size",
+        "attention_heads",
+        "approach_range_m",
+        "minimum_green_seconds",
+    )
 
     def _build_network(self) -> nn.Module:
         return AttentionActorCritic(

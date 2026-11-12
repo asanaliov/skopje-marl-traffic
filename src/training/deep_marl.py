@@ -65,6 +65,7 @@ from src.environment.multi_agent_environment import (
     MultiAgentTrafficEnvironment,
     RewardMode,
 )
+from src.environment.actions import ActionPolicyConfig
 from src.environment.selected_corridor import SELECTED_CORRIDOR
 from src.evaluation.collector import MetricsCollector
 from src.evaluation.results_writer import append_result
@@ -90,12 +91,17 @@ _HYPERPARAMETERS = (
     "reward_clip",
     "decision_interval_seconds",
     "approach_range_m",
+    "minimum_green_seconds",
     "episode_seconds",
     "cooldown_seconds",
 )
 """Settings a resumed run must share with its checkpoint."""
 
-_ADDED_HYPERPARAMETER_DEFAULTS = {"learning_rate_decay": False, "approach_range_m": 0.0}
+_ADDED_HYPERPARAMETER_DEFAULTS = {
+    "learning_rate_decay": False,
+    "approach_range_m": 0.0,
+    "minimum_green_seconds": 10.0,
+}
 """Values for settings added after older checkpoints were written."""
 _REWARD_SUFFIX = {"local": "", "neighbor_aware": "_neighbor", "global": "_global"}
 
@@ -117,6 +123,7 @@ class DeepMarlConfig:
     cooldown_seconds: float = 600.0
     decision_interval_seconds: float = 5.0
     approach_range_m: float = 0.0
+    minimum_green_seconds: float = 10.0
     reward_mode: RewardMode = "local"
     checkpoint_path: Path | None = None
     results_path: Path | None = RESULTS_FILE
@@ -266,7 +273,7 @@ class DeepMarlTrainer:
 
     controller_name = CONTROLLER_NAME
     hyperparameters = _HYPERPARAMETERS
-    evaluation_hyperparameters = ("hidden_size", "approach_range_m")
+    evaluation_hyperparameters = ("hidden_size", "approach_range_m", "minimum_green_seconds")
     """Settings that change what a checkpoint's weights mean."""
 
     def __init__(
@@ -317,6 +324,7 @@ class DeepMarlTrainer:
             cooldown_seconds=cfg.cooldown_seconds,
             decision_interval_seconds=cfg.decision_interval_seconds,
             approach_range_m=cfg.approach_range_m,
+            action_policy=ActionPolicyConfig(minimum_green_seconds=cfg.minimum_green_seconds),
             gui=cfg.gui,
             reward_mode=cfg.reward_mode,
         )
