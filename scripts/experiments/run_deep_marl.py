@@ -80,6 +80,12 @@ def _common(parser: argparse.ArgumentParser) -> None:
         help="Reward subtracted for each phase change (default: 0).",
     )
     parser.add_argument(
+        "--waiting-weight",
+        type=_non_negative_float,
+        default=0.1,
+        help="Weight of lane waiting time in the local reward (default: 0.1).",
+    )
+    parser.add_argument(
         "--reward-mode",
         choices=("local", "neighbor_aware", "global", "pressure"),
         default="local",
@@ -144,6 +150,7 @@ def main(argv=None) -> int:
         approach_range_m=args.approach_range,
         minimum_green_seconds=args.min_green,
         switch_penalty=args.switch_penalty,
+        waiting_weight=args.waiting_weight,
         reward_mode=args.reward_mode,
         checkpoint_path=checkpoint,
         results_path=args.results_path,

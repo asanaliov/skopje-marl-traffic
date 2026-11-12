@@ -94,6 +94,7 @@ _HYPERPARAMETERS = (
     "approach_range_m",
     "minimum_green_seconds",
     "switch_penalty",
+    "waiting_weight",
     "episode_seconds",
     "cooldown_seconds",
 )
@@ -104,6 +105,7 @@ _ADDED_HYPERPARAMETER_DEFAULTS = {
     "approach_range_m": 0.0,
     "minimum_green_seconds": 10.0,
     "switch_penalty": 0.0,
+    "waiting_weight": 0.1,
 }
 """Values for settings added after older checkpoints were written."""
 _REWARD_SUFFIX = {
@@ -133,6 +135,8 @@ class DeepMarlConfig:
     approach_range_m: float = 0.0
     minimum_green_seconds: float = 7.0
     switch_penalty: float = 0.0
+    waiting_weight: float = 0.1
+    """Weight of the summed lane mean waiting time in the local reward."""
     """Reward subtracted for each phase change an agent starts."""
     reward_mode: RewardMode = "local"
     checkpoint_path: Path | None = None
@@ -335,7 +339,10 @@ class DeepMarlTrainer:
             decision_interval_seconds=cfg.decision_interval_seconds,
             approach_range_m=cfg.approach_range_m,
             action_policy=ActionPolicyConfig(minimum_green_seconds=cfg.minimum_green_seconds),
-            reward_weights=RewardWeights(switch_penalty_weight=cfg.switch_penalty),
+            reward_weights=RewardWeights(
+                waiting_weight=cfg.waiting_weight,
+                switch_penalty_weight=cfg.switch_penalty,
+            ),
             gui=cfg.gui,
             reward_mode=cfg.reward_mode,
         )

@@ -103,6 +103,7 @@ def main(argv=None) -> int:
         approach_range_m=args.approach_range,
         minimum_green_seconds=args.min_green,
         switch_penalty=args.switch_penalty,
+        waiting_weight=args.waiting_weight,
         reward_mode=args.reward_mode,
         checkpoint_path=checkpoint,
         results_path=args.results_path,
