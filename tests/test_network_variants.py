@@ -122,8 +122,10 @@ def test_real_signal_programs_use_one_approach_per_phase() -> None:
 def test_real_signals_configs_only_differ_in_network_and_repaired_routes() -> None:
     for original in sorted((SKOPJE / "config" / "scenarios").glob("*_seed_42.sumocfg")):
         variant = SKOPJE / "config" / "scenarios_real_signals" / original.name
-        expected = original.read_text(encoding="utf-8").replace(
-            "skopje_initial.net.xml.gz", "skopje_real_signals.net.xml.gz"
+        expected = (
+            original.read_text(encoding="utf-8")
+            .replace("skopje_initial.net.xml.gz", "skopje_real_signals.net.xml.gz")
+            .replace("    <processing>\n", '    <processing>\n        <ignore-junction-blocker value="30" />\n', 1)
         )
         text = variant.read_text(encoding="utf-8")
         assert text in (expected, expected.replace("demand/scenarios/", "demand/scenarios_real_signals/"))

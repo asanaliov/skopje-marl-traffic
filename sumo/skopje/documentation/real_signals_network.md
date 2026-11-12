@@ -43,6 +43,16 @@ not change. Routes over the removed stubs are repaired by
 `make_real_signals_configs.py`. Actuated, seeds 42-44: medium 7.46 s, high
 12.36 s mean trip waiting.
 
+## Junction blockers
+
+At an unsignalized give-way junction with a steady stream on the main road
+(Leninova into Mitropolit Teodosij Gologanov, just past A26), SUMO's driver
+waits for a gap forever and blocks the junction until it teleports; real
+drivers squeeze in or avoid the street. Every real_signals config sets
+`ignore-junction-blocker` to 30 s so others pass such a car after 30 s. It
+applies to every controller: actuated high moved by under 0.1 s, while an rl
+policy that ran long greens went from 311-892 vehicles left to 114-146.
+
 ## Recoded intersections
 
 One approach per phase: all lanes of that approach `G`, everything else `r`,

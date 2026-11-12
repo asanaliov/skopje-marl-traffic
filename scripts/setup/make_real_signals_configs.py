@@ -71,11 +71,18 @@ def repair_routes(source: Path, target: Path, net) -> int:
     return changed
 
 
+# a car waiting to merge at a busy give-way junction otherwise blocks it until
+# it teleports; real drivers squeeze past after a while. applies to every
+# controller, and leaves actuated within 0.1 s
+JUNCTION_BLOCKER = '        <ignore-junction-blocker value="30" />\n'
+
+
 def convert(source: Path, target: Path, net) -> str:
     text = source.read_text(encoding="utf-8")
     if ORIGINAL_NET not in text:
         raise ValueError(f"{source} does not reference {ORIGINAL_NET}.")
     text = text.replace(ORIGINAL_NET, VARIANT_NET)
+    text = text.replace("    <processing>\n", "    <processing>\n" + JUNCTION_BLOCKER, 1)
     note = ""
     route = re.search(r'<route-files value="([^"]+)"', text)
     if route and ORIGINAL_DEMAND in route.group(1):
