@@ -74,6 +74,12 @@ def _common(parser: argparse.ArgumentParser) -> None:
         help="Shortest green an agent can end (default: 7, as the actuated programs).",
     )
     parser.add_argument(
+        "--switch-penalty",
+        type=_non_negative_float,
+        default=0.0,
+        help="Reward subtracted for each phase change (default: 0).",
+    )
+    parser.add_argument(
         "--reward-mode",
         choices=("local", "neighbor_aware", "global"),
         default="local",
@@ -137,6 +143,7 @@ def main(argv=None) -> int:
         decision_interval_seconds=args.decision_interval,
         approach_range_m=args.approach_range,
         minimum_green_seconds=args.min_green,
+        switch_penalty=args.switch_penalty,
         reward_mode=args.reward_mode,
         checkpoint_path=checkpoint,
         results_path=args.results_path,

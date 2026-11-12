@@ -66,6 +66,7 @@ from src.environment.multi_agent_environment import (
     RewardMode,
 )
 from src.environment.actions import ActionPolicyConfig
+from src.environment.rewards import RewardWeights
 from src.environment.selected_corridor import SELECTED_CORRIDOR
 from src.evaluation.collector import MetricsCollector
 from src.evaluation.results_writer import append_result
@@ -92,6 +93,7 @@ _HYPERPARAMETERS = (
     "decision_interval_seconds",
     "approach_range_m",
     "minimum_green_seconds",
+    "switch_penalty",
     "episode_seconds",
     "cooldown_seconds",
 )
@@ -101,6 +103,7 @@ _ADDED_HYPERPARAMETER_DEFAULTS = {
     "learning_rate_decay": False,
     "approach_range_m": 0.0,
     "minimum_green_seconds": 10.0,
+    "switch_penalty": 0.0,
 }
 """Values for settings added after older checkpoints were written."""
 _REWARD_SUFFIX = {"local": "", "neighbor_aware": "_neighbor", "global": "_global"}
@@ -124,6 +127,8 @@ class DeepMarlConfig:
     decision_interval_seconds: float = 5.0
     approach_range_m: float = 0.0
     minimum_green_seconds: float = 7.0
+    switch_penalty: float = 0.0
+    """Reward subtracted for each phase change an agent starts."""
     reward_mode: RewardMode = "local"
     checkpoint_path: Path | None = None
     results_path: Path | None = RESULTS_FILE
@@ -325,6 +330,7 @@ class DeepMarlTrainer:
             decision_interval_seconds=cfg.decision_interval_seconds,
             approach_range_m=cfg.approach_range_m,
             action_policy=ActionPolicyConfig(minimum_green_seconds=cfg.minimum_green_seconds),
+            reward_weights=RewardWeights(switch_penalty_weight=cfg.switch_penalty),
             gui=cfg.gui,
             reward_mode=cfg.reward_mode,
         )
