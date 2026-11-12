@@ -123,7 +123,7 @@ class DeepMarlConfig:
     cooldown_seconds: float = 600.0
     decision_interval_seconds: float = 5.0
     approach_range_m: float = 0.0
-    minimum_green_seconds: float = 10.0
+    minimum_green_seconds: float = 7.0
     reward_mode: RewardMode = "local"
     checkpoint_path: Path | None = None
     results_path: Path | None = RESULTS_FILE

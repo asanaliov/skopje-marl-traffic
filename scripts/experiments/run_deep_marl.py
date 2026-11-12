@@ -70,8 +70,8 @@ def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--min-green",
         type=_positive_float,
-        default=10.0,
-        help="Shortest green an agent can end (default: 10).",
+        default=7.0,
+        help="Shortest green an agent can end (default: 7, as the actuated programs).",
     )
     parser.add_argument(
         "--reward-mode",
