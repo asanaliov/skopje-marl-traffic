@@ -32,11 +32,21 @@ AGENT_LIGHTS = {
     "GS_cluster_1839000563_1839000611_1839000738_365292561",  # a24 finki-makpetrol
     "GS_cluster_2414241934_2593819789",  # a25 ruzvelt
     "GS_cluster_170712177_1848310997",  # a21 kliment ohridski x ilinden
+    "GS_cluster_511207145_8301921419",  # a26 kuzman, joined below
 }
 PEDESTRIAN_LIGHTS = {
     "cluster_12549999855_4127480432_4537363482_4537363483_#2more",  # a29
     "cluster_12549999856_2458486828_3830563710_6206171929_#3more",  # leninova
     "cluster_287496085_3830563709_6221854337_6221854340_#2more",  # silbo
+}
+# one real junction that osm split into a light plus give-way stubs 0-9 m long;
+# a car stopped on a stub blocks the box and the right-before-left one deadlocks.
+# joined, keeping the light id so the agent numbering does not move
+JOINS = {
+    "GS_cluster_511207145_8301921419": (  # a26 kuzman
+        "cluster_511207145_8301921419", "12500925427", "3828271971",
+        "1748025367", "8303178512", "1748025350",
+    ),
 }
 # right-turn arrow that also runs in a non-conflicting phase: (light, from edge, to edge)
 OVERLAPS = [("GS_cluster_170712177_1848310997", "671643167#0", "42875018#0")]
@@ -182,6 +192,22 @@ def main() -> int:
             for e in sorted(explicit) for to in p1.getEdge(e).getOutgoing()) + "</connections>\n")
         netconvert("-s", str(tmp / "p1.net.xml.gz"), "-x", str(deletes), "-o", str(tmp / "p2.net.xml.gz"))
         netconvert("-s", str(tmp / "p2.net.xml.gz"), "-x", str(PATCHES / "approach_turns.con.xml"),
+                   "-o", str(tmp / "p3.net.xml.gz"))
+
+        (tmp / "joins.nod.xml").write_text("<nodes>\n" + "".join(
+            f'    <join nodes="{" ".join(nodes)}"/>\n' for nodes in JOINS.values()) + "</nodes>\n")
+        netconvert("-s", str(tmp / "p3.net.xml.gz"), "-n", str(tmp / "joins.nod.xml"),
+                   "-o", str(tmp / "p3j.net.xml.gz"))
+        before = sumolib.net.readNet(str(tmp / "p3.net.xml.gz"))
+        joined = sumolib.net.readNet(str(tmp / "p3j.net.xml.gz"))
+        new_nodes = [n for n in joined.getNodes() if not before.hasNode(n.getID())]
+        renames = []
+        for light, nodes in JOINS.items():
+            x, y = before.getNode(nodes[0]).getCoord()
+            node = min(new_nodes, key=lambda n: (n.getCoord()[0] - x) ** 2 + (n.getCoord()[1] - y) ** 2)
+            renames.append(f'    <node id="{node.getID()}" type="traffic_light" tl="{light}"/>\n')
+        (tmp / "renames.nod.xml").write_text("<nodes>\n" + "".join(renames) + "</nodes>\n")
+        netconvert("-s", str(tmp / "p3j.net.xml.gz"), "-n", str(tmp / "renames.nod.xml"),
                    "-o", str(tmp / "p3.net.xml.gz"))
 
         p3 = sumolib.net.readNet(str(tmp / "p3.net.xml.gz"), withPrograms=True)

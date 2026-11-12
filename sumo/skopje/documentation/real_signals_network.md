@@ -32,6 +32,17 @@ trained on one network cannot be loaded on the other, and baseline rows would
 not be comparable. After adding demand scenarios (for example `peak`), run
 `python scripts/setup/make_real_signals_configs.py` to create their configs.
 
+## Kuzman junction (A26)
+
+OSM split the Kuzman junction into the light plus five give-way junctions
+0-9 m away (one right-before-left). A stub holds one car, so a single stopped
+car blocked the junction box and the right-before-left junction could deadlock;
+every high-demand gridlock under rl control started there. The build joins them
+into one junction (`JOINS`), keeping A26's light id so the agent numbering does
+not change. Routes over the removed stubs are repaired by
+`make_real_signals_configs.py`. Actuated, seeds 42-44: medium 7.46 s, high
+12.36 s mean trip waiting.
+
 ## Recoded intersections
 
 One approach per phase: all lanes of that approach `G`, everything else `r`,
