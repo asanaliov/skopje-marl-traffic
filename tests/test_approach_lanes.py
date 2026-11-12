@@ -45,3 +45,16 @@ def test_walk_stops_at_other_agents():
     stopped = build_approach_lanes(SKOPJE_INITIAL_NETWORK_FILE, lanes, 2000.0, others)
     count = lambda approaches: sum(len(pairs) for pairs in approaches.values())  # noqa: E731
     assert count(stopped) < count(free)
+
+
+def test_exit_lanes_start_at_the_lights_outgoing_lanes_and_stay_in_range():
+    from src.environment.approach_lanes import build_exit_lanes
+
+    net = _read_net(str(SKOPJE_INITIAL_NETWORK_FILE))
+    tls_id = SELECTED_CORRIDOR.agent_to_traffic_light["A20"]
+    direct = {c[1].getID() for c in net.getTLS(tls_id).getConnections()}
+    exits = dict(build_exit_lanes(SKOPJE_INITIAL_NETWORK_FILE, tls_id, 150.0))
+    assert direct <= set(exits)
+    assert len(exits) > len(direct), "150 m must reach past the first exit lanes"
+    for lane_id, end in exits.items():
+        assert end is None or 0.0 <= end <= net.getLane(lane_id).getLength()

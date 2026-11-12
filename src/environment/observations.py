@@ -144,9 +144,17 @@ class TrafficObservation:
     current_phase_elapsed_seconds: float
     is_green_phase: bool
     is_transition_phase: bool
+    exit_vehicle_count: int = 0
+    """Vehicles on the lanes this light feeds (counted only for the pressure reward)."""
 
     def __post_init__(self) -> None:
         """Reject malformed or physically invalid observation values."""
+        if (
+            not isinstance(self.exit_vehicle_count, int)
+            or isinstance(self.exit_vehicle_count, bool)
+            or self.exit_vehicle_count < 0
+        ):
+            raise ValueError("exit_vehicle_count must be a non-negative integer.")
         if not self.agent_id.strip():
             raise ValueError("agent_id must not be empty.")
         if not self.traffic_light_id.strip():

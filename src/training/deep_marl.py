@@ -106,7 +106,12 @@ _ADDED_HYPERPARAMETER_DEFAULTS = {
     "switch_penalty": 0.0,
 }
 """Values for settings added after older checkpoints were written."""
-_REWARD_SUFFIX = {"local": "", "neighbor_aware": "_neighbor", "global": "_global"}
+_REWARD_SUFFIX = {
+    "local": "",
+    "neighbor_aware": "_neighbor",
+    "global": "_global",
+    "pressure": "_pressure",
+}
 
 
 def controller_label(reward_mode: str, controller: str = CONTROLLER_NAME) -> str:

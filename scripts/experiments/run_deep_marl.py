@@ -81,7 +81,7 @@ def _common(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--reward-mode",
-        choices=("local", "neighbor_aware", "global"),
+        choices=("local", "neighbor_aware", "global", "pressure"),
         default="local",
         help=(
             "Reward every agent learns from (default: local, the deep "
