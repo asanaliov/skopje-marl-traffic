@@ -37,6 +37,7 @@ from src.baselines.imported_actuated import (  # noqa: E402
     ImportedActuatedController,
     build_environment_config,
 )
+from src.baselines.webster_fixed_time import WebsterFixedTimeController  # noqa: E402
 from src.demand.scenarios import SCENARIOS, TrafficDemandScenario, get_scenario  # noqa: E402
 from src.demand.xml_writer import scenario_output_files  # noqa: E402
 from src.environment.multi_agent_environment import (  # noqa: E402
@@ -91,6 +92,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="launch sumo-gui instead of headless SUMO",
     )
     parser.add_argument(
+        "--webster",
+        action="store_true",
+        help="run the agent lights on fixed Webster plans (webster_fixed_time)",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=DEFAULT_RESULTS_PATH,
@@ -133,6 +139,7 @@ def run_experiment(
     output_path: Path,
     report_interval: int = DEFAULT_REPORT_INTERVAL_SECONDS,
     print_reports: bool = True,
+    controller_class: type[ImportedActuatedController] = ImportedActuatedController,
 ) -> EpisodeMetrics:
     """Run one complete imported actuated episode and save its metrics.
 
@@ -142,7 +149,7 @@ def run_experiment(
     exactly like ``tests/test_multi_agent_environment.py`` already does,
     without starting real SUMO.
     """
-    controller = ImportedActuatedController(environment)
+    controller = controller_class(environment)
     try:
         observations = controller.reset()
         lanes_by_agent = {
@@ -153,7 +160,7 @@ def run_experiment(
             {lane_id for lanes in lanes_by_agent.values() for lane_id in lanes}
         )
         collector = MetricsCollector(
-            controller=CONTROLLER_NAME,
+            controller=controller.controller_name,
             scenario=scenario,
             seed=seed,
             monitored_lanes=monitored_lanes,
@@ -284,7 +291,7 @@ def main(argv: list[str] | None = None) -> int:
         traci = load_traci()
         mode = "SUMO-GUI" if args.gui else "headless SUMO"
         print(
-            f"Running {CONTROLLER_NAME} on synthetic {scenario.name} demand in "
+            f"Running {'webster_fixed_time' if args.webster else CONTROLLER_NAME} on synthetic {scenario.name} demand in "
             f"{mode}: demand={demand_seconds} s, cooldown={args.cooldown_seconds} s, "
             f"seed={args.seed}."
         )
@@ -307,6 +314,9 @@ def main(argv: list[str] | None = None) -> int:
             cooldown_seconds=args.cooldown_seconds,
             output_path=args.output,
             report_interval=args.report_interval,
+            controller_class=(
+                WebsterFixedTimeController if args.webster else ImportedActuatedController
+            ),
         )
         _print_final_summary(metrics)
         print(f"\nSaved result to {args.output}")

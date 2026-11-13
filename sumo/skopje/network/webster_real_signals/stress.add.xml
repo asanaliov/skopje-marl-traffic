@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+  <tlLogic id="GS_12432953582" type="static" programID="webster" offset="0">
+    <phase duration="11" state="GGGrrrrr" />
+    <phase duration="3" state="yyyrrrrr" />
+    <phase duration="7" state="rrrGGrrr" />
+    <phase duration="3" state="rrryyrrr" />
+    <phase duration="9" state="rrrrrGGG" />
+    <phase duration="3" state="rrrrryyy" />
+  </tlLogic>
+  <tlLogic id="GS_cluster_170638629_170642149_170723177_418949594" type="static" programID="webster" offset="0">
+    <phase duration="7" state="GGGrrrrrrrrr" />
+    <phase duration="3" state="yyyrrrrrrrrr" />
+    <phase duration="8" state="rrrGGGGGGrrr" />
+    <phase duration="3" state="rrryyyyyyrrr" />
+    <phase duration="32" state="rrrrrrrrrGGG" />
+    <phase duration="3" state="rrrrrrrrryyy" />
+  </tlLogic>
+  <tlLogic id="GS_cluster_170640546_170645388_170684654_170684655" type="static" programID="webster" offset="0">
+    <phase duration="7" state="GGGGGGrrrrrrrrrrrrrrrrrrr" />
+    <phase duration="3" state="yyyyyyrrrrrrrrrrrrrrrrrrr" />
+    <phase duration="11" state="rrrrrrGGGGGGGrrrrrrrrrrrr" />
+    <phase duration="3" state="rrrrrryyyyyyyrrrrrrrrrrrr" />
+    <phase duration="9" state="rrrrrrrrrrrrrGGGGGGrrrrrr" />
+    <phase duration="3" state="rrrrrrrrrrrrryyyyyyrrrrrr" />
+    <phase duration="10" state="rrrrrrrrrrrrrrrrrrrGGGGGG" />
+    <phase duration="3" state="rrrrrrrrrrrrrrrrrrryyyyyy" />
+  </tlLogic>
+  <tlLogic id="GS_cluster_170664726_3563678918" type="static" programID="webster" offset="0">
+    <phase duration="7" state="GGGGrrrrrrrrrr" />
+    <phase duration="3" state="yyyyrrrrrrrrrr" />
+    <phase duration="7" state="rrrrGGGGrrrrrr" />
+    <phase duration="3" state="rrrryyyyrrrrrr" />
+    <phase duration="7" state="rrrrrrrrGGGGrr" />
+    <phase duration="3" state="rrrrrrrryyyyrr" />
+    <phase duration="7" state="rrrrrrrrrrrrGG" />
+    <phase duration="3" state="rrrrrrrrrrrryy" />
+  </tlLogic>
+  <tlLogic id="GS_cluster_170712177_1848310997" type="static" programID="webster" offset="0">
+    <phase duration="7" state="GGGGGGrrrrrrrrrrrrrrr" />
+    <phase duration="3" state="yyyyyyrrrrrrrrrrrrrrr" />
+    <phase duration="7" state="rrrrrrGGGGrrrrrGrrrrr" />
+    <phase duration="3" state="rrrrrryyyyrrrrryrrrrr" />
+    <phase duration="7" state="rrrrrrrrrrGGGGGrrrrrr" />
+    <phase duration="3" state="rrrrrrrrrryyyyyrrrrrr" />
+    <phase duration="7" state="rrrrrrrrrrrrrrrGGGGGG" />
+    <phase duration="3" state="rrrrrrrrrrrrrrryyyyyy" />
+  </tlLogic>
+  <tlLogic id="GS_cluster_1839000563_1839000611_1839000738_365292561" type="static" programID="webster" offset="0">
+    <phase duration="7" state="GGGGGrrrrrrrrrrrrrrrrr" />
+    <phase duration="3" state="yyyyyrrrrrrrrrrrrrrrrr" />
+    <phase duration="11" state="rrrrrGGGGGGGrrrrrrrrrr" />
+    <phase duration="3" state="rrrrryyyyyyyrrrrrrrrrr" />
+    <phase duration="7" state="rrrrrrrrrrrrGGGGGrrrrr" />
+    <phase duration="3" state="rrrrrrrrrrrryyyyyrrrrr" />
+    <phase duration="7" state="rrrrrrrrrrrrrrrrrGGGGG" />
+    <phase duration="3" state="rrrrrrrrrrrrrrrrryyyyy" />
+  </tlLogic>
+  <tlLogic id="GS_cluster_2414241934_2593819789" type="static" programID="webster" offset="0">
+    <phase duration="10" state="GGGGGrrrrrrrrrrrrrrrrr" />
+    <phase duration="3" state="yyyyyrrrrrrrrrrrrrrrrr" />
+    <phase duration="10" state="rrrrrGGGGGGGrrrrrrrrrr" />
+    <phase duration="3" state="rrrrryyyyyyyrrrrrrrrrr" />
+    <phase duration="7" state="rrrrrrrrrrrrGGGGGrrrrr" />
+    <phase duration="3" state="rrrrrrrrrrrryyyyyrrrrr" />
+    <phase duration="7" state="rrrrrrrrrrrrrrrrrGGGGG" />
+    <phase duration="3" state="rrrrrrrrrrrrrrrrryyyyy" />
+  </tlLogic>
+  <tlLogic id="GS_cluster_511207145_8301921419" type="static" programID="webster" offset="0">
+    <phase duration="7" state="GGGGGGGGGrrrrrrrrrrrrrrrrrrrrrr" />
+    <phase duration="3" state="yyyyyyyyyrrrrrrrrrrrrrrrrrrrrrr" />
+    <phase duration="7" state="rrrrrrrrrGGGGGGrrrrrrrrrrrrrrrr" />
+    <phase duration="3" state="rrrrrrrrryyyyyyrrrrrrrrrrrrrrrr" />
+    <phase duration="12" state="rrrrrrrrrrrrrrrGGGGGGGGGrrrrrrr" />
+    <phase duration="3" state="rrrrrrrrrrrrrrryyyyyyyyyrrrrrrr" />
+    <phase duration="82" state="rrrrrrrrrrrrrrrrrrrrrrrrGGGGGGG" />
+    <phase duration="3" state="rrrrrrrrrrrrrrrrrrrrrrrryyyyyyy" />
+  </tlLogic>
+</additional>
