@@ -32,15 +32,26 @@ AGENT_LIGHTS = {
     "GS_cluster_1839000563_1839000611_1839000738_365292561",  # a24 finki-makpetrol
     "GS_cluster_2414241934_2593819789",  # a25 ruzvelt
     "GS_cluster_170712177_1848310997",  # a21 kliment ohridski x ilinden
+    "GS_cluster_511207145_8301921419",  # a26 kuzman, joined below
 }
 PEDESTRIAN_LIGHTS = {
     "cluster_12549999855_4127480432_4537363482_4537363483_#2more",  # a29
     "cluster_12549999856_2458486828_3830563710_6206171929_#3more",  # leninova
     "cluster_287496085_3830563709_6221854337_6221854340_#2more",  # silbo
 }
+# one real junction that osm split into a light plus give-way stubs 0-9 m long;
+# a car stopped on a stub blocks the box and the right-before-left one deadlocks.
+# joined, keeping the light id so the agent numbering does not move
+JOINS = {
+    "GS_cluster_511207145_8301921419": (  # a26 kuzman
+        "cluster_511207145_8301921419", "12500925427", "3828271971",
+        "1748025367", "8303178512", "1748025350",
+    ),
+}
 # right-turn arrow that also runs in a non-conflicting phase: (light, from edge, to edge)
 OVERLAPS = [("GS_cluster_170712177_1848310997", "671643167#0", "42875018#0")]
-GREEN = '<phase duration="20" state="{}" minDur="5" maxDur="50"/>'
+# same 7 s minimum and 60 s maximum green as the rl agents
+GREEN = '<phase duration="20" state="{}" minDur="7" maxDur="60"/>'
 YELLOW = '<phase duration="3" state="{}"/>'
 
 
@@ -183,6 +194,22 @@ def main() -> int:
         netconvert("-s", str(tmp / "p2.net.xml.gz"), "-x", str(PATCHES / "approach_turns.con.xml"),
                    "-o", str(tmp / "p3.net.xml.gz"))
 
+        (tmp / "joins.nod.xml").write_text("<nodes>\n" + "".join(
+            f'    <join nodes="{" ".join(nodes)}"/>\n' for nodes in JOINS.values()) + "</nodes>\n")
+        netconvert("-s", str(tmp / "p3.net.xml.gz"), "-n", str(tmp / "joins.nod.xml"),
+                   "-o", str(tmp / "p3j.net.xml.gz"))
+        before = sumolib.net.readNet(str(tmp / "p3.net.xml.gz"))
+        joined = sumolib.net.readNet(str(tmp / "p3j.net.xml.gz"))
+        new_nodes = [n for n in joined.getNodes() if not before.hasNode(n.getID())]
+        renames = []
+        for light, nodes in JOINS.items():
+            x, y = before.getNode(nodes[0]).getCoord()
+            node = min(new_nodes, key=lambda n: (n.getCoord()[0] - x) ** 2 + (n.getCoord()[1] - y) ** 2)
+            renames.append(f'    <node id="{node.getID()}" type="traffic_light" tl="{light}"/>\n')
+        (tmp / "renames.nod.xml").write_text("<nodes>\n" + "".join(renames) + "</nodes>\n")
+        netconvert("-s", str(tmp / "p3j.net.xml.gz"), "-n", str(tmp / "renames.nod.xml"),
+                   "-o", str(tmp / "p3.net.xml.gz"))
+
         p3 = sumolib.net.readNet(str(tmp / "p3.net.xml.gz"), withPrograms=True)
         p3_links = tls_links(p3)
         moved = {t for t in base_links if [link_key(l) for l in base_links[t]] != [link_key(l) for l in p3_links.get(t, [])]}
@@ -196,6 +223,10 @@ def main() -> int:
                 if overlap_light == light:
                     phases = add_overlap(p3, p3_links[light], phases, frm, to)
             tll += tll_entry(light, phases, p3_links[light])
+        # the other recoded agents keep their phases, only the green bounds change
+        for light in sorted(RECODED - AGENT_LIGHTS):
+            states = [p.state for p in base.getTLS(light).getPrograms()["0"].getPhases()]
+            tll += tll_entry(light, states, p3_links[light])
         for light in sorted(PEDESTRIAN_LIGHTS):
             tll += tll_entry(light, pedestrian_phases(p3_links[light]), p3_links[light], PEDESTRIAN_BOUNDS)
         tll.append("</tlLogics>")

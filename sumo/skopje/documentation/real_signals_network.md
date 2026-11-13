@@ -32,11 +32,36 @@ trained on one network cannot be loaded on the other, and baseline rows would
 not be comparable. After adding demand scenarios (for example `peak`), run
 `python scripts/setup/make_real_signals_configs.py` to create their configs.
 
+## Kuzman junction (A26)
+
+OSM split the Kuzman junction into the light plus five give-way junctions
+0-9 m away (one right-before-left). A stub holds one car, so a single stopped
+car blocked the junction box and the right-before-left junction could deadlock;
+every high-demand gridlock under rl control started there. The build joins them
+into one junction (`JOINS`), keeping A26's light id so the agent numbering does
+not change. Routes over the removed stubs are repaired by
+`make_real_signals_configs.py`. Actuated, seeds 42-44: medium 7.46 s, high
+12.36 s mean trip waiting.
+
+## Junction blockers
+
+At an unsignalized give-way junction with a steady stream on the main road
+(Leninova into Mitropolit Teodosij Gologanov, just past A26), SUMO's driver
+waits for a gap forever and blocks the junction until it teleports; real
+drivers squeeze in or avoid the street. Every real_signals config sets
+`ignore-junction-blocker` to 30 s so others pass such a car after 30 s. It
+applies to every controller: actuated high moved by under 0.1 s, while an rl
+policy that ran long greens went from 311-892 vehicles left to 114-146.
+
 ## Recoded intersections
 
 One approach per phase: all lanes of that approach `G`, everything else `r`,
 no permissive `g`; 20 s green and 3 s yellow (placeholder timings, to be
-replaced with real ones).
+replaced with real ones). Under actuated control every agent green runs
+7–60 s, the same minimum and maximum the rl agents get, so both controllers
+work within identical limits (was 5–50 s before 2026-11-12). 7 s is a common
+practice value, not a measured Skopje one; pedestrian clearance is not
+modelled.
 
 | Agent | Phases before | Phases now | Notes |
 | --- | ---: | ---: | --- |
@@ -77,7 +102,8 @@ The build re-guesses the connections of every edge whose lanes change and of
 the edges feeding it (an edge patch alone keeps the old lane connections and
 leaves dead lanes). It then regenerates the programs of the lights whose links
 changed: agents get the #72 rule (one approach per phase, all its links `G`,
-20 s green / 3 s yellow placeholder), pedestrian lights stop only the boulevard
+20 s green / 3 s yellow placeholder, 7–60 s actuated bounds; the other #72
+agents keep their phases and get the same bounds), pedestrian lights stop only the boulevard
 through lanes (`GGG` 5–50 s, `yyy` 3 s, `rrr` 5–15 s). It fails if the rule does
 not reproduce the existing #72 programs, if any other light changes, if a new
 dead lane appears, or if a program does not cover its links.
