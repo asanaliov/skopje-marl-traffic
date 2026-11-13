@@ -139,14 +139,15 @@ def test_learning_rate_decays_linearly_over_the_run(tmp_path):
 def test_checkpoint_from_before_learning_rate_decay_still_resumes(tmp_path):
     import torch
 
-    make_trainer(tmp_path).train()
+    make_trainer(tmp_path, learning_rate_decay=False).train()
     path = tmp_path / "deep.pt"
     payload = torch.load(path, weights_only=False)
     del payload["hyperparameters"]["learning_rate_decay"]
     torch.save(payload, path)
-    make_trainer(tmp_path).load_checkpoint(for_training=True)
+    # an old checkpoint trained without decay resumes only with decay off
+    make_trainer(tmp_path, learning_rate_decay=False).load_checkpoint(for_training=True)
     with pytest.raises(ValueError, match="learning_rate_decay"):
-        make_trainer(tmp_path, learning_rate_decay=True).train(resume=True)
+        make_trainer(tmp_path).train(resume=True)
 
 
 def test_resume_restores_the_reward_statistics(tmp_path):

@@ -132,7 +132,7 @@ class DeepMarlConfig:
     episode_seconds: float = 3600.0
     cooldown_seconds: float = 600.0
     decision_interval_seconds: float = 5.0
-    approach_range_m: float = 0.0
+    approach_range_m: float = 150.0
     minimum_green_seconds: float = 7.0
     switch_penalty: float = 0.0
     waiting_weight: float = 0.1
@@ -144,14 +144,14 @@ class DeepMarlConfig:
     gui: bool = False
     hidden_size: int = 128
     learning_rate: float = 3e-4
-    learning_rate_decay: bool = False
+    learning_rate_decay: bool = True
     gamma: float = 0.99
     gae_lambda: float = 0.95
     clip_range: float = 0.2
     entropy_coefficient: float = 0.01
     value_coefficient: float = 0.5
     max_grad_norm: float = 0.5
-    update_epochs: int = 4
+    update_epochs: int = 10
     minibatch_size: int = 512
     reward_clip: float = 10.0
     torch_seed: int = 0

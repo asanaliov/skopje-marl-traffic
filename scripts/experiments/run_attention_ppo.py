@@ -66,10 +66,11 @@ def parse_args(argv=None) -> argparse.Namespace:
     train.add_argument("--learning-rate", type=_positive_float, default=3e-4)
     train.add_argument(
         "--lr-decay",
-        action="store_true",
-        help="Decay the learning rate linearly to zero over --episodes.",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Decay the learning rate linearly to zero over --episodes (default: on).",
     )
-    train.add_argument("--update-epochs", type=_positive_int, default=4)
+    train.add_argument("--update-epochs", type=_positive_int, default=10)
     train.add_argument("--entropy-coefficient", type=_positive_float, default=0.01)
     train.add_argument("--torch-seed", type=int, default=0)
     evaluate = sub.add_parser("evaluate")

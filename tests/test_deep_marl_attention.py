@@ -114,10 +114,12 @@ def test_training_updates_attention_weights(tmp_path):
 
 
 def test_resumed_training_matches_an_uninterrupted_run(tmp_path):
-    straight = make_trainer(tmp_path / "straight", episodes=3)
+    # stopping at 2 of 3 is faked with episodes=2, which would shift the lr
+    # decay schedule; a real resume keeps --episodes, so decay is off here
+    straight = make_trainer(tmp_path / "straight", episodes=3, learning_rate_decay=False)
     straight.train()
-    make_trainer(tmp_path / "interrupted", episodes=2).train()
-    resumed = make_trainer(tmp_path / "interrupted", episodes=3)
+    make_trainer(tmp_path / "interrupted", episodes=2, learning_rate_decay=False).train()
+    resumed = make_trainer(tmp_path / "interrupted", episodes=3, learning_rate_decay=False)
     resumed.train(resume=True)
     assert resumed.completed_episodes == 3
     for expected, actual in zip(weights(straight), weights(resumed)):
