@@ -65,6 +65,8 @@ from src.environment.multi_agent_environment import (
     MultiAgentTrafficEnvironment,
     RewardMode,
 )
+from src.environment.actions import ActionPolicyConfig
+from src.environment.rewards import RewardWeights
 from src.environment.selected_corridor import SELECTED_CORRIDOR
 from src.evaluation.collector import MetricsCollector
 from src.evaluation.results_writer import append_result
@@ -78,6 +80,7 @@ DEFAULT_TRAINING_EPISODES = 300
 _HYPERPARAMETERS = (
     "hidden_size",
     "learning_rate",
+    "learning_rate_decay",
     "gamma",
     "gae_lambda",
     "clip_range",
@@ -88,11 +91,29 @@ _HYPERPARAMETERS = (
     "minibatch_size",
     "reward_clip",
     "decision_interval_seconds",
+    "approach_range_m",
+    "minimum_green_seconds",
+    "switch_penalty",
+    "waiting_weight",
     "episode_seconds",
     "cooldown_seconds",
 )
 """Settings a resumed run must share with its checkpoint."""
-_REWARD_SUFFIX = {"local": "", "neighbor_aware": "_neighbor", "global": "_global"}
+
+_ADDED_HYPERPARAMETER_DEFAULTS = {
+    "learning_rate_decay": False,
+    "approach_range_m": 0.0,
+    "minimum_green_seconds": 10.0,
+    "switch_penalty": 0.0,
+    "waiting_weight": 0.1,
+}
+"""Values for settings added after older checkpoints were written."""
+_REWARD_SUFFIX = {
+    "local": "",
+    "neighbor_aware": "_neighbor",
+    "global": "_global",
+    "pressure": "_pressure",
+}
 
 
 def controller_label(reward_mode: str, controller: str = CONTROLLER_NAME) -> str:
@@ -111,19 +132,26 @@ class DeepMarlConfig:
     episode_seconds: float = 3600.0
     cooldown_seconds: float = 600.0
     decision_interval_seconds: float = 5.0
+    approach_range_m: float = 150.0
+    minimum_green_seconds: float = 7.0
+    switch_penalty: float = 0.0
+    waiting_weight: float = 0.1
+    """Weight of the summed lane mean waiting time in the local reward."""
+    """Reward subtracted for each phase change an agent starts."""
     reward_mode: RewardMode = "local"
     checkpoint_path: Path | None = None
     results_path: Path | None = RESULTS_FILE
     gui: bool = False
     hidden_size: int = 128
     learning_rate: float = 3e-4
+    learning_rate_decay: bool = True
     gamma: float = 0.99
     gae_lambda: float = 0.95
     clip_range: float = 0.2
     entropy_coefficient: float = 0.01
     value_coefficient: float = 0.5
     max_grad_norm: float = 0.5
-    update_epochs: int = 4
+    update_epochs: int = 10
     minibatch_size: int = 512
     reward_clip: float = 10.0
     torch_seed: int = 0
@@ -259,7 +287,7 @@ class DeepMarlTrainer:
 
     controller_name = CONTROLLER_NAME
     hyperparameters = _HYPERPARAMETERS
-    evaluation_hyperparameters = ("hidden_size",)
+    evaluation_hyperparameters = ("hidden_size", "approach_range_m", "minimum_green_seconds")
     """Settings that change what a checkpoint's weights mean."""
 
     def __init__(
@@ -309,6 +337,12 @@ class DeepMarlTrainer:
             demand_seconds=cfg.episode_seconds,
             cooldown_seconds=cfg.cooldown_seconds,
             decision_interval_seconds=cfg.decision_interval_seconds,
+            approach_range_m=cfg.approach_range_m,
+            action_policy=ActionPolicyConfig(minimum_green_seconds=cfg.minimum_green_seconds),
+            reward_weights=RewardWeights(
+                waiting_weight=cfg.waiting_weight,
+                switch_penalty_weight=cfg.switch_penalty,
+            ),
             gui=cfg.gui,
             reward_mode=cfg.reward_mode,
         )
@@ -543,9 +577,10 @@ class DeepMarlTrainer:
         stored = payload["hyperparameters"]
         checked = self.hyperparameters if for_training else self.evaluation_hyperparameters
         for key in checked:
-            if stored.get(key) != getattr(cfg, key):
+            value = stored.get(key, _ADDED_HYPERPARAMETER_DEFAULTS.get(key))
+            if value != getattr(cfg, key):
                 raise ValueError(
-                    f"Checkpoint {key}={stored.get(key)!r} does not match this "
+                    f"Checkpoint {key}={value!r} does not match this "
                     f"run ({getattr(cfg, key)!r})."
                 )
         self.network.load_state_dict(payload["network"])
@@ -575,6 +610,10 @@ class DeepMarlTrainer:
             summary, rollout = self._run_episode(
                 episode, training=True, sumo_seed=cfg.seed + episode
             )
+            if cfg.learning_rate_decay:
+                # linear to zero, from the episode number so a resume matches
+                for group in self.optimizer.param_groups:
+                    group["lr"] = cfg.learning_rate * (1 - (episode - 1) / cfg.episodes)
             p_loss, v_loss, entropy = self._update(rollout)
             summary = replace(
                 summary,

@@ -62,8 +62,32 @@ def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--cooldown-seconds", type=_non_negative_float, default=600.0)
     parser.add_argument("--decision-interval", type=_positive_float, default=5.0)
     parser.add_argument(
+        "--approach-range",
+        type=_non_negative_float,
+        default=150.0,
+        help="Observe each controlled lane this many metres upstream (default: 150).",
+    )
+    parser.add_argument(
+        "--min-green",
+        type=_positive_float,
+        default=7.0,
+        help="Shortest green an agent can end (default: 7, as the actuated programs).",
+    )
+    parser.add_argument(
+        "--switch-penalty",
+        type=_non_negative_float,
+        default=0.0,
+        help="Reward subtracted for each phase change (default: 0).",
+    )
+    parser.add_argument(
+        "--waiting-weight",
+        type=_non_negative_float,
+        default=0.1,
+        help="Weight of lane waiting time in the local reward (default: 0.1).",
+    )
+    parser.add_argument(
         "--reward-mode",
-        choices=("local", "neighbor_aware", "global"),
+        choices=("local", "neighbor_aware", "global", "pressure"),
         default="local",
         help=(
             "Reward every agent learns from (default: local, the deep "
@@ -89,6 +113,14 @@ def parse_args(argv=None) -> argparse.Namespace:
     )
     train.add_argument("--resume", action="store_true")
     train.add_argument("--learning-rate", type=_positive_float, default=3e-4)
+    train.add_argument(
+        "--lr-decay",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Decay the learning rate linearly to zero over --episodes (default: on).",
+    )
+    train.add_argument("--update-epochs", type=_positive_int, default=10)
+    train.add_argument("--entropy-coefficient", type=_positive_float, default=0.01)
     train.add_argument("--hidden-size", type=_positive_int, default=128)
     train.add_argument("--torch-seed", type=int, default=0)
     evaluate = sub.add_parser("evaluate")
@@ -116,6 +148,10 @@ def main(argv=None) -> int:
         episode_seconds=args.episode_seconds,
         cooldown_seconds=args.cooldown_seconds,
         decision_interval_seconds=args.decision_interval,
+        approach_range_m=args.approach_range,
+        minimum_green_seconds=args.min_green,
+        switch_penalty=args.switch_penalty,
+        waiting_weight=args.waiting_weight,
         reward_mode=args.reward_mode,
         checkpoint_path=checkpoint,
         results_path=args.results_path,
@@ -131,6 +167,9 @@ def main(argv=None) -> int:
             **common,
             episodes=args.episodes,
             learning_rate=args.learning_rate,
+            learning_rate_decay=args.lr_decay,
+            update_epochs=args.update_epochs,
+            entropy_coefficient=args.entropy_coefficient,
             torch_seed=args.torch_seed,
         )
         DeepMarlTrainer(config).train(resume=args.resume)

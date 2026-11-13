@@ -129,6 +129,27 @@ def test_resume_with_different_hyperparameters_is_rejected(tmp_path):
     evaluator.load_checkpoint(for_training=False)
 
 
+def test_learning_rate_decays_linearly_over_the_run(tmp_path):
+    trainer = make_trainer(tmp_path, learning_rate_decay=True)
+    trainer.train()
+    # set before episode 2's update: 1 - (2 - 1) / 2
+    assert trainer.optimizer.param_groups[0]["lr"] == pytest.approx(1.5e-4)
+
+
+def test_checkpoint_from_before_learning_rate_decay_still_resumes(tmp_path):
+    import torch
+
+    make_trainer(tmp_path, learning_rate_decay=False).train()
+    path = tmp_path / "deep.pt"
+    payload = torch.load(path, weights_only=False)
+    del payload["hyperparameters"]["learning_rate_decay"]
+    torch.save(payload, path)
+    # an old checkpoint trained without decay resumes only with decay off
+    make_trainer(tmp_path, learning_rate_decay=False).load_checkpoint(for_training=True)
+    with pytest.raises(ValueError, match="learning_rate_decay"):
+        make_trainer(tmp_path).train(resume=True)
+
+
 def test_resume_restores_the_reward_statistics(tmp_path):
     first = make_trainer(tmp_path)
     first.train()

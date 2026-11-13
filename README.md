@@ -220,6 +220,24 @@ python scripts/experiments/run_attention_ppo.py evaluate --scenario medium --see
 
 Checkpoints are saved as `checkpoints/deep_marl_attention_<reward>_<scenario>_seed<seed>.pt`.
 
+### Training settings
+
+Both PPO trainers default to the settings that won the November 2026 tuning on real_signals (medium and
+high, seeds 42-44, 150-episode runs):
+
+| Flag | Default | Why |
+| --- | --- | --- |
+| `--approach-range` | 150 m | most stop-line lanes are ~18 m (three cars), so longer queues were invisible; each lane now counts vehicles up to 150 m upstream, stopping at the next agent |
+| `--min-green` | 7 s | was 10 s; the actuated programs use the same 7 s, so both controllers work within identical limits |
+| `--lr-decay` / `--no-lr-decay` | on | linear decay to zero over `--episodes`; keep `--episodes` unchanged when resuming |
+| `--update-epochs` | 10 | was 4; learns faster per simulated episode |
+
+Tried and kept off by default: `--reward-mode pressure` (exits counted 150 m downstream; tied with the local
+reward on high, behind on medium), `--switch-penalty`, `--waiting-weight` above 0.1, `--entropy-coefficient`
+above 0.01, `--decision-interval 2` and `--reward-mode neighbor_aware`. Checkpoints written before these flags
+existed load with their old values (no approach range, 10 s minimum green, no decay), so pass those flags to
+resume or evaluate them.
+
 Limit PyTorch to one thread before training. On medium demand, 2 episodes with updates took 55 s instead of 162 s at the default 14 threads, with identical logged rewards and losses. Plain PPO and parallel runs have not been timed with this setting.
 
 ```powershell

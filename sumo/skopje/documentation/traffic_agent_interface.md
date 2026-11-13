@@ -108,7 +108,7 @@ An agent cannot request a yellow phase, an all-red phase, or an arbitrary phase 
 
 The initial action policy uses:
 
-- Minimum green: 10 seconds.
+- Minimum green: 7 seconds (10 before 2026-11-12; the actuated programs use the same 7).
 - Maximum green: 60 seconds.
 - Decision interval: 5 seconds.
 
