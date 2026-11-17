@@ -13,8 +13,10 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Literal
 
+from src.config import SKOPJE_INITIAL_NETWORK_FILE
 from src.demand.scenarios import get_scenario
 from src.demand.xml_writer import scenario_output_files
+from src.environment.approach_lanes import build_approach_lanes, build_exit_lanes
 from src.environment.actions import (
     ActionPolicyConfig,
     ActionResult,
@@ -32,8 +34,8 @@ from src.environment.selected_corridor import SELECTED_CORRIDOR
 from src.environment.traffic_signal import TrafficSignal
 
 
-RewardMode = Literal["local", "neighbor_aware", "global"]
-_REWARD_MODES = ("local", "neighbor_aware", "global")
+RewardMode = Literal["local", "neighbor_aware", "global", "pressure"]
+_REWARD_MODES = ("local", "neighbor_aware", "global", "pressure")
 
 
 def _validate_finite_seconds(
@@ -70,9 +72,13 @@ class MultiAgentEnvironmentConfig:
     require_complete_action_mappings: bool = True
     neighbor_local_weight: float = 0.7
     neighbor_reward_weight: float = 0.3
+    approach_range_m: float = 0.0
+    """Observe each controlled lane this far upstream (0: the lane only)."""
 
     def __post_init__(self) -> None:
         """Validate values and normalize configured agents to corridor order."""
+        if not math.isfinite(self.approach_range_m) or self.approach_range_m < 0:
+            raise ValueError("approach_range_m must be a finite non-negative value.")
         scenario = get_scenario(str(self.scenario)).name
         if (
             not isinstance(self.seed, int)
@@ -418,6 +424,32 @@ class MultiAgentTrafficEnvironment:
                         "TrafficSignal creation returned the wrong traffic-light "
                         f"mapping for {agent_id}."
                     )
+                if self.config.approach_range_m > 0:
+                    signal.set_approach_lanes(
+                        build_approach_lanes(
+                            SKOPJE_INITIAL_NETWORK_FILE,
+                            signal.incoming_lane_ids,
+                            self.config.approach_range_m,
+                            stop_traffic_light_ids=[
+                                tls_id
+                                for tls_id in SELECTED_CORRIDOR.agent_to_traffic_light.values()
+                                if tls_id != traffic_light_id
+                            ],
+                        )
+                    )
+                if self.config.reward_mode == "pressure":
+                    signal.set_exit_lanes(
+                        build_exit_lanes(
+                            SKOPJE_INITIAL_NETWORK_FILE,
+                            traffic_light_id,
+                            self.config.approach_range_m,
+                            stop_traffic_light_ids=[
+                                tls_id
+                                for tls_id in SELECTED_CORRIDOR.agent_to_traffic_light.values()
+                                if tls_id != traffic_light_id
+                            ],
+                        )
+                    )
                 self._traffic_signals[agent_id] = signal
 
             if tuple(self._traffic_signals) != self.agent_ids:
@@ -544,6 +576,18 @@ class MultiAgentTrafficEnvironment:
                     ),
                     local_weight=self.config.neighbor_local_weight,
                     neighbor_weight=self.config.neighbor_reward_weight,
+                )
+                for agent_id in self.agent_ids
+            }
+        elif self.config.reward_mode == "pressure":
+            # max-pressure (PressLight): balance what waits to enter against
+            # what already fills the exits, so a full exit stops paying off
+            rewards = {
+                agent_id: -float(
+                    abs(
+                        sum(observations[agent_id].vehicle_counts)
+                        - observations[agent_id].exit_vehicle_count
+                    )
                 )
                 for agent_id in self.agent_ids
             }

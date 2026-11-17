@@ -18,7 +18,7 @@ class TrafficAction(IntEnum):
 class ActionPolicyConfig:
     """Immutable timing rules for safe action application."""
 
-    minimum_green_seconds: float = 10.0
+    minimum_green_seconds: float = 7.0
     maximum_green_seconds: float = 60.0
     decision_interval_seconds: float = 5.0
 

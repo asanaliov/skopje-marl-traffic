@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import replace
 from typing import Any, Protocol
 
@@ -166,6 +166,8 @@ class TrafficSignal:
         self._phase_durations: tuple[float, ...] = ()
         self._green_phase_indices: tuple[int, ...] = ()
         self._incoming_lane_ids: tuple[str, ...] = ()
+        self._approach_lanes: Mapping[str, tuple[tuple[str, float], ...]] = {}
+        self._exit_lanes: tuple[tuple[str, float | None], ...] = ()
         self._phase_index = 0
         self._phase_state = ""
         self._phase_start_time = 0.0
@@ -202,6 +204,55 @@ class TrafficSignal:
     def current_phase_index(self) -> int:
         """Return the most recently synchronized phase index."""
         return self._phase_index
+
+    def set_approach_lanes(
+        self, approach_lanes: Mapping[str, tuple[tuple[str, float], ...]]
+    ) -> None:
+        """Also observe these ``(upstream lane, start position)`` pairs per lane."""
+        unknown = set(approach_lanes) - set(self._incoming_lane_ids)
+        if unknown:
+            raise ValueError(f"Approach lanes for unknown lanes: {sorted(unknown)}.")
+        self._approach_lanes = dict(approach_lanes)
+
+    def set_exit_lanes(self, exit_lanes: Sequence[tuple[str, float | None]]) -> None:
+        """Count vehicles on these ``(lane, end position)`` pairs downstream."""
+        self._exit_lanes = tuple(exit_lanes)
+
+    def _exit_vehicle_count(self) -> int:
+        """Vehicles on the exit lanes, within each lane's end position."""
+        count = 0
+        for lane_id, end in self._exit_lanes:
+            vehicle_ids = self._traci.lane.getLastStepVehicleIDs(lane_id)
+            if end is None:
+                count += len(vehicle_ids)
+                continue
+            for vehicle_id in vehicle_ids:
+                try:
+                    position = float(self._traci.vehicle.getLanePosition(vehicle_id))
+                except Exception as error:
+                    if self._is_transient_vehicle_lookup_error(error):
+                        continue
+                    raise
+                count += position <= end
+        return count
+
+    def _approach_vehicle_ids(self, lane_id: str) -> tuple[str, ...]:
+        """Vehicles on the controlled lane plus those within range upstream."""
+        vehicle_ids = list(self._traci.lane.getLastStepVehicleIDs(lane_id))
+        for upstream_id, start in self._approach_lanes.get(lane_id, ()):
+            for vehicle_id in self._traci.lane.getLastStepVehicleIDs(upstream_id):
+                if start <= 0.0:
+                    vehicle_ids.append(vehicle_id)
+                    continue
+                try:
+                    position = float(self._traci.vehicle.getLanePosition(vehicle_id))
+                except Exception as error:
+                    if self._is_transient_vehicle_lookup_error(error):
+                        continue
+                    raise
+                if position >= start:
+                    vehicle_ids.append(vehicle_id)
+        return tuple(vehicle_ids)
 
     def _validate_selected_mapping(self) -> None:
         """Require this wrapper to match one official selected agent mapping."""
@@ -423,9 +474,7 @@ class TrafficSignal:
         mean_speeds: list[float] = []
 
         for lane_id in self._incoming_lane_ids:
-            lane_vehicle_ids = tuple(
-                self._traci.lane.getLastStepVehicleIDs(lane_id)
-            )
+            lane_vehicle_ids = self._approach_vehicle_ids(lane_id)
             sampled_vehicle_ids: list[str] = []
             speeds: list[float] = []
             waiting_times: list[float] = []
@@ -462,6 +511,7 @@ class TrafficSignal:
             current_phase_elapsed_seconds=self._phase_elapsed_seconds,
             is_green_phase=is_green_phase_state(self._phase_state),
             is_transition_phase=is_transition_phase_state(self._phase_state),
+            exit_vehicle_count=self._exit_vehicle_count(),
         )
 
     def normalization_config(
