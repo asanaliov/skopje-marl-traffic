@@ -9,6 +9,7 @@
         <end value="3600" />
     </time>
     <processing>
+        <ignore-junction-blocker value="30" />
         <ignore-route-errors value="false" />
         <tls.actuated.jam-threshold value="30" />
     </processing>

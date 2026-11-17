@@ -12,6 +12,7 @@
     </time>
 
     <processing>
+        <ignore-junction-blocker value="30" />
         <ignore-route-errors value="true"/>
         <tls.actuated.jam-threshold value="30"/>
     </processing>
