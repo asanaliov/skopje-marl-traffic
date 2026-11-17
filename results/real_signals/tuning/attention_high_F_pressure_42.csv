@@ -1,0 +1,2 @@
+controller,scenario,seed,simulation_seconds,average_waiting_time,average_queue_length,max_queue_length,average_speed,throughput,departed_vehicles,arrived_vehicles,total_stopped_vehicles,active_vehicles_remaining,teleport_count,total_reward,fixed_green_seconds,demand_seconds,cooldown_seconds
+marl_attention_ppo_pressure,high,42,4200.0,16.38792528352235,33.14952380952381,65,5.607265314451937,2898,2998,2898,2883,100,14,-46226.0,,3600.0,600.0

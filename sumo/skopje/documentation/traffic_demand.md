@@ -8,7 +8,7 @@ The scenario names low, medium, high, peak, and stress describe experimental loa
 They are not measured real-world Skopje traffic categories.
 
 Every scenario uses the complete unchanged Skopje network and its original SUMO traffic-light programs.
-The selected experimental corridor remains Candidate 1 with agents A9, A18, A19, A20, A24, A25, A26, and A29.
+The selected experimental corridor remains Candidate 1 with agents A9, A18, A19, A20, A24, A25, A26, and A29 on the original network (A21 instead of A29 on `real_signals`).
 Most generated trips traverse this corridor, while background trips preserve activity in the wider network.
 
 ## Canonical scenarios
