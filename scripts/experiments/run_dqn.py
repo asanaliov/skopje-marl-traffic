@@ -49,7 +49,7 @@ def parse_args(argv=None) -> argparse.Namespace:
         help="Training episodes (default: 300, the marl_deep_ppo budget).",
     )
     train.add_argument("--resume", action="store_true")
-    train.add_argument("--learning-rate", type=_positive_float, default=1e-4)
+    train.add_argument("--learning-rate", type=_positive_float, default=3e-4)
     train.add_argument(
         "--lr-decay",
         action=argparse.BooleanOptionalAction,
@@ -57,7 +57,7 @@ def parse_args(argv=None) -> argparse.Namespace:
         help="Decay the learning rate linearly to zero over --episodes (default: on).",
     )
     train.add_argument("--buffer-size", type=_positive_int, default=200_000)
-    train.add_argument("--gradient-steps", type=_positive_int, default=840)
+    train.add_argument("--gradient-steps", type=_positive_int, default=1680)
     train.add_argument("--target-update-steps", type=_positive_int, default=1000)
     train.add_argument(
         "--exploration-fraction",

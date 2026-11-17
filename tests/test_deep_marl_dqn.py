@@ -139,4 +139,5 @@ def test_run_script_uses_its_own_checkpoint_path():
     )
     args = parse_args(["train", "--scenario", "high"])
     assert args.episodes == 300
-    assert args.learning_rate == pytest.approx(1e-4)
+    assert args.learning_rate == pytest.approx(3e-4)
+    assert args.gradient_steps == 1680

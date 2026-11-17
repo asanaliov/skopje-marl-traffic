@@ -15,7 +15,9 @@ with the highest Q-value (epsilon-greedy while training).
 * The replay buffer is not saved in checkpoints, so a resumed run starts with
   an empty one.
 
-Unlike PPO, the settings here were not tuned on this corridor.
+Defaults are the tuned settings (Nov 2026, medium, seeds 42-44): the SB3
+values, except learning rate 3e-4 and 1680 gradient steps per episode, which
+together beat every single change and transferred unchanged to high.
 """
 
 from __future__ import annotations
@@ -34,14 +36,14 @@ CONTROLLER_NAME = "marl_deep_dqn"
 
 @dataclass(frozen=True, slots=True)
 class DqnConfig(DeepMarlConfig):
-    """Deep MARL settings with DQN defaults (Stable-Baselines3 values where they apply)."""
+    """Deep MARL settings with the tuned DQN defaults."""
 
-    learning_rate: float = 1e-4
+    learning_rate: float = 3e-4
     max_grad_norm: float = 10.0
     minibatch_size: int = 256
     buffer_size: int = 200_000
-    gradient_steps: int = 840
-    """Gradient steps after each episode, one per decision step."""
+    gradient_steps: int = 1680
+    """Gradient steps after each episode, two per decision step."""
     target_update_steps: int = 1000
     epsilon_start: float = 1.0
     epsilon_end: float = 0.05
