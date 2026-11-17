@@ -4,7 +4,8 @@ Compares traffic-light controllers on a real Skopje road network in SUMO:
 fixed-time baselines, independent Q-learning, and coordinated multi-agent RL.
 
 Eight traffic lights on one corridor are learning agents:
-`A9, A18, A19, A20, A24, A25, A26, A29`. Every other light in the network
+`A9, A18, A19, A20, A24, A25, A26` plus `A29` on the original network, or `A21` on
+the `real_signals` network (see [Networks](#networks)). Every other light in the network
 keeps its original SUMO program.
 
 > The road network comes from OpenStreetMap. Traffic demand is synthetic, not
@@ -15,6 +16,7 @@ keeps its original SUMO program.
 | Label in results | What it is |
 | --- | --- |
 | `static_fixed_time` | Fixed green durations, original phase order |
+| `webster_fixed_time` | Fixed-time plans optimised with Webster's method (`real_signals` only) |
 | `imported_actuated` | The actuated programs from the imported SUMO network |
 | `independent_rl` | Q-learning on one agent, others on SUMO programs |
 | `multi_agent_independent_rl` | All 8 agents learn, each with its own local reward |
@@ -22,9 +24,28 @@ keeps its original SUMO program.
 | `marl_neighbor_reward` | Reward = 70% own + 30% neighbors' average |
 | `marl_global_reward` | Every agent gets the corridor-wide average reward |
 | `marl_deep_ppo` | One shared PPO network for all 8 agents, local reward |
-| `marl_attention_ppo` | Same, plus self-attention across junctions (no results yet) |
+| `marl_attention_ppo` | Same, plus self-attention across junctions (`real_signals` results pending retraining) |
 
-## Setup (Windows)
+## Setup
+
+### Linux
+
+Python 3.11 is required (`check_setup.py` checks it). The `eclipse-sumo` pip package provides
+the SUMO binaries, so no system install is needed:
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install torch --index-url https://download.pytorch.org/whl/cpu   # optional: CPU-only torch
+pip install -r requirements.txt -r requirements-dev.txt eclipse-sumo==1.27.1
+export SUMO_HOME="$(python -c 'import sumo; print(sumo.SUMO_HOME)')"
+python scripts/setup/check_setup.py
+```
+
+Add the `SUMO_HOME` export to `.venv/bin/activate` so it is set every time.
+The commands below use PowerShell syntax; on Linux set variables with `export NAME=value`.
+
+### Windows
 
 1. Install [SUMO](https://sumo.dlr.de/docs/Downloads.php), set `SUMO_HOME`, and add its `bin` folder to `PATH`.
 2. Install dependencies and check the setup:
@@ -298,17 +319,44 @@ Design notes live in `sumo/skopje/documentation/`:
 - `selected_corridor.md`: why these 8 lights, neighbor distances
 - `traffic_demand.md`: how scenarios are generated
 - `traffic_agent_interface.md`: observations, actions, rewards, safety rules
-- `static_fixed_time_baseline.md`, `imported_actuated_baseline.md`: baselines
+- `static_fixed_time_baseline.md`, `imported_actuated_baseline.md`, `webster_fixed_time_baseline.md`: baselines
+- `real_signals_network.md`: the `real_signals` network variant
 - `spatial_observation_sharing.md`: neighbor-observation design and results
 
 ## Status
 
-Done: baselines, single/multi-agent Q-learning, coordinated MARL (spatial,
-neighbor-aware, global), deep MARL (shared PPO), metrics and plots, Gym/PettingZoo wrappers.
+Done: baselines (static, Webster, actuated), single/multi-agent Q-learning, coordinated MARL (spatial,
+neighbor-aware, global), deep MARL (shared PPO and self-attention PPO), PPO tuning, the `real_signals`
+network, metrics and plots, Gym/PettingZoo wrappers.
 
-Not done: calibrated real-world demand,
-junction geometry cleanup in netedit.
+In progress: final baseline and PPO runs on `real_signals`.
 
-## Real-signals network
+Not done: calibrated real-world demand.
 
-The Candidate 1 signals can be recoded to real Skopje behaviour in a separate network variant. Set `SKOPJE_NETWORK=real_signals` to use it; its results, checkpoints and audit are kept apart from the original ones. See [`sumo/skopje/documentation/real_signals_network.md`](sumo/skopje/documentation/real_signals_network.md).
+## Networks
+
+There are two network variants, chosen with the `SKOPJE_NETWORK` environment variable:
+
+| Variant | Agents | Use |
+| --- | --- | --- |
+| `original` (default) | the 7 shared + A29 | the results above; kept for the record |
+| `real_signals` | the 7 shared + A21 | final results; signals recoded to real Skopje behaviour |
+
+`real_signals` also joins the stub junctions at Kuzman (A26) into one signalized junction, gives the
+actuated programs and the agents the same green limits (7 s minimum), and adds two heavier scenarios:
+`peak` (4600 vehicles, 50% rerouting) and `stress` (5400). Its results, checkpoints and audit are kept
+apart from the original ones (`results/real_signals/`, `checkpoints/real_signals/`), and both folders
+are gitignored.
+
+```powershell
+$env:SKOPJE_NETWORK="real_signals"
+python scripts/experiments/run_imported_actuated_suite.py --scenarios low medium high peak --seed 42
+python scripts/experiments/run_imported_actuated_experiment.py --scenario peak --seed 42 --webster
+python scripts/experiments/run_attention_ppo.py train --scenario high --seed 42
+```
+
+Changing the network changes the number of lanes each agent observes, so a checkpoint only loads on
+the network version it was trained on. Retrain after any network change.
+
+See [`real_signals_network.md`](sumo/skopje/documentation/real_signals_network.md) and
+[`webster_fixed_time_baseline.md`](sumo/skopje/documentation/webster_fixed_time_baseline.md).
