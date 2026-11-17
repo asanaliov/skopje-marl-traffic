@@ -25,6 +25,7 @@ keeps its original SUMO program.
 | `marl_global_reward` | Every agent gets the corridor-wide average reward |
 | `marl_deep_ppo` | One shared PPO network for all 8 agents, local reward |
 | `marl_attention_ppo` | Same, plus self-attention across junctions (`real_signals` results pending retraining) |
+| `marl_deep_dqn` | Shared-parameter Double DQN, same network size, reward and budget as `marl_deep_ppo` |
 
 ## Setup
 
@@ -275,6 +276,23 @@ $env:SKOPJE_LIBSUMO=1; $env:OMP_NUM_THREADS=1; $env:MKL_NUM_THREADS=1
 ```
 
 It applies to everything built on `MultiAgentTrafficEnvironment` (deep MARL, attention PPO, the imported actuated baseline); the static fixed-time runner keeps TraCI. The SUMO Python packages are pinned to the installed SUMO version (1.27.1) in `requirements.txt`. On Windows libsumo bundles a newer `sqlite3.dll` than Python, so `src/__init__.py` imports it first when the switch is on.
+
+## Deep MARL (shared DQN)
+
+`src/training/deep_marl_dqn.py` is the value-based counterpart of `marl_deep_ppo`: the same observations,
+local reward, network size (2x128) and 300-episode budget, but with one Q-value head, epsilon-greedy
+exploration (1.0 to 0.05 over the first 30% of episodes), a shared replay buffer of every agent's steps,
+and Double-DQN updates against a target network.
+
+Defaults are the tuned settings: learning rate 3e-4 and 1680 gradient steps per episode. On medium
+(seeds 42-44) they beat the Stable-Baselines3 defaults (1e-4, 840 steps) in two training runs each.
+
+```powershell
+python scripts/experiments/run_dqn.py train    --scenario medium --seed 42
+python scripts/experiments/run_dqn.py evaluate --scenario medium --seed 43 --allow-cross-seed --checkpoint checkpoints/deep_marl_dqn_local_medium_seed42.pt
+```
+
+The replay buffer is not stored in checkpoints, so `--resume` continues with an empty buffer.
 
 ## Tests
 
