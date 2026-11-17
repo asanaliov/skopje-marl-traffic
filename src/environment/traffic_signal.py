@@ -36,44 +36,44 @@ from src.environment.selected_corridor import SELECTED_CORRIDOR
 class _SimulationDomain(Protocol):
     """TraCI simulation operations used by ``TrafficSignal``."""
 
-    def getTime(self) -> float:  # noqa: N802
+    def getTime(self) -> float:
         """Return the current simulation time."""
 
 
 class _TrafficLightDomain(Protocol):
     """TraCI traffic-light operations used by ``TrafficSignal``."""
 
-    def getIDList(self) -> Sequence[str]:  # noqa: N802
+    def getIDList(self) -> Sequence[str]:
         """Return available traffic-light IDs."""
 
-    def getProgram(self, traffic_light_id: str) -> str:  # noqa: N802
+    def getProgram(self, traffic_light_id: str) -> str:
         """Return the active program ID."""
 
-    def getAllProgramLogics(  # noqa: N802
+    def getAllProgramLogics(
         self,
         traffic_light_id: str,
     ) -> Sequence[Any]:
         """Return all program logic objects."""
 
-    def getControlledLanes(  # noqa: N802
+    def getControlledLanes(
         self,
         traffic_light_id: str,
     ) -> Sequence[str]:
         """Return controlled incoming lane IDs."""
 
-    def getPhase(self, traffic_light_id: str) -> int:  # noqa: N802
+    def getPhase(self, traffic_light_id: str) -> int:
         """Return the current phase index."""
 
-    def getRedYellowGreenState(  # noqa: N802
+    def getRedYellowGreenState(
         self,
         traffic_light_id: str,
     ) -> str:
         """Return the current signal state."""
 
-    def setPhase(self, traffic_light_id: str, phase_index: int) -> None:  # noqa: N802
+    def setPhase(self, traffic_light_id: str, phase_index: int) -> None:
         """Select one original program phase."""
 
-    def setPhaseDuration(  # noqa: N802
+    def setPhaseDuration(
         self,
         traffic_light_id: str,
         duration_seconds: float,
@@ -84,17 +84,17 @@ class _TrafficLightDomain(Protocol):
 class _LaneDomain(Protocol):
     """TraCI lane operations used by ``TrafficSignal``."""
 
-    def getLastStepVehicleIDs(self, lane_id: str) -> Sequence[str]:  # noqa: N802
+    def getLastStepVehicleIDs(self, lane_id: str) -> Sequence[str]:
         """Return vehicle IDs observed on one lane."""
 
 
 class _VehicleDomain(Protocol):
     """TraCI vehicle operations used by ``TrafficSignal``."""
 
-    def getSpeed(self, vehicle_id: str) -> float:  # noqa: N802
+    def getSpeed(self, vehicle_id: str) -> float:
         """Return one vehicle speed."""
 
-    def getAccumulatedWaitingTime(self, vehicle_id: str) -> float:  # noqa: N802
+    def getAccumulatedWaitingTime(self, vehicle_id: str) -> float:
         """Return one vehicle's accumulated waiting time."""
 
 

@@ -19,15 +19,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.network_inspection.run_candidate_review import (  # noqa: E402
+from scripts.network_inspection.run_candidate_review import (
     find_sumo_executable,
     load_traci,
 )
-from scripts.experiments.run_skopje_simulation import (  # noqa: E402
+from scripts.experiments.run_skopje_simulation import (
     nonnegative_integer,
     positive_integer,
 )
-from scripts.experiments.run_static_fixed_time_experiment import (  # noqa: E402
+from scripts.experiments.run_static_fixed_time_experiment import (
     BASELINE_NOTICE,
     DEFAULT_COOLDOWN_SECONDS,
     DEFAULT_REPORT_INTERVAL_SECONDS,
@@ -37,10 +37,10 @@ from scripts.experiments.run_static_fixed_time_experiment import (  # noqa: E402
     positive_float,
     run_experiment,
 )
-from src.baselines.static_fixed_time import DEFAULT_FIXED_GREEN_SECONDS  # noqa: E402
-from src.demand.scenarios import SCENARIOS, get_scenario  # noqa: E402
-from src.demand.xml_writer import scenario_output_files  # noqa: E402
-from src.evaluation.results_writer import DEFAULT_RESULTS_PATH  # noqa: E402
+from src.baselines.static_fixed_time import DEFAULT_FIXED_GREEN_SECONDS
+from src.demand.scenarios import SCENARIOS, get_scenario
+from src.demand.xml_writer import scenario_output_files
+from src.evaluation.results_writer import DEFAULT_RESULTS_PATH
 
 
 DEFAULT_SCENARIO_NAMES = tuple(SCENARIOS)
@@ -138,7 +138,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 )
                 _print_final_summary(metrics)
                 run_count += 1
-            except Exception as error:  # noqa: BLE001
+            except Exception as error:
                 message = f"[ERROR] {scenario.name} seed={seed} failed: {error}"
                 print(message, file=sys.stderr)
                 failures.append(message)

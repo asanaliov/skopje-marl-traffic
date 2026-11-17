@@ -24,7 +24,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.config import CHECKPOINT_DIR, RESULTS_FILE
-from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
+from src.environment.selected_corridor import SELECTED_CORRIDOR
 
 DEFAULT_TRAINING_EPISODES = 300  # kept in sync with src/training/deep_marl.py
 

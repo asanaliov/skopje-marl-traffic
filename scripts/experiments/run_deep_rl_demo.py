@@ -31,15 +31,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.demand.scenarios import SCENARIOS  # noqa: E402
-from src.environment.gym_wrapper import (  # noqa: E402
+from src.demand.scenarios import SCENARIOS
+from src.environment.gym_wrapper import (
     DEFAULT_GYM_AGENT_ID,
     SingleAgentTrafficEnv,
 )
-from src.environment.multi_agent_environment import (  # noqa: E402
+from src.environment.multi_agent_environment import (
     MultiAgentEnvironmentConfig,
 )
-from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
+from src.environment.selected_corridor import SELECTED_CORRIDOR
 
 
 DEFAULT_TIMESTEPS = 200
@@ -197,7 +197,7 @@ def evaluate(
 def run_demo(args: argparse.Namespace) -> int:
     """Train, optionally save, and greedily evaluate one deep RL policy."""
     try:
-        import stable_baselines3  # noqa: F401
+        import stable_baselines3
     except ImportError:
         print(f"[ERROR] {MISSING_LIBRARY_MESSAGE}", file=sys.stderr)
         return 1

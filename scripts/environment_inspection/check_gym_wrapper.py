@@ -22,20 +22,20 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from gymnasium.utils.env_checker import check_env  # noqa: E402
-from pettingzoo.test import parallel_api_test  # noqa: E402
+from gymnasium.utils.env_checker import check_env
+from pettingzoo.test import parallel_api_test
 
-from src.demand.scenarios import SCENARIOS  # noqa: E402
-from src.environment.gym_wrapper import (  # noqa: E402
+from src.demand.scenarios import SCENARIOS
+from src.environment.gym_wrapper import (
     DEFAULT_GYM_AGENT_ID,
     CorridorParallelEnv,
     SingleAgentTrafficEnv,
     audited_space_specs,
 )
-from src.environment.multi_agent_environment import (  # noqa: E402
+from src.environment.multi_agent_environment import (
     MultiAgentEnvironmentConfig,
 )
-from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
+from src.environment.selected_corridor import SELECTED_CORRIDOR
 
 
 DEFAULT_EPISODE_SECONDS = 120.0

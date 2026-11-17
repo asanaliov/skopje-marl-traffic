@@ -23,8 +23,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.config import CHECKPOINT_DIR  # noqa: E402
-from scripts.experiments.run_deep_marl import (  # noqa: E402
+from src.config import CHECKPOINT_DIR
+from scripts.experiments.run_deep_marl import (
     DEFAULT_TRAINING_EPISODES,
     _common,
     _positive_float,

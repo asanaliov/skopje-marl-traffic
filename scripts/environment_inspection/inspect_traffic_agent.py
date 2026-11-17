@@ -14,27 +14,27 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.network_inspection.run_candidate_review import (  # noqa: E402
+from scripts.network_inspection.run_candidate_review import (
     find_sumo_executable,
     load_traci,
 )
-from scripts.experiments.run_skopje_simulation import (  # noqa: E402
+from scripts.experiments.run_skopje_simulation import (
     nonnegative_integer,
     positive_integer,
 )
-from src.demand.scenarios import SCENARIOS, get_scenario  # noqa: E402
-from src.demand.xml_writer import scenario_output_files  # noqa: E402
-from src.environment.actions import (  # noqa: E402
+from src.demand.scenarios import SCENARIOS, get_scenario
+from src.demand.xml_writer import scenario_output_files
+from src.environment.actions import (
     ActionPolicyConfig,
     ActionResult,
     TrafficAction,
 )
-from src.environment.observations import (  # noqa: E402
+from src.environment.observations import (
     ObservationNormalizationConfig,
     TrafficObservation,
 )
-from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
-from src.environment.traffic_signal import TrafficSignal  # noqa: E402
+from src.environment.selected_corridor import SELECTED_CORRIDOR
+from src.environment.traffic_signal import TrafficSignal
 
 
 DEFAULT_SECONDS = 120

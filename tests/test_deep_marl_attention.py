@@ -8,14 +8,14 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from src.training.deep_marl import DeepMarlConfig, DeepMarlTrainer  # noqa: E402
-from src.training.deep_marl_attention import (  # noqa: E402
+from src.training.deep_marl import DeepMarlConfig, DeepMarlTrainer
+from src.training.deep_marl_attention import (
     CONTROLLER_NAME,
     AttentionActorCritic,
     AttentionPpoConfig,
     AttentionPpoTrainer,
 )
-from tests.test_gym_wrapper import FakeEnvironment, _specs  # noqa: E402
+from tests.test_gym_wrapper import FakeEnvironment, _specs
 
 AGENTS = ("A19", "A26")
 

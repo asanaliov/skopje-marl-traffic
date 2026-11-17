@@ -43,7 +43,7 @@ def test_walk_stops_at_other_agents():
     lanes = _controlled_lanes("A19")
     free = build_approach_lanes(SKOPJE_INITIAL_NETWORK_FILE, lanes, 2000.0)
     stopped = build_approach_lanes(SKOPJE_INITIAL_NETWORK_FILE, lanes, 2000.0, others)
-    count = lambda approaches: sum(len(pairs) for pairs in approaches.values())  # noqa: E731
+    count = lambda approaches: sum(len(pairs) for pairs in approaches.values())
     assert count(stopped) < count(free)
 
 
