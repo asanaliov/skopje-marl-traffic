@@ -86,6 +86,8 @@ SKOPJE_SCENARIO_CONFIG_DIR = (
     SKOPJE_CONFIG_DIR
     / ("scenarios" if NETWORK_VARIANT == "original" else f"scenarios{_VARIANT_SUFFIX}")
 ).resolve()
+# Webster fixed-time plans for the agent lights, one file per scenario.
+WEBSTER_PLAN_DIR = (SKOPJE_NETWORK_DIR / f"webster{_VARIANT_SUFFIX}").resolve()
 # Traffic-light audit (carries each light's phase count -> observation size).
 SKOPJE_AUDIT_FILE = (
     SKOPJE_DIR / "documentation" / f"traffic_light_audit{_VARIANT_SUFFIX}.csv"

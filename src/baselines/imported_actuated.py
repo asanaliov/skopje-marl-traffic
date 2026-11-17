@@ -131,7 +131,9 @@ class ImportedActuatedController:
     controller_name: str = CONTROLLER_NAME
 
     def __init__(self, environment: MultiAgentTrafficEnvironment) -> None:
-        _validate_controller_name(self.controller_name)
+        # subclasses (webster_fixed_time) are other baselines with their own fixed label
+        if type(self) is ImportedActuatedController:
+            _validate_controller_name(self.controller_name)
         if not isinstance(environment, MultiAgentTrafficEnvironment):
             raise TypeError(
                 "ImportedActuatedController requires a "
