@@ -289,6 +289,8 @@ class DeepMarlTrainer:
     hyperparameters = _HYPERPARAMETERS
     evaluation_hyperparameters = ("hidden_size", "approach_range_m", "minimum_green_seconds")
     """Settings that change what a checkpoint's weights mean."""
+    log_names = ("policy_loss", "value_loss", "entropy")
+    """Names printed for the three values ``_update`` returns."""
 
     def __init__(
         self,
@@ -630,8 +632,8 @@ class DeepMarlTrainer:
                 f"steps={summary.decision_steps} "
                 f"seconds={summary.simulated_seconds:.1f} "
                 f"combined_reward={summary.combined_total_reward:.3f} "
-                f"entropy={entropy:.3f} keep_fraction={summary.keep_fraction:.3f} "
-                f"policy_loss={p_loss:.4f} value_loss={v_loss:.4f} "
+                f"{self.log_names[2]}={entropy:.3f} keep_fraction={summary.keep_fraction:.3f} "
+                f"{self.log_names[0]}={p_loss:.4f} {self.log_names[1]}={v_loss:.4f} "
                 f"wall_seconds={summary.wall_seconds:.0f}",
                 flush=True,
             )
