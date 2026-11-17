@@ -11,7 +11,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.config import CHECKPOINT_DIR, RESULTS_FILE
-from src.training.independent_q_learning import ( # noqa: E402
+from src.training.independent_q_learning import (
     IndependentQLearningTrainer,
     QLearningTrainingConfig,
 )

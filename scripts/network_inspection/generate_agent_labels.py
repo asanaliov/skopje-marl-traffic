@@ -15,8 +15,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.config import SKOPJE_DIR  # noqa: E402
-from src.environment.corridor_candidates import (  # noqa: E402
+from src.config import SKOPJE_DIR
+from src.environment.corridor_candidates import (
     CORRIDOR_CANDIDATES,
     TRAFFIC_LIGHT_AUDIT_FILE,
     CorridorCandidate,

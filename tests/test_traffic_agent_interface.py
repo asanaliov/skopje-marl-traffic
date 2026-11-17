@@ -67,7 +67,7 @@ class FakeSimulationDomain:
     def __init__(self, simulation_time: float = 0.0) -> None:
         self.time = simulation_time
 
-    def getTime(self) -> float:  # noqa: N802
+    def getTime(self) -> float:
         """Return the fake simulation time."""
         return self.time
 
@@ -93,16 +93,16 @@ class FakeTrafficLightDomain:
         self.set_phase_duration_calls: list[float] = []
         self.logic = FakeLogic(phase_states)
 
-    def getIDList(self) -> tuple[str, ...]:  # noqa: N802
+    def getIDList(self) -> tuple[str, ...]:
         """Return the selected controller when configured as available."""
         return (TRAFFIC_LIGHT_ID,) if self.available else ()
 
-    def getProgram(self, traffic_light_id: str) -> str:  # noqa: N802
+    def getProgram(self, traffic_light_id: str) -> str:
         """Return the active fake program."""
         assert traffic_light_id == TRAFFIC_LIGHT_ID
         return "0"
 
-    def getAllProgramLogics(  # noqa: N802
+    def getAllProgramLogics(
         self,
         traffic_light_id: str,
     ) -> tuple[FakeLogic, ...]:
@@ -110,7 +110,7 @@ class FakeTrafficLightDomain:
         assert traffic_light_id == TRAFFIC_LIGHT_ID
         return (self.logic,)
 
-    def getControlledLanes(  # noqa: N802
+    def getControlledLanes(
         self,
         traffic_light_id: str,
     ) -> tuple[str, ...]:
@@ -118,12 +118,12 @@ class FakeTrafficLightDomain:
         assert traffic_light_id == TRAFFIC_LIGHT_ID
         return self.controlled_lanes
 
-    def getPhase(self, traffic_light_id: str) -> int:  # noqa: N802
+    def getPhase(self, traffic_light_id: str) -> int:
         """Return the current fake phase index."""
         assert traffic_light_id == TRAFFIC_LIGHT_ID
         return self.phase_index
 
-    def getRedYellowGreenState(  # noqa: N802
+    def getRedYellowGreenState(
         self,
         traffic_light_id: str,
     ) -> str:
@@ -131,17 +131,17 @@ class FakeTrafficLightDomain:
         assert traffic_light_id == TRAFFIC_LIGHT_ID
         return self.phase_states[self.phase_index]
 
-    def getSpentDuration(self, traffic_light_id: str) -> float:  # noqa: N802
+    def getSpentDuration(self, traffic_light_id: str) -> float:
         """Return current fake phase elapsed time."""
         assert traffic_light_id == TRAFFIC_LIGHT_ID
         return self.spent_duration
 
-    def getNextSwitch(self, traffic_light_id: str) -> float:  # noqa: N802
+    def getNextSwitch(self, traffic_light_id: str) -> float:
         """Return the scheduled absolute fake switch time."""
         assert traffic_light_id == TRAFFIC_LIGHT_ID
         return self.next_switch
 
-    def setPhase(self, traffic_light_id: str, phase_index: int) -> None:  # noqa: N802
+    def setPhase(self, traffic_light_id: str, phase_index: int) -> None:
         """Record and apply one fake phase-index change."""
         assert traffic_light_id == TRAFFIC_LIGHT_ID
         self.set_phase_calls.append(phase_index)
@@ -149,7 +149,7 @@ class FakeTrafficLightDomain:
         self.spent_duration = 0.0
         self.next_switch = self.simulation.time + 3.0
 
-    def setPhaseDuration(  # noqa: N802
+    def setPhaseDuration(
         self,
         traffic_light_id: str,
         duration_seconds: float,
@@ -170,11 +170,11 @@ class FakeLaneDomain:
         }
         self.speed_limits = {"lane_2": 15.0, "lane_1": 10.0}
 
-    def getLastStepVehicleIDs(self, lane_id: str) -> tuple[str, ...]:  # noqa: N802
+    def getLastStepVehicleIDs(self, lane_id: str) -> tuple[str, ...]:
         """Return one fake lane snapshot."""
         return self.vehicles[lane_id]
 
-    def getMaxSpeed(self, lane_id: str) -> float:  # noqa: N802
+    def getMaxSpeed(self, lane_id: str) -> float:
         """Return one fake lane speed limit."""
         return self.speed_limits[lane_id]
 
@@ -195,13 +195,13 @@ class FakeVehicleDomain:
         }
         self.disappeared: set[str] = set()
 
-    def getSpeed(self, vehicle_id: str) -> float:  # noqa: N802
+    def getSpeed(self, vehicle_id: str) -> float:
         """Return one fake speed or simulate a vanished vehicle."""
         if vehicle_id in self.disappeared:
             raise KeyError(vehicle_id)
         return self.speeds[vehicle_id]
 
-    def getAccumulatedWaitingTime(  # noqa: N802
+    def getAccumulatedWaitingTime(
         self,
         vehicle_id: str,
     ) -> float:

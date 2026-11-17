@@ -20,33 +20,33 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.network_inspection.run_candidate_review import load_traci  # noqa: E402
-from scripts.experiments.run_skopje_simulation import (  # noqa: E402
+from scripts.network_inspection.run_candidate_review import load_traci
+from scripts.experiments.run_skopje_simulation import (
     nonnegative_integer,
     positive_integer,
 )
-from scripts.experiments.run_static_fixed_time_experiment import (  # noqa: E402
+from scripts.experiments.run_static_fixed_time_experiment import (
     _AgentDiagnosticsAccumulator,
     _project_relative,
     _resolve_demand_seconds,
 )
-from src.baselines.imported_actuated import (  # noqa: E402
+from src.baselines.imported_actuated import (
     BASELINE_NOTICE,
     CONTROLLER_NAME,
     DEFAULT_COOLDOWN_SECONDS,
     ImportedActuatedController,
     build_environment_config,
 )
-from src.baselines.webster_fixed_time import WebsterFixedTimeController  # noqa: E402
-from src.demand.scenarios import SCENARIOS, TrafficDemandScenario, get_scenario  # noqa: E402
-from src.demand.xml_writer import scenario_output_files  # noqa: E402
-from src.environment.multi_agent_environment import (  # noqa: E402
+from src.baselines.webster_fixed_time import WebsterFixedTimeController
+from src.demand.scenarios import SCENARIOS, TrafficDemandScenario, get_scenario
+from src.demand.xml_writer import scenario_output_files
+from src.environment.multi_agent_environment import (
     MultiAgentStepResult,
     MultiAgentTrafficEnvironment,
 )
-from src.evaluation.collector import MetricsCollector  # noqa: E402
-from src.evaluation.metrics import EpisodeMetrics  # noqa: E402
-from src.evaluation.results_writer import DEFAULT_RESULTS_PATH, append_result  # noqa: E402
+from src.evaluation.collector import MetricsCollector
+from src.evaluation.metrics import EpisodeMetrics
+from src.evaluation.results_writer import DEFAULT_RESULTS_PATH, append_result
 
 
 DEFAULT_REPORT_INTERVAL_SECONDS = 300

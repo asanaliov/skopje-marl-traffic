@@ -15,7 +15,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.config import RESULTS_FILE  # noqa: E402
+from src.config import RESULTS_FILE
 
 # Follows SKOPJE_NETWORK: real_signals results never overwrite the original chart.
 DEFAULT_INPUT = PROJECT_ROOT / RESULTS_FILE

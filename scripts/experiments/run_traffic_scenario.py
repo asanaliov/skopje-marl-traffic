@@ -14,19 +14,19 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.network_inspection.run_candidate_review import (  # noqa: E402
+from scripts.network_inspection.run_candidate_review import (
     find_sumo_executable,
     load_traci,
 )
-from scripts.experiments.run_skopje_simulation import (  # noqa: E402
+from scripts.experiments.run_skopje_simulation import (
     positive_integer,
 )
-from src.demand.scenarios import SCENARIOS, get_scenario  # noqa: E402
-from src.demand.xml_writer import (  # noqa: E402
+from src.demand.scenarios import SCENARIOS, get_scenario
+from src.demand.xml_writer import (
     SYNTHETIC_DEMAND_STATEMENT,
     scenario_output_files,
 )
-from src.environment.selected_corridor import (  # noqa: E402
+from src.environment.selected_corridor import (
     SELECTED_CORRIDOR,
     SelectedCorridor,
 )

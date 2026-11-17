@@ -19,28 +19,28 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.experiments.run_skopje_simulation import (  # noqa: E402
+from scripts.experiments.run_skopje_simulation import (
     nonnegative_integer,
     positive_integer,
 )
-from src.config import (  # noqa: E402
+from src.config import (
     SKOPJE_CONFIG_DIR,
     SKOPJE_SCENARIO_CONFIG_DIR,
     SKOPJE_DEMAND_DIR,
     SKOPJE_DIR,
     resolve_sumo_xml_file,
 )
-from src.demand.network_routes import (  # noqa: E402
+from src.demand.network_routes import (
     RouteGenerationResult,
     generate_route_assignments,
     load_sumo_network,
 )
-from src.demand.scenarios import (  # noqa: E402
+from src.demand.scenarios import (
     SCENARIOS,
     TrafficDemandScenario,
     get_scenario,
 )
-from src.demand.xml_writer import (  # noqa: E402
+from src.demand.xml_writer import (
     ScenarioOutputFiles,
     build_generation_metadata,
     calculate_route_length_statistics,
@@ -51,7 +51,7 @@ from src.demand.xml_writer import (  # noqa: E402
     write_scenario_configuration,
     write_trips_file,
 )
-from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
+from src.environment.selected_corridor import SELECTED_CORRIDOR
 
 
 CANONICAL_DEMAND_ROOT = SKOPJE_DEMAND_DIR / "scenarios"

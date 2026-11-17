@@ -186,7 +186,7 @@ class TestConcurrentAppendResult:
             try:
                 for _ in range(n_rows_each):
                     append_result(_valid_metrics(), path=csv_path)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 errors.append(exc)
 
         threads = [threading.Thread(target=write_rows) for _ in range(n_threads)]

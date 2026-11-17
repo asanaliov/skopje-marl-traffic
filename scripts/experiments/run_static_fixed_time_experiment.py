@@ -20,27 +20,27 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.network_inspection.run_candidate_review import (  # noqa: E402
+from scripts.network_inspection.run_candidate_review import (
     find_sumo_executable,
     load_traci,
 )
-from scripts.experiments.run_skopje_simulation import (  # noqa: E402
+from scripts.experiments.run_skopje_simulation import (
     nonnegative_integer,
     positive_integer,
 )
-from src.baselines.static_fixed_time import (  # noqa: E402
+from src.baselines.static_fixed_time import (
     CONTROLLER_NAME,
     DEFAULT_DECISION_INTERVAL_SECONDS,
     DEFAULT_FIXED_GREEN_SECONDS,
     StaticFixedTimeConfig,
     StaticFixedTimeController,
 )
-from src.demand.scenarios import SCENARIOS, TrafficDemandScenario, get_scenario  # noqa: E402
-from src.demand.xml_writer import scenario_output_files  # noqa: E402
-from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
-from src.evaluation.collector import MetricsCollector  # noqa: E402
-from src.evaluation.metrics import EpisodeMetrics, PerAgentDiagnostics  # noqa: E402
-from src.evaluation.results_writer import DEFAULT_RESULTS_PATH, append_result  # noqa: E402
+from src.demand.scenarios import SCENARIOS, TrafficDemandScenario, get_scenario
+from src.demand.xml_writer import scenario_output_files
+from src.environment.selected_corridor import SELECTED_CORRIDOR
+from src.evaluation.collector import MetricsCollector
+from src.evaluation.metrics import EpisodeMetrics, PerAgentDiagnostics
+from src.evaluation.results_writer import DEFAULT_RESULTS_PATH, append_result
 
 
 DEFAULT_COOLDOWN_SECONDS = 600

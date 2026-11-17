@@ -57,19 +57,19 @@ class FakeSimulation:
         ):
             self.expected_count = 0
 
-    def getTime(self) -> float:  # noqa: N802
+    def getTime(self) -> float:
         """Return current simulated time."""
         return self.time
 
-    def getMinExpectedNumber(self) -> int:  # noqa: N802
+    def getMinExpectedNumber(self) -> int:
         """Return active and future fake vehicles."""
         return self.expected_count
 
-    def getDepartedNumber(self) -> int:  # noqa: N802
+    def getDepartedNumber(self) -> int:
         """Return one departure per simulated step."""
         return 1
 
-    def getArrivedNumber(self) -> int:  # noqa: N802
+    def getArrivedNumber(self) -> int:
         """Return one arrival every second step."""
         return int(self.step_calls % 2 == 0)
 
@@ -77,11 +77,11 @@ class FakeSimulation:
 class FakeVehicleDomain:
     """Expose active vehicles for the optional halted count."""
 
-    def getIDList(self) -> tuple[str, ...]:  # noqa: N802
+    def getIDList(self) -> tuple[str, ...]:
         """Return two active fake vehicles."""
         return ("halted", "moving")
 
-    def getSpeed(self, vehicle_id: str) -> float:  # noqa: N802
+    def getSpeed(self, vehicle_id: str) -> float:
         """Return one halted and one moving speed."""
         return 0.0 if vehicle_id == "halted" else 10.0
 
@@ -110,7 +110,7 @@ class FakeTraCI:
         step_length_index = command.index("--step-length") + 1
         self.simulation.reset(float(command[step_length_index]))
 
-    def simulationStep(self) -> None:  # noqa: N802
+    def simulationStep(self) -> None:
         """Advance one fake simulation step."""
         self.simulation.advance()
 

@@ -49,7 +49,7 @@ class FakeSimulationDomain:
     def __init__(self) -> None:
         self.time = 0.0
 
-    def getTime(self) -> float:  # noqa: N802
+    def getTime(self) -> float:
         """Return the fake simulation time."""
         return self.time
 
@@ -79,48 +79,48 @@ class FakeTrafficLightDomain:
             tlid: [] for tlid in traffic_light_ids
         }
 
-    def getIDList(self) -> tuple[str, ...]:  # noqa: N802
+    def getIDList(self) -> tuple[str, ...]:
         """Return every fake traffic-light ID."""
         return self.traffic_light_ids
 
-    def getProgram(self, traffic_light_id: str) -> str:  # noqa: N802
+    def getProgram(self, traffic_light_id: str) -> str:
         """Return the active fake program."""
         return "0"
 
-    def getAllProgramLogics(  # noqa: N802
+    def getAllProgramLogics(
         self, traffic_light_id: str
     ) -> tuple[FakeLogic, ...]:
         """Return the shared active fake program logic."""
         return (self.logic,)
 
-    def getControlledLanes(self, traffic_light_id: str) -> tuple[str, ...]:  # noqa: N802
+    def getControlledLanes(self, traffic_light_id: str) -> tuple[str, ...]:
         """Return fake controlled lane IDs."""
         return self.controlled_lanes
 
-    def getPhase(self, traffic_light_id: str) -> int:  # noqa: N802
+    def getPhase(self, traffic_light_id: str) -> int:
         """Return the current fake phase index."""
         return self.phase_index[traffic_light_id]
 
-    def getRedYellowGreenState(self, traffic_light_id: str) -> str:  # noqa: N802
+    def getRedYellowGreenState(self, traffic_light_id: str) -> str:
         """Return the current fake phase state."""
         return self.phase_states[self.phase_index[traffic_light_id]]
 
-    def getSpentDuration(self, traffic_light_id: str) -> float:  # noqa: N802
+    def getSpentDuration(self, traffic_light_id: str) -> float:
         """Return current fake phase elapsed time."""
         return self.spent_duration[traffic_light_id]
 
-    def getNextSwitch(self, traffic_light_id: str) -> float:  # noqa: N802
+    def getNextSwitch(self, traffic_light_id: str) -> float:
         """Return the scheduled absolute fake switch time."""
         return self.next_switch[traffic_light_id]
 
-    def setPhase(self, traffic_light_id: str, phase_index: int) -> None:  # noqa: N802
+    def setPhase(self, traffic_light_id: str, phase_index: int) -> None:
         """Record and apply one fake phase-index change."""
         self.set_phase_calls[traffic_light_id].append(phase_index)
         self.phase_index[traffic_light_id] = phase_index
         self.spent_duration[traffic_light_id] = 0.0
         self.next_switch[traffic_light_id] = self.simulation.time + 3.0
 
-    def setPhaseDuration(  # noqa: N802
+    def setPhaseDuration(
         self, traffic_light_id: str, duration_seconds: float
     ) -> None:
         """Record and apply one fake remaining-duration change."""
@@ -131,11 +131,11 @@ class FakeTrafficLightDomain:
 class FakeLaneDomain:
     """Fake lane snapshots with no vehicles present."""
 
-    def getLastStepVehicleIDs(self, lane_id: str) -> tuple[str, ...]:  # noqa: N802
+    def getLastStepVehicleIDs(self, lane_id: str) -> tuple[str, ...]:
         """Return an empty fake lane snapshot."""
         return ()
 
-    def getMaxSpeed(self, lane_id: str) -> float:  # noqa: N802
+    def getMaxSpeed(self, lane_id: str) -> float:
         """Return a fake lane speed limit."""
         return 13.9
 
@@ -143,11 +143,11 @@ class FakeLaneDomain:
 class FakeVehicleDomain:
     """Fake vehicle domain; unused because no vehicles are ever present."""
 
-    def getSpeed(self, vehicle_id: str) -> float:  # noqa: N802
+    def getSpeed(self, vehicle_id: str) -> float:
         """Never called: no vehicles are present in these fixtures."""
         raise KeyError(vehicle_id)
 
-    def getAccumulatedWaitingTime(self, vehicle_id: str) -> float:  # noqa: N802
+    def getAccumulatedWaitingTime(self, vehicle_id: str) -> float:
         """Never called: no vehicles are present in these fixtures."""
         raise KeyError(vehicle_id)
 

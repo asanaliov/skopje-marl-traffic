@@ -24,8 +24,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.config import CHECKPOINT_DIR, RESULTS_FILE
-from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
-from src.training.multi_agent_q_learning import (  # noqa: E402
+from src.environment.selected_corridor import SELECTED_CORRIDOR
+from src.training.multi_agent_q_learning import (
     DEFAULT_SPATIAL_NEIGHBOR_LIMIT,
     MultiAgentQLearningConfig,
     MultiAgentQLearningTrainer,

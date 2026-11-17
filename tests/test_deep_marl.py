@@ -9,14 +9,14 @@ import pytest
 
 pytest.importorskip("torch")
 
-from src.training.deep_marl import (  # noqa: E402
+from src.training.deep_marl import (
     CONTROLLER_NAME,
     DeepMarlConfig,
     DeepMarlTrainer,
     compute_gae,
     controller_label,
 )
-from tests.test_gym_wrapper import FakeEnvironment, _specs  # noqa: E402
+from tests.test_gym_wrapper import FakeEnvironment, _specs
 
 AGENTS = ("A19", "A26")
 

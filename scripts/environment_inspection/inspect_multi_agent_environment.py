@@ -13,14 +13,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.demand.scenarios import SCENARIOS  # noqa: E402
-from src.environment.actions import TrafficAction  # noqa: E402
-from src.environment.multi_agent_environment import (  # noqa: E402
+from src.demand.scenarios import SCENARIOS
+from src.environment.actions import TrafficAction
+from src.environment.multi_agent_environment import (
     MultiAgentEnvironmentConfig,
     MultiAgentStepResult,
     MultiAgentTrafficEnvironment,
 )
-from src.environment.selected_corridor import SELECTED_CORRIDOR  # noqa: E402
+from src.environment.selected_corridor import SELECTED_CORRIDOR
 
 
 INSPECTION_NOTICE = (

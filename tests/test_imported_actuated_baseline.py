@@ -74,31 +74,31 @@ class FakeSimulation:
         if self.step_calls >= self.natural_completion_step:
             self.expected_count = 0
 
-    def getTime(self) -> float:  # noqa: N802
+    def getTime(self) -> float:
         """Return the current fake simulated time."""
         return self.time
 
-    def getMinExpectedNumber(self) -> int:  # noqa: N802
+    def getMinExpectedNumber(self) -> int:
         """Return the active-plus-future fake vehicle count."""
         return self.expected_count
 
-    def getDepartedNumber(self) -> int:  # noqa: N802
+    def getDepartedNumber(self) -> int:
         """Return one fake departure per simulated step."""
         return 1
 
-    def getArrivedNumber(self) -> int:  # noqa: N802
+    def getArrivedNumber(self) -> int:
         """Return one fake arrival per simulated step."""
         return 1
 
-    def getDepartedIDList(self) -> tuple[str, ...]:  # noqa: N802
+    def getDepartedIDList(self) -> tuple[str, ...]:
         """Return fixed fake departed vehicle IDs."""
         return ("v1", "v2")
 
-    def getArrivedIDList(self) -> tuple[str, ...]:  # noqa: N802
+    def getArrivedIDList(self) -> tuple[str, ...]:
         """Return no fake arrivals."""
         return ()
 
-    def getStartingTeleportIDList(self) -> tuple[str, ...]:  # noqa: N802
+    def getStartingTeleportIDList(self) -> tuple[str, ...]:
         """Return no fake teleports."""
         return ()
 
@@ -106,19 +106,19 @@ class FakeSimulation:
 class FakeVehicleDomain:
     """Fake vehicle domain with two fixed active vehicles."""
 
-    def getIDList(self) -> tuple[str, ...]:  # noqa: N802
+    def getIDList(self) -> tuple[str, ...]:
         """Return two fake active vehicles."""
         return ("halted", "moving")
 
-    def getSpeed(self, vehicle_id: str) -> float:  # noqa: N802
+    def getSpeed(self, vehicle_id: str) -> float:
         """Return one halted and one moving speed."""
         return 0.0 if vehicle_id == "halted" else 10.0
 
-    def getAccumulatedWaitingTime(self, vehicle_id: str) -> float:  # noqa: N802
+    def getAccumulatedWaitingTime(self, vehicle_id: str) -> float:
         """Return a fixed fake accumulated waiting time."""
         return 0.0
 
-    def getWaitingTime(self, vehicle_id: str) -> float:  # noqa: N802
+    def getWaitingTime(self, vehicle_id: str) -> float:
         """Return a fixed fake current waiting time."""
         return 0.0
 
@@ -126,11 +126,11 @@ class FakeVehicleDomain:
 class FakeLaneDomain:
     """Fake lane domain reporting no queued vehicles anywhere."""
 
-    def getLastStepVehicleIDs(self, lane_id: str) -> tuple[str, ...]:  # noqa: N802
+    def getLastStepVehicleIDs(self, lane_id: str) -> tuple[str, ...]:
         """Return an empty fake lane snapshot."""
         return ()
 
-    def getLastStepHaltingNumber(self, lane_id: str) -> int:  # noqa: N802
+    def getLastStepHaltingNumber(self, lane_id: str) -> int:
         """Return zero fake halted vehicles on every lane."""
         return 0
 
@@ -151,7 +151,7 @@ class FakeTraCI:
         step_length_index = command.index("--step-length") + 1
         self.simulation.reset(float(command[step_length_index]))
 
-    def simulationStep(self) -> None:  # noqa: N802
+    def simulationStep(self) -> None:
         """Advance one fake simulation step."""
         self.simulation.advance()
 
@@ -467,7 +467,7 @@ class FakeScheduledSimulation(FakeSimulation):
         super().__init__(natural_completion_step)
         self.departures_by_step = departures_by_step
 
-    def getDepartedIDList(self) -> tuple[str, ...]:  # noqa: N802
+    def getDepartedIDList(self) -> tuple[str, ...]:
         """Return only the vehicles scheduled for the step just completed."""
         return self.departures_by_step.get(self.step_calls, ())
 
