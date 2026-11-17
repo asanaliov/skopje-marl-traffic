@@ -128,6 +128,7 @@ python scripts/analysis/summarize_experiments.py                       # table b
 python scripts/analysis/visualize_results.py                           # plots in results/plots/
 python scripts/analysis/generate_waiting_time_chart.py                  # refresh the README SVG from experiments.csv
 python scripts/analysis/experiment_matrix.py results/experiments.csv   # which runs are still missing
+python scripts/analysis/experiment_matrix.py results/real_signals      # also takes folders of per-run csvs
 python scripts/analysis/training_curve.py logs/<run>.log --csv out.csv # reward curve from a training log
 python scripts/analysis/merge_results.py other_machine.csv             # merge results from another machine
 ```
