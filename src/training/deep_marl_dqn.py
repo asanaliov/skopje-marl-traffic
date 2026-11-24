@@ -13,7 +13,9 @@ with the highest Q-value (epsilon-greedy while training).
   first ``exploration_fraction`` of the episodes, so a resume lands on the same
   value.
 * The replay buffer is not saved in checkpoints, so a resumed run starts with
-  an empty one.
+  an empty one. ``resume_warmup_episodes`` lets a resumed run only collect
+  experience for that many episodes before training again, instead of fitting
+  hard to a buffer holding a single episode.
 
 Defaults are the tuned settings (Nov 2026, medium, seeds 42-44): the SB3
 values, except learning rate 3e-4 and 1680 gradient steps per episode, which
@@ -48,6 +50,8 @@ class DqnConfig(DeepMarlConfig):
     epsilon_start: float = 1.0
     epsilon_end: float = 0.05
     exploration_fraction: float = 0.3
+    resume_warmup_episodes: int = 0
+    """After a resume, episodes that only refill the replay buffer (no updates)."""
 
     def __post_init__(self) -> None:
         # zero-argument super() fails in a dataclass with slots.
@@ -59,6 +63,8 @@ class DqnConfig(DeepMarlConfig):
             raise ValueError("Need 0 <= epsilon_end <= epsilon_start <= 1.")
         if not 0.0 < self.exploration_fraction <= 1.0:
             raise ValueError("exploration_fraction must be in (0, 1].")
+        if self.resume_warmup_episodes < 0:
+            raise ValueError("resume_warmup_episodes must be zero or greater.")
 
 
 class SharedQNetwork(nn.Module):
@@ -137,6 +143,7 @@ class DqnTrainer(DeepMarlTrainer):
         self.target_network.load_state_dict(self.network.state_dict())
         self.buffer = ReplayBuffer(config.buffer_size, self.input_size)
         self.gradient_step_count = 0
+        self.warmup_episodes_left = 0
 
     def _build_network(self) -> nn.Module:
         return SharedQNetwork(self.input_size, self.config.hidden_size)
@@ -172,6 +179,10 @@ class DqnTrainer(DeepMarlTrainer):
             next_obs.reshape(-1, obs.shape[-1]),
             dones.reshape(-1),
         )
+        if self.warmup_episodes_left > 0:
+            self.warmup_episodes_left -= 1
+            print(f"Resume warm-up: buffer {self.buffer.size} transitions, no update this episode")
+            return 0.0, 0.0, self.epsilon(self.completed_episodes + 1)
 
         losses, q_means = [], []
         for _ in range(cfg.gradient_steps):
@@ -198,4 +209,6 @@ class DqnTrainer(DeepMarlTrainer):
     def load_checkpoint(self, path: Path | None = None, *, for_training: bool) -> Path:
         source = super().load_checkpoint(path, for_training=for_training)
         self.target_network.load_state_dict(self.network.state_dict())
+        if for_training:
+            self.warmup_episodes_left = self.config.resume_warmup_episodes
         return source
