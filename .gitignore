@@ -78,3 +78,4 @@ results/**/*.lock
 !results/real_signals/test_ep500.csv
 !results/real_signals/tuning/*.csv
 !results/real_signals/tuning_dqn/*.csv
+!results/real_signals/improve/*.csv

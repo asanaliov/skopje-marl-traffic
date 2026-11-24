@@ -1,0 +1,4 @@
+controller,scenario,seed,simulation_seconds,average_waiting_time,average_queue_length,max_queue_length,average_speed,throughput,departed_vehicles,arrived_vehicles,total_stopped_vehicles,active_vehicles_remaining,teleport_count,total_reward,fixed_green_seconds,demand_seconds,cooldown_seconds
+marl_deep_dqn,peak,42,4200.0,12.73804347826087,38.58095238095238,81,7.18431260796075,4524,4600,4524,4459,76,3,-118902.95574092865,,3600.0,600.0
+marl_deep_dqn,peak,43,4200.0,12.875434782608696,39.093809523809526,82,7.059314580769769,4551,4600,4551,4495,49,11,-123680.3253825903,,3600.0,600.0
+marl_deep_dqn,peak,44,4200.0,15.677321156773212,42.135714285714286,91,6.768623996827499,4388,4599,4388,4468,211,24,-108397.14933466911,,3600.0,600.0
