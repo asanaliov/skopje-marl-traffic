@@ -141,3 +141,24 @@ def test_run_script_uses_its_own_checkpoint_path():
     assert args.episodes == 300
     assert args.learning_rate == pytest.approx(3e-4)
     assert args.gradient_steps == 1680
+
+
+def test_resume_warmup_only_fills_the_buffer_before_updating(tmp_path):
+    make_trainer(tmp_path, episodes=1).train()
+    resumed = make_trainer(tmp_path, episodes=3, resume_warmup_episodes=1)
+    resumed.load_checkpoint(for_training=True)
+    before = [p.clone() for p in resumed.network.parameters()]
+    _, rollout = resumed._run_episode(2, training=True, sumo_seed=2)
+    resumed._update(rollout)  # warm-up: buffer grows, network untouched
+    assert resumed.buffer.size > 0
+    assert all(torch.equal(a, b) for a, b in zip(before, resumed.network.parameters()))
+    _, rollout = resumed._run_episode(3, training=True, sumo_seed=3)
+    resumed._update(rollout)  # warm-up over: training resumes
+    assert not all(torch.equal(a, b) for a, b in zip(before, resumed.network.parameters()))
+
+
+def test_fresh_runs_ignore_the_resume_warmup(tmp_path):
+    trainer = make_trainer(tmp_path, episodes=1, resume_warmup_episodes=5)
+    before = [p.clone() for p in trainer.network.parameters()]
+    trainer.train()
+    assert not all(torch.equal(a, b) for a, b in zip(before, trainer.network.parameters()))

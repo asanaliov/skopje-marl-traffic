@@ -49,6 +49,13 @@ def parse_args(argv=None) -> argparse.Namespace:
         help="Training episodes (default: 300, the marl_deep_ppo budget).",
     )
     train.add_argument("--resume", action="store_true")
+    train.add_argument(
+        "--resume-warmup",
+        type=int,
+        default=0,
+        help="With --resume: episodes that only refill the (unsaved) replay buffer "
+        "before updates start again (default: 0).",
+    )
     train.add_argument("--learning-rate", type=_positive_float, default=3e-4)
     train.add_argument(
         "--lr-decay",
@@ -116,6 +123,7 @@ def main(argv=None) -> int:
             target_update_steps=args.target_update_steps,
             exploration_fraction=args.exploration_fraction,
             torch_seed=args.torch_seed,
+            resume_warmup_episodes=args.resume_warmup,
         )
         DqnTrainer(config).train(resume=args.resume)
     else:

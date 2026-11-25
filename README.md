@@ -11,20 +11,23 @@ the junctions, and a shared DQN; tabular Q-learning variants were compared earli
 
 Final network (`SKOPJE_NETWORK=real_signals`). Learned controllers train for 300 episodes on demand seed 42 and are
 evaluated on seeds 42, 43 and 44. Values are means over the three seeds; two numbers mean two training runs with
-different torch seeds. Low and peak are being trained on a second machine.
+different torch seeds. Low and peak were trained once, with the current (tuned) defaults.
 
-| Controller | Medium wait (s) | High wait (s) | High: vehicles left |
-| --- | ---: | ---: | ---: |
-| `static_fixed_time` | 14.49 | 19.04 | 4–20 |
-| `webster_fixed_time` | 8.78 | 14.01 | 17–43 |
-| `imported_actuated` | **7.44** | **12.32** | 0–2 |
-| `marl_deep_ppo` | 8.10 / 7.95 | 15.95 | 165–174 |
-| `marl_attention_ppo` | 8.66 / 8.74 | 16.53 | 98–103 |
-| `marl_deep_dqn`, SB3 default settings | 8.23 / 8.52 | 16.34 | 153–159 |
-| `marl_deep_dqn`, tuned (current defaults) | 7.78 / 7.80 | 13.46 | 1–7 |
+| Controller | Low wait (s) | Medium wait (s) | High wait (s) | High: vehicles left | Peak wait (s) | Peak: vehicles left |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `static_fixed_time` | 10.60 | 14.49 | 19.04 | 4–20 | 21.82 | 206–315 |
+| `webster_fixed_time` | 6.20 | 8.78 | 14.01 | 17–43 | 17.27 | 131–700 |
+| `imported_actuated` | 5.68 | **7.44** | **12.32** | 0–2 | **11.91** | 5–13 |
+| `marl_deep_ppo` | 5.42 | 8.10 / 7.95 | 15.95 | 165–174 | 19.74 | 388–463 |
+| `marl_attention_ppo` | 5.70 | 8.66 / 8.74 | 16.53 | 98–103 | 16.50 | 198–299 |
+| `marl_deep_dqn`, SB3 default settings | – | 8.23 / 8.52 | 16.34 | 153–159 | – | – |
+| `marl_deep_dqn`, tuned (current defaults) | **5.20** | 7.78 / 7.80 | 13.46 | 1–7 | 14.30 | 135–229 |
 
 - RL beats fixed-time control: tuned DQN is 46% better than static and 11% better than Webster on medium.
-- Actuated control is still best: tuned DQN is 4.7% behind on medium and 9% behind on high.
+- Actuated control is still best on medium, high and peak: tuned DQN is 4.7%, 9% and 20% behind. On low, tuned DQN
+  (8% better) and plain PPO beat it.
+- On peak, the seed-42 Webster plan gridlocks on seed 43 (21.67 s, 700 vehicles left) but not on 42 and 44
+  (14.49 s, 15.64 s): the known weakness of a fixed plan under different demand.
 - Self-attention does not help: about 0.7 s worse than the same PPO without attention, in both training runs.
 - On high, both PPOs jam at A26 (Kuzman): a queue grows past the 150 m the agent observes, so neither its
   observation nor its reward sees it. Tuned DQN, with the same observation, serves that approach and leaves 1–7 vehicles.
@@ -35,7 +38,7 @@ different torch seeds. Low and peak are being trained on a second machine.
 at the end (3600 s of demand plus 600 s without new vehicles) are reported next to it.
 
 Raw rows: `results/real_signals/experiments.csv`, `torchseed1.csv` (second training runs), `test_ep500.csv`,
-`tuning/` (PPO tuning) and `tuning_dqn/` (DQN tuning and the tuned DQN).
+`tuning/` (PPO tuning) and `tuning_dqn/` (DQN tuning and the tuned DQN; `*_lr3e-4_grad1680.csv` per scenario).
 
 ## How the settings were chosen
 
@@ -199,5 +202,5 @@ results/        result CSVs; checkpoints/ holds trained models
 Design notes in `sumo/skopje/documentation/`: `selected_corridor.md`, `traffic_demand.md`,
 `traffic_agent_interface.md`, `real_signals_network.md`, and one file per baseline.
 
-**Status.** Done: baselines, tabular and deep MARL, PPO and DQN tuning, `real_signals`, medium and high results.
-In progress: low and peak, evaluation on seeds 45–47. Not done: demand calibrated to measured counts.
+**Status.** Done: baselines, tabular and deep MARL, PPO and DQN tuning, `real_signals`, low, medium, high and peak results.
+In progress: evaluation on seeds 45–47. Not done: demand calibrated to measured counts.
