@@ -1,0 +1,16 @@
+name: Feature request
+description: A new controller, experiment, script or improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What and why
+      description: What you want to add or change, and what it is for.
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Effect on results
+      description: Does this change the network, observation, reward or training settings? Which runs would need to be redone?
