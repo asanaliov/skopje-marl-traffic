@@ -1,0 +1,25 @@
+name: Bug report
+description: Something crashes or gives wrong results
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you expected and what happened instead. Paste the error if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact command, including SKOPJE_NETWORK, SKOPJE_LIBSUMO and other environment variables.
+      render: bash
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Python version, SUMO version
+      placeholder: Fedora 45, Python 3.11, SUMO 1.27.1
